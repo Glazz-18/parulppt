@@ -7,7 +7,7 @@ import type { Block, Mark, SceneProps } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { Timeline } from '@/components/ui/Timeline';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
-import { eyebrowStyle, revealStagger, titleStyle, useProgressRef } from './ContentScene';
+import { eyebrowStyle, revealHead, revealStagger, titleStyle, useProgressRef } from './ContentScene';
 import { Blocks } from './Blocks';
 
 // design §4: the figure (`mark.at`) is the numeric emphasis, the description (`mark.text`) is
@@ -81,22 +81,7 @@ export function TimelineScene({ scene }: SceneProps) {
 
         // Arrival pose (CONTRACTS §6/§11, A9): pinned metadata+title complete by 1/scrollLength;
         // pinned beats (axis, marks, closing lines) live in [that, 1].
-        const arrival = 1 / scene.scrollLength;
-        const headEnd = scene.pin ? arrival : 0.35;
-
-        if (eyebrowRef.current) {
-          tl.fromTo(eyebrowRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
-        }
-        if (titleRef.current) {
-          tl.fromTo(
-            titleRef.current,
-            { opacity: 0, y: 16 },
-            { opacity: 1, y: 0, duration: headEnd * 0.6 },
-            headEnd * 0.35,
-          );
-        }
-
-        const supportingSpan = Math.max(1 - headEnd, 0);
+        const { headEnd, supportingSpan } = revealHead(tl, eyebrowRef.current, titleRef.current, scene);
         const linesBlock = restBlocks.find((b) => b.type === 'lines');
         // design §9 "attacker timeline": axis/marks draw across most of the pinned range; a
         // trailing closing-lines block (slide 20's "The human doesn't get faster...") gets the
@@ -178,7 +163,7 @@ export function TimelineScene({ scene }: SceneProps) {
   }, [progress]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-10">
+    <div ref={containerRef} className="flex flex-col gap-8">
       {scene.eyebrow ? (
         <div ref={eyebrowRef} style={eyebrowStyle}>
           <MonoLabel as="p" tone="label">

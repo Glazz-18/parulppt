@@ -6,7 +6,7 @@ import { useGSAP } from '@gsap/react';
 import type { SceneProps } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
-import { titleStyle, eyebrowStyle, revealStagger, useProgressRef } from './ContentScene';
+import { titleStyle, eyebrowStyle, revealHead, revealStagger, useProgressRef } from './ContentScene';
 
 const bodyTextStyle = {
   fontSize: 'clamp(20px, 1.6vw, 28px)',
@@ -52,22 +52,7 @@ export function RolePathScene({ scene }: SceneProps) {
 
         // Arrival pose (CONTRACTS §6/§11): unpinned scene (scrollLength 1), same head/supporting
         // split as ContentScene's unpinned case.
-        const arrival = 1 / scene.scrollLength;
-        const headEnd = scene.pin ? arrival : 0.35;
-
-        if (eyebrowRef.current) {
-          tl.fromTo(eyebrowRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
-        }
-        if (titleRef.current) {
-          tl.fromTo(
-            titleRef.current,
-            { opacity: 0, y: 16 },
-            { opacity: 1, y: 0, duration: headEnd * 0.6 },
-            headEnd * 0.35,
-          );
-        }
-
-        const supportingSpan = Math.max(1 - headEnd, 0);
+        const { headEnd, supportingSpan } = revealHead(tl, eyebrowRef.current, titleRef.current, scene);
 
         // MASTER_PROMPT §19 scene 3 beat: the path line draws left -> right first (design §8
         // "shared geometry" enter grammar), roles reveal in sequence over it, and the marker

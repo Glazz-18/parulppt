@@ -36,6 +36,32 @@ export function useProgressRef(progress: number) {
   return progressRef;
 }
 
+export type HeadReveal = { headEnd: number; supportingSpan: number };
+
+// Arrival pose (CONTRACTS §6/§11, A9): pinned scenes complete metadata+title by 1/scrollLength and
+// keep supporting beats in [that, 1]; unpinned scenes (scrollLength 1) play the whole metadata ->
+// title -> supporting sequence across 0..1. Shared by every scene whose useGSAP timeline opens
+// with an eyebrow + title pair before its own beats (ContentScene, RolePathScene, TimelineScene,
+// and any later scene with the same shape) — third verbatim copy flagged in Task 23 review round 1.
+export function revealHead(
+  tl: gsap.core.Timeline,
+  eyebrowEl: Element | null,
+  titleEl: Element | null,
+  scene: { pin: boolean; scrollLength: number },
+): HeadReveal {
+  const arrival = 1 / scene.scrollLength;
+  const headEnd = scene.pin ? arrival : 0.35;
+
+  if (eyebrowEl) {
+    tl.fromTo(eyebrowEl, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
+  }
+  if (titleEl) {
+    tl.fromTo(titleEl, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: headEnd * 0.6 }, headEnd * 0.35);
+  }
+
+  return { headEnd, supportingSpan: Math.max(1 - headEnd, 0) };
+}
+
 type BlockAnim = { selector: string; from: gsap.TweenVars; to: gsap.TweenVars };
 
 // CONTRACTS §11 grammar (MASTER_PROMPT §19 beats): choreography keyed by block type, not by
@@ -178,28 +204,11 @@ export function ContentScene({ scene }: SceneProps) {
         const tl = gsap.timeline({ paused: true });
         tlRef.current = tl;
 
-        // Arrival pose (CONTRACTS §6/§11, A9): pinned scenes complete metadata+title by
-        // 1/scrollLength and keep supporting beats in [that, 1]; unpinned scenes (scrollLength
-        // 1) play the whole metadata -> title -> supporting sequence across 0..1.
-        const arrival = 1 / scene.scrollLength;
-        const headEnd = scene.pin ? arrival : 0.35;
-
-        if (eyebrowRef.current) {
-          tl.fromTo(eyebrowRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
-        }
-        if (titleRef.current) {
-          tl.fromTo(
-            titleRef.current,
-            { opacity: 0, y: 16 },
-            { opacity: 1, y: 0, duration: headEnd * 0.6 },
-            headEnd * 0.35,
-          );
-        }
+        const { headEnd, supportingSpan } = revealHead(tl, eyebrowRef.current, titleRef.current, scene);
 
         const wrappers = containerRef.current
           ? Array.from(containerRef.current.querySelectorAll<HTMLElement>('[data-block]'))
           : [];
-        const supportingSpan = Math.max(1 - headEnd, 0);
         const perBlock = blocks.length ? supportingSpan / blocks.length : 0;
 
         blocks.forEach((block, i) => {
