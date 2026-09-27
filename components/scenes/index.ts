@@ -6,6 +6,7 @@ import { MemeScene } from './MemeScene';
 import { RolePathScene } from './RolePathScene';
 import { TimelineScene } from './TimelineScene';
 import { RagFlowScene } from './RagFlowScene';
+import { AgentLoopScene } from './AgentLoopScene';
 
 export const registry: Partial<Record<SceneComponentName, ComponentType<SceneProps>>> = {
   TitleScene,
@@ -14,4 +15,5 @@ export const registry: Partial<Record<SceneComponentName, ComponentType<ScenePro
   RolePathScene,
   TimelineScene,
   RagFlowScene,
+  AgentLoopScene,
 };

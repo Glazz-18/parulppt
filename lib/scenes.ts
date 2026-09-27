@@ -198,9 +198,20 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 3 · GUARDRAILS',
+    title: 'What an AI agent does',
+    sourceNotes: ['OWASP GenAI Security Project, Top 10 for LLM Applications, 2026'],
+    content: {
+      blocks: [
+        { type: 'flow', label: 'Chatbot', items: ['Input', '→', 'Answer'] },
+        {
+          type: 'flow',
+          label: 'Agent · loops until done',
+          items: ['Goal', '→', 'Reason', '→', 'Use a tool', '→', 'Act', '→', 'Observe', '↺'],
+        },
+        { type: 'metrics', items: [{ value: '#3', label: 'Excessive Agency, OWASP LLM Top 10 2026' }] },
+      ],
+    },
   },
   {
     id: 'scene-12',
