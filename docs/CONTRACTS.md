@@ -1,5 +1,5 @@
 # CONTRACTS — interface authority
-v1.2 · 2026-09-27 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
+v1.3 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
 
 ## 1. Rulings
 | # | Conflict | Ruling | Why |
@@ -36,6 +36,9 @@ Additional rulings found while reading the sources:
 | A19 | Scene 1 boot sequence (§11) | `TitleScene` (W4) types `UI_COPY.boot` before the four words; motion-only, any input ends it, no SKIP control | User-approved feature from the reference site |
 | A20 | New chrome copy (§5.4) | `index`, `pen`, `undo`, `clear`, `clearConfirm`, `boot` join `UI_COPY` (A6) | User-approved feature from the reference site; boot words are user-approved invented copy |
 | A21 | Escape precedence (§8) | IndexOverlay → SourceDrawer → pen mode → demo escape → nothing; still one engine listener | User-approved feature from the reference site; topmost layer closes first |
+| A22 | PresenterPen placement (§5.6) | Toolbar sits above the current-Act label at the same inline inset (stacked), not beside it | Act 5's label is too long for an inline row at 1280px; stacked placement ruled by Fable in Task 39; Act label gets nowrap/ellipsis (SceneControls). |
+| A23 | Snap inside tall sections (§8) | No snap while `scrollY` is strictly inside any section taller than the viewport (pinned or not); snap targets remain section tops | Whole-branch review I5: snapping pulled the reader back to the top of tall unpinned sections; fixed in lib/sceneNavigation.ts (fix wave, be9c5f1). |
+| A24 | ApprovalGate after a decision (§9.3) | In `approved` and `rejected`, ApprovalGate's Approve and Reject are rendered `disabled` | Whole-branch review dispute accepted by Fable; §9.3 lists no controls after a decision |
 
 ## 2. Repo layout
 ```text
@@ -305,7 +308,7 @@ export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisio
 - Click → `goToScene(slide)` + close. Focus is trapped; opening focuses the first scene button; closing returns focus to the trigger; closes on Escape, backdrop click or its `UI_COPY.close` button. Framer Motion `AnimatePresence`; no storage.
 
 ### 5.6 PresenterPen (`components/presentation/PresenterPen.tsx`, W2, A18)
-- Toolbar fixed bottom-left beside the current-Act label: three mono `<button type="button">`s: `UI_COPY.pen` (`aria-pressed` = pen mode), `UI_COPY.undo` (removes the last stroke), `UI_COPY.clear`.
+- Toolbar fixed bottom-left, stacked above the current-Act label at the same inline inset (A22): three mono `<button type="button">`s: `UI_COPY.pen` (`aria-pressed` = pen mode), `UI_COPY.undo` (removes the last stroke), `UI_COPY.clear`.
 - CLEAR is two-step and state-driven: the first click sets `confirming` and relabels to `UI_COPY.clearConfirm`; a second click within 4000 ms clears all strokes; 4000 ms without one reverts to `UI_COPY.clear` (timer set in an effect keyed on `confirming` and cleared on cleanup, so no race).
 - `<canvas aria-hidden="true">` covers the viewport with `pointer-events: none` unless pen mode is on; pointer events draw strokes in `--orange`, 3px, round caps and joins; strokes live in component state as point arrays, are redrawn on resize, and are all cleared when the current scene changes.
 - The canvas never takes focus or keys, so keyboard navigation works in pen mode; no storage, no network; reduced motion changes nothing (drawing is user-driven).
@@ -356,7 +359,7 @@ export function useDemoEscape(slide: number, onEscape: (() => void) | null): voi
 
 - Idle current scene = the last section whose top ≤ `scrollY + innerHeight / 2`.
 - SideNav links and SceneControls `Previous` / `Next` call `goToScene`; `Previous` is disabled on 1 and `Next` on 46.
-- Snap targets are section tops only; no snap while `scrollY` is strictly inside a pinned scene's sticky range; snapping waits for input to stop, yields to any new input, and is off under reduced motion.
+- Snap targets are section tops only; no snap while `scrollY` is strictly inside any section taller than the viewport, pinned or not (A23); snapping waits for input to stop, yields to any new input, and is off under reduced motion.
 - FinalScene: `UI_COPY.challengeCta` button → `goToScene(44)` + `track('cta_click', { target: 'scene-44' })`; LinkedIn is `<a href={LINKEDIN_HREF} target="_blank" rel="noopener noreferrer">` labelled `content.linkedin` + `track('cta_click', { target: 'linkedin' })`.
 
 | Key (technical §9) | Action |
@@ -504,8 +507,8 @@ export const SOC_PROPOSE_DELAY_MS = 1200; // 0 under reduced motion
 | investigating | row i highlighted and split into time, source, detail (parsed from its string) | other rows → INSPECT(j); Escape → CLOSE; `copilot` → CORRELATE | neutral | `linkedEvents[i]` |
 | correlated | noise collapses into `unrelated`; the 4 events join in order as one chain; summary panel: `copilot`, `summary`, `evidence`, `suggested` | none; the component dispatches PROPOSE after `SOC_PROPOSE_DELAY_MS` | neutral | `evidence` |
 | pending-approval | + ApprovalGate click mode: heading `gate`, proposal `suggested`, buttons `approve` / `reject` | APPROVE, REJECT | alert | `gate` |
-| approved | gate outcome `UI_COPY.soc.approved` (green + check); `suggested` marked committed | – | safe | – |
-| rejected | gate outcome `UI_COPY.soc.rejected` (`--muted`, never green); `suggested` struck through | – | neutral | – |
+| approved | gate outcome `UI_COPY.soc.approved` (green + check); `suggested` marked committed; Approve and Reject rendered `disabled` (A24) | – | safe | – |
+| rejected | gate outcome `UI_COPY.soc.rejected` (`--muted`, never green); `suggested` struck through; Approve and Reject rendered `disabled` (A24) | – | neutral | – |
 - Label = `UI_COPY.soc[state]`; no caption beyond the deck subtitle (`Synthetic logs · aarav-startup.example`, A15).
 - Never render 10,412 or 10,408 DOM rows; counts appear only as the deck strings.
 - MTTD/MTTR improvement is shown only by the collapse and the chain; no invented timings or metrics.
