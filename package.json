@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "build:memes": "node scripts/build-memes.mjs"
+    "build:memes": "node scripts/build-memes.mjs",
+    "verify:copy": "node scripts/verify-copy.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
