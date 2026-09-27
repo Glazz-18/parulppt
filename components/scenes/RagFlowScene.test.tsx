@@ -64,10 +64,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// design §9 RAG beats (0..1) mapped 1/3 + b*(2/3) into the pinned [1/3, 1] window (manager
-// ruling, Task 26): Search + Vector DB (0.16-0.52) merge into stage 02 "Search".
+// design §9 RAG beats (0..1) mapped 1/3 + b*SPAN into the pinned [1/3, HANDOFF_START] window
+// (manager ruling, Task 26): Search + Vector DB (0.16-0.52) merge into stage 02 "Search". Task 37
+// carves the final 15% of the full timeline off for the Answer card's hand-off (design §8), so the
+// content span is compressed into [1/3, HANDOFF_START] instead of [1/3, 1].
 const ARRIVAL = 1 / 3;
-const SPAN = 2 / 3;
+const HANDOFF_START = 0.85;
+const SPAN = HANDOFF_START - ARRIVAL;
 const BEAT_WINDOWS: [number, number][] = [
   [0.0, 0.16],
   [0.16, 0.52],
@@ -180,5 +183,39 @@ describe('RagFlowScene', () => {
       expect(el.style.opacity || '1').toBe('1');
     });
     stages.forEach((el) => expect(gsap.getProperty(el, 'y')).toBe(0));
+  });
+
+  // Task 37 hand-off (design §8, A9, 5->6): the Answer card settles into a "source card" pose
+  // (lift/scale + a rule frame) only after every stage has landed, in the final 15% of the
+  // timeline (HANDOFF_START = 0.85 here).
+  it('the Answer card hand-off pose is not yet applied just before HANDOFF_START, and is fully applied by tl.progress(1)', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+    const { container } = render(<RagFlowScene scene={baseScene()} />);
+    const tl = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
+    const answer = container.querySelector('[data-part="answer"]') as HTMLElement;
+    const frame = container.querySelector('[data-part="handoff-frame"]') as HTMLElement;
+    expect(frame).toBeTruthy();
+    expect(frame.getAttribute('aria-hidden')).toBe('true');
+
+    tl.progress(HANDOFF_START - 0.02);
+    expect(gsap.getProperty(answer, 'y')).toBe(0);
+    expect(gsap.getProperty(answer, 'scale')).toBe(1);
+    expect(Number(frame.style.opacity)).toBe(0);
+
+    tl.progress(1);
+    expect(gsap.getProperty(answer, 'y')).toBe(-6);
+    expect(gsap.getProperty(answer, 'scale')).toBe(1.05);
+    expect(frame.style.opacity || '1').toBe('1');
+  });
+
+  it('under reduced motion, the Answer card renders its settled hand-off pose (lift/scale, rule frame) statically', () => {
+    reduced = true;
+    const { container } = render(<RagFlowScene scene={baseScene()} />);
+    const answer = container.querySelector('[data-part="answer"]') as HTMLElement;
+    const frame = container.querySelector('[data-part="handoff-frame"]') as HTMLElement;
+    expect(answer.style.transform).toContain('scale(1.05)');
+    expect(answer.style.transform).toContain('translateY(-6px)');
+    expect(frame).toBeTruthy();
+    expect(frame.style.border).toContain('var(--rule)');
   });
 });

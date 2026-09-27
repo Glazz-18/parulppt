@@ -32,6 +32,11 @@ const nodeStyle: CSSProperties = {
 const DECORATIVE_COUNT = 26;
 const SPREAD_DEG = 170; // fan spread either side of straight-down (0deg)
 
+// Task 37 hand-off (design §8, A9): the final ~15% of the pinned timeline is reserved for the
+// 48% metric's hand-off into scene 15's first metric (same BigNumber value-left/numeric-emphasis
+// class already; this is the "number collapses into its next role" pose).
+const HANDOFF_SPAN = 0.15;
+
 // Position (as % of a square container anchored at its top-center) and the matching edge
 // geometry (length %, CSS rotate deg from the anchor) for decorative node `i` of `n`. Deterministic
 // in `i` only (trig, no randomness) so the count and layout are stable across renders.
@@ -73,6 +78,7 @@ export function SupplyChainScene({ scene }: SceneProps) {
   const initialEnd = headEnd + supportingSpan * 0.15;
   const expandEnd = initialEnd + supportingSpan * 0.45;
   const incidentEnd = expandEnd + supportingSpan * 0.15;
+  const handoffStart = 1 - HANDOFF_SPAN;
 
   useGSAP(
     () => {
@@ -110,10 +116,24 @@ export function SupplyChainScene({ scene }: SceneProps) {
           revealStagger(tl, [lineEl], expandEnd, incidentEnd, { opacity: 0, y: 12 }, { opacity: 1, y: 0 });
         }
 
-        // Data grammar (CONTRACTS §11): metric lands value-first, then its label.
+        // Data grammar (CONTRACTS §11): metric lands value-first, then its label, fully landed by
+        // handoffStart so the hand-off tween below has the whole tail to itself.
         const metricEl = containerRef.current?.querySelector('[data-part="metric"]');
         if (metricEl) {
-          revealMetrics(tl, [metricEl], incidentEnd, 1);
+          revealMetrics(tl, [metricEl], incidentEnd, handoffStart);
+        }
+
+        // Task 37 hand-off (design §8, A9, 14->15): once landed, the metric (our own wrapper, not
+        // BigNumber's own value span the settle test above already pins to scale 1 -- a different
+        // element, CONTRACTS §11) collapses/shifts left into scene 15's first metric's position.
+        const handoffEl = containerRef.current?.querySelector<HTMLElement>('[data-part="metric-handoff"]');
+        if (handoffEl) {
+          tl.fromTo(
+            handoffEl,
+            { x: 0, scale: 1 },
+            { x: -8, scale: 0.94, duration: HANDOFF_SPAN, ease: 'power2.out' },
+            handoffStart,
+          );
         }
 
         // Guarantees total duration 1 (CONTRACTS §6) even when float rounding left a beat short.
@@ -212,7 +232,14 @@ export function SupplyChainScene({ scene }: SceneProps) {
         </div>
       </div>
       {linesBlock ? <Blocks blocks={[linesBlock]} /> : null}
-      {metricsBlock ? <Blocks blocks={[metricsBlock]} /> : null}
+      {metricsBlock ? (
+        // Task 37 hand-off wrapper (design §8, A9): a wrapper we own, not Blocks'/BigNumber's own
+        // markup (never edited here), so its resting style can carry the settled hand-off pose for
+        // the reduced-motion static render while GSAP owns the same transform when animated.
+        <div data-part="metric-handoff" style={{ transform: 'translateX(-8px) scale(0.94)' }}>
+          <Blocks blocks={[metricsBlock]} />
+        </div>
+      ) : null}
     </div>
   );
 }

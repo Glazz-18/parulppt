@@ -142,8 +142,19 @@ export function AiFixesBugScene({ scene }: SceneProps) {
     </div>,
   );
 
+  // Task 37 hand-off (design §8, A9, 26->27): once the gate is lit (the same `progress >= 1`
+  // condition ApprovalGate itself uses, not the GSAP reveal timeline above -- so this stays true
+  // under reduced motion too, where useSceneProgress() reads 1), a green accent line extends
+  // across the bottom of the viewport, matching scene 27's own 1px rule weight (Blocks.tsx
+  // `layers`' border-t), so the approval "becomes" that scene's accent line.
+  const gateLit = progress >= 1;
+
   return (
-    <div ref={containerRef} className="flex flex-col gap-8">
+    // h-full (with the parent .scene-viewport's own height:100vh while pinned, CONTRACTS §7/§8):
+    // makes bottom-0 on the accent line below land at the actual bottom of the viewport, not just
+    // under the last line of text. Inert under reduced motion, where the parent reverts to
+    // height:auto (percentage heights resolve to auto there) and in jsdom (no real layout).
+    <div ref={containerRef} className="relative flex h-full flex-col gap-8">
       {scene.eyebrow ? (
         <div ref={eyebrowRef} style={eyebrowStyle}>
           <MonoLabel as="p" tone="label">
@@ -176,6 +187,12 @@ export function AiFixesBugScene({ scene }: SceneProps) {
           ))}
         </div>
       ) : null}
+      <div
+        data-part="accent-line"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+        style={{ background: 'var(--green)', opacity: gateLit ? 1 : 0 }}
+      />
     </div>
   );
 }

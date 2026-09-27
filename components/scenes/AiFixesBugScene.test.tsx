@@ -138,6 +138,21 @@ describe('AiFixesBugScene', () => {
     expect(gateRoot().getAttribute('data-lit')).toBe('true');
   });
 
+  // Task 37 hand-off (design §8, A9, 26->27): a green accent-line extends across the bottom of
+  // the viewport exactly when the gate lights (progress >= 1), anticipating scene 27's own rule.
+  it('the accent-line hand-off is hidden below progress 1 and visible at progress 1', () => {
+    const { container } = renderScene();
+    const line = container.querySelector('[data-part="accent-line"]') as HTMLElement;
+    expect(line).toBeTruthy();
+    expect(line.getAttribute('aria-hidden')).toBe('true');
+
+    act(() => setSceneProgress(26, 0.5));
+    expect(Number(line.style.opacity)).toBe(0);
+
+    act(() => setSceneProgress(26, 1));
+    expect(line.style.opacity || '1').toBe('1');
+  });
+
   it('under reduced motion, all text is present, the gate is lit, and no GSAP timeline is created', () => {
     reduced = true;
     const timelineSpy = vi.spyOn(gsap, 'timeline');
@@ -151,6 +166,8 @@ describe('AiFixesBugScene', () => {
 
     const gateRoot = container.querySelector('[data-part="gate"] > div') as HTMLElement;
     expect(gateRoot.getAttribute('data-lit')).toBe('true');
+    const line = container.querySelector('[data-part="accent-line"]') as HTMLElement;
+    expect(line.style.opacity || '1').toBe('1');
     expect(timelineSpy).not.toHaveBeenCalled();
   });
 

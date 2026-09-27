@@ -70,6 +70,7 @@ afterEach(() => {
 const HEAD_END = 1 / 3;
 const SUPPORTING = 1 - HEAD_END;
 const INITIAL_END = HEAD_END + SUPPORTING * 0.15;
+const HANDOFF_START = 0.85;
 
 describe('SupplyChainScene', () => {
   it('renders the eyebrow and h2 title, no scene chrome of its own', () => {
@@ -192,5 +193,31 @@ describe('SupplyChainScene', () => {
 
     // duration 1 guarantee (CONTRACTS §6): progress(1) is a valid, settled state, not clamped.
     expect(tl.duration()).toBe(1);
+  });
+
+  // Task 37 hand-off (design §8, A9, 14->15): the 48% metric collapses/shifts left into scene
+  // 15's first-metric role only in the final 15% of the timeline, after it has already landed.
+  it('the metric hand-off pose is not yet applied just before HANDOFF_START, and is fully applied by tl.progress(1)', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+    const { container } = render(<SupplyChainScene scene={baseScene()} />);
+    const tl = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
+    const handoff = container.querySelector('[data-part="metric-handoff"]') as HTMLElement;
+    expect(handoff).toBeTruthy();
+
+    tl.progress(HANDOFF_START - 0.02);
+    expect(gsap.getProperty(handoff, 'x')).toBe(0);
+    expect(gsap.getProperty(handoff, 'scale')).toBe(1);
+
+    tl.progress(1);
+    expect(gsap.getProperty(handoff, 'x')).toBe(-8);
+    expect(gsap.getProperty(handoff, 'scale')).toBe(0.94);
+  });
+
+  it('under reduced motion, the metric hand-off wrapper renders its settled pose statically', () => {
+    reduced = true;
+    const { container } = render(<SupplyChainScene scene={baseScene()} />);
+    const handoff = container.querySelector('[data-part="metric-handoff"]') as HTMLElement;
+    expect(handoff.style.transform).toContain('translateX(-8px)');
+    expect(handoff.style.transform).toContain('scale(0.94)');
   });
 });

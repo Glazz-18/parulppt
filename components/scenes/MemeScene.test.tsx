@@ -104,6 +104,21 @@ describe('MemeScene', () => {
     expect(created.duration()).toBe(1);
   });
 
+  // Task 37 hand-off (design §8, A9, 22->23): slide 22 only gets the dark field; every other
+  // meme slide is unaffected (scoped by data, not by kind).
+  it('slide 22 renders the dark hand-off field (aria-hidden, --bg-dark/--text-dark tokens); other meme slides do not', () => {
+    const { container: c22 } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    const field = c22.querySelector('[data-part="handoff-field"]') as HTMLElement;
+    expect(field).toBeTruthy();
+    expect(field.getAttribute('aria-hidden')).toBe('true');
+    expect(field.style.background).toBe('var(--bg-dark)');
+    expect(field.style.borderTop).toContain('var(--text-dark)');
+    cleanup();
+
+    const { container: c7 } = render(<MemeScene scene={baseScene({ slide: 7 })} />);
+    expect(c7.querySelector('[data-part="handoff-field"]')).toBeNull();
+  });
+
   // Finding 4 (Task 22b, fix round 1): scrubbing now goes through the shared `useProgressRef`
   // (`./ContentScene`) instead of a local ref — this confirms the refactor still wires
   // `tl.progress(progressRef.current)` correctly (no provider wraps this render, so

@@ -34,8 +34,13 @@ const BEAT_WINDOWS: [number, number][] = [
   [0.84, 1.0],
 ];
 
-// Maps each design §9 beat window (0..1) into the pinned scene's supporting span
-// [headEnd, 1] (CONTRACTS §6, shared revealHead arrival pose).
+// Task 37 hand-off (design §8, A9): the final ~15% of the pinned timeline is reserved for the
+// Answer card's hand-off into scene 6's source card, after every stage has landed.
+const HANDOFF_SPAN = 0.15;
+
+// Maps each design §9 beat window (0..1) into the pinned scene's content span
+// [headEnd, 1 - HANDOFF_SPAN] (CONTRACTS §6, shared revealHead arrival pose); the tail beyond
+// that is reserved for the Task 37 hand-off (design §8) below.
 function stageWindows(headEnd: number, supportingSpan: number): [number, number][] {
   return BEAT_WINDOWS.map(([b0, b1]) => [headEnd + b0 * supportingSpan, headEnd + b1 * supportingSpan]);
 }
@@ -64,7 +69,8 @@ export function RagFlowScene({ scene }: SceneProps) {
   const stages: Step[] = stepsBlock?.items ?? [];
 
   const headEnd = headArrival(scene);
-  const windows = stageWindows(headEnd, Math.max(1 - headEnd, 0));
+  const handoffStart = 1 - HANDOFF_SPAN;
+  const windows = stageWindows(headEnd, Math.max(handoffStart - headEnd, 0));
   const activeIndex = activeStageIndex(progress, windows);
 
   useGSAP(
@@ -91,6 +97,26 @@ export function RagFlowScene({ scene }: SceneProps) {
             start,
           );
         });
+
+        // Task 37 hand-off (design §8, A9, 5->6): once every stage has landed, the Answer card
+        // lifts/scales into a settled "source card" pose that anticipates scene 6's source row;
+        // the mono n/term treatment it already carries (no new words) reads as that card's label,
+        // and this frame (rule border, aria-hidden) is the only new visual element. Transform/
+        // opacity only (CONTRACTS §11); a different element from the one below (the per-card
+        // `isActive` scale) so the two never fight over the same node's `transform`.
+        const answerEl = containerRef.current?.querySelector<HTMLElement>('[data-part="answer"]');
+        const frameEl = containerRef.current?.querySelector<HTMLElement>('[data-part="handoff-frame"]');
+        if (answerEl) {
+          tl.fromTo(
+            answerEl,
+            { y: 0, scale: 1 },
+            { y: -6, scale: 1.05, duration: HANDOFF_SPAN, ease: 'power2.out' },
+            handoffStart,
+          );
+        }
+        if (frameEl) {
+          tl.fromTo(frameEl, { opacity: 0 }, { opacity: 1, duration: HANDOFF_SPAN, ease: 'power2.out' }, handoffStart);
+        }
 
         // Guarantees total duration 1 (CONTRACTS §6) even when float rounding left a beat short.
         tl.set({}, {}, 1);
@@ -137,9 +163,23 @@ export function RagFlowScene({ scene }: SceneProps) {
             const card = (
               <div
                 data-part={isLast ? 'answer' : undefined}
-                className="flex flex-col gap-2 transition-transform duration-300 motion-reduce:transition-none"
-                style={{ transform: isActive ? 'scale(1.04)' : 'scale(1)' }}
+                className={
+                  'flex flex-col gap-2 transition-transform duration-300 motion-reduce:transition-none' +
+                  (isLast ? ' relative' : '')
+                }
+                // The last card's transform is owned entirely by the hand-off tween above (its
+                // resting value here is that pose's settled end-state, matching progress 1 / the
+                // reduced-motion static render, A9); every other card keeps its own `isActive` bump.
+                style={isLast ? { transform: 'translateY(-6px) scale(1.05)' } : { transform: isActive ? 'scale(1.04)' : 'scale(1)' }}
               >
+                {isLast ? (
+                  <span
+                    data-part="handoff-frame"
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -inset-3 rounded"
+                    style={{ border: '1px solid var(--rule)' }}
+                  />
+                ) : null}
                 <span data-part="n" style={numberStyle}>
                   {stage.n}
                 </span>

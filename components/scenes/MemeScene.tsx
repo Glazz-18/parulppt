@@ -14,7 +14,7 @@ import { useProgressRef } from './ContentScene';
 // one wrapper div, so typography and layout are applied here via descendant selectors on that
 // wrapper (CONTRACTS/design instruction) rather than per-element refs or new props.
 const wrapperClassName = [
-  'flex flex-1 max-w-[880px] flex-col justify-center gap-6',
+  'relative flex flex-1 max-w-[880px] flex-col justify-center gap-6',
   // MemeInterstitial's own root div: lay its children out with breathing room.
   '[&>div]:flex [&>div]:flex-col [&>div]:gap-5',
   // Zero default margins; the flex gap above owns all spacing.
@@ -29,6 +29,14 @@ const wrapperClassName = [
   // punchline + box fit a 1440x900 viewport without a second scroll.
   '[&>div>*:last-child]:w-full [&>div>*:last-child]:max-w-[420px]',
 ].join(' ');
+
+// Task 37 hand-off (design §8, A9, 22->23): slide 22 only -- "orange field cuts abruptly into a
+// dark technical scene" -- so the dark field the SocDemo scene continues is already present here.
+// This scene is unpinned (scrollLength 1): per the manager ruling for unpinned hand-offs, there's
+// no separate beat to carve out of the timeline, so the field is a static compositional element,
+// not GSAP-animated. Raw --bg-dark/--text-dark (not the theme-switched --bg/--fg, since this
+// scene's own theme is 'orange') keep the field dark regardless of the outgoing scene's theme.
+const HANDOFF_SLIDES = new Set([22]);
 
 export function MemeScene({ scene }: SceneProps) {
   const progress = useSceneProgress();
@@ -79,6 +87,14 @@ export function MemeScene({ scene }: SceneProps) {
   return (
     <div ref={containerRef} className={wrapperClassName}>
       <MemeInterstitial meme={meme} eyebrow={scene.eyebrow} lines={content.lines} />
+      {HANDOFF_SLIDES.has(scene.slide) ? (
+        <div
+          data-part="handoff-field"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[14%]"
+          style={{ background: 'var(--bg-dark)', borderTop: '2px solid var(--text-dark)' }}
+        />
+      ) : null}
     </div>
   );
 }
