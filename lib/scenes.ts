@@ -84,9 +84,22 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 2 · BREAK AI',
+    title: 'How RAG answers a question',
+    content: {
+      blocks: [
+        {
+          type: 'steps',
+          items: [
+            { n: '01', term: 'Question', text: '“Minimum attendance?”' },
+            { n: '02', term: 'Search', text: 'Vector database finds similar text' },
+            { n: '03', term: 'Top 3 chunks', text: 'Whatever ranks highest wins' },
+            { n: '04', term: 'LLM', text: 'Writes from those chunks' },
+            { n: '05', term: 'Answer', text: 'Sounds confident either way' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-06',
