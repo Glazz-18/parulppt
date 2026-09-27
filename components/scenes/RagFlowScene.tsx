@@ -7,7 +7,7 @@ import { useGSAP } from '@gsap/react';
 import type { SceneProps, Step } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
-import { titleStyle, eyebrowStyle, revealHead, useProgressRef } from './ContentScene';
+import { titleStyle, eyebrowStyle, revealHead, headArrival, useProgressRef } from './ContentScene';
 
 const numberStyle: CSSProperties = {
   fontFamily: 'var(--font-mono)',
@@ -63,8 +63,7 @@ export function RagFlowScene({ scene }: SceneProps) {
   const stepsBlock = blocks.find((b) => b.type === 'steps');
   const stages: Step[] = stepsBlock?.items ?? [];
 
-  const arrival = 1 / scene.scrollLength;
-  const headEnd = scene.pin ? arrival : 0.35;
+  const headEnd = headArrival(scene);
   const windows = stageWindows(headEnd, Math.max(1 - headEnd, 0));
   const activeIndex = activeStageIndex(progress, windows);
 
@@ -137,7 +136,8 @@ export function RagFlowScene({ scene }: SceneProps) {
             const isActive = i === activeIndex;
             const card = (
               <div
-                className="flex flex-col gap-2 transition-transform duration-300"
+                data-part={isLast ? 'answer' : undefined}
+                className="flex flex-col gap-2 transition-transform duration-300 motion-reduce:transition-none"
                 style={{ transform: isActive ? 'scale(1.04)' : 'scale(1)' }}
               >
                 <span data-part="n" style={numberStyle}>
@@ -158,13 +158,7 @@ export function RagFlowScene({ scene }: SceneProps) {
                 className="relative flex flex-col rounded-lg border p-4"
                 style={{ borderColor: isActive ? 'var(--orange)' : 'var(--rule)', background: 'var(--bg)' }}
               >
-                {isLast ? (
-                  <div data-part="answer" className="contents">
-                    {card}
-                  </div>
-                ) : (
-                  card
-                )}
+                {card}
                 {!isLast ? (
                   <span
                     aria-hidden="true"

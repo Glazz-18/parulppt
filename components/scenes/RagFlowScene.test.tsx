@@ -101,9 +101,18 @@ describe('RagFlowScene', () => {
 
   it('has a distinct data-part="answer" element for Task 37 hand-off to scene 6', () => {
     const { container } = render(<RagFlowScene scene={baseScene()} />);
-    const answer = container.querySelector('[data-part="answer"]');
+    const answer = container.querySelector('[data-part="answer"]') as HTMLElement | null;
     expect(answer).toBeTruthy();
     expect(answer?.textContent).toContain('Sounds confident either way');
+
+    // Review round 1 (Task 26): the answer element must be the actual card box Task 37 will pose
+    // (transforms/getBoundingClientRect), not a `display: contents` wrapper around it, which has
+    // no box of its own. It carries the card's own inline transform and its n/term/text children
+    // directly, with no intermediate wrapper element.
+    expect(answer?.className ?? '').not.toMatch(/\bcontents\b/);
+    expect(answer?.style.transform).toBeTruthy();
+    expect(answer?.querySelector('[data-part="n"]')?.parentElement).toBe(answer);
+    expect(answer?.querySelector('[data-part="term"]')?.parentElement).toBe(answer);
   });
 
   it('under reduced motion, all text is present and no GSAP timeline is created', () => {

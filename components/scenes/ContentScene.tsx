@@ -38,6 +38,15 @@ export function useProgressRef(progress: number) {
 
 export type HeadReveal = { headEnd: number; supportingSpan: number };
 
+// Arrival pose (CONTRACTS §6/§11, A9): pinned scenes complete metadata+title by 1/scrollLength;
+// unpinned scenes (scrollLength 1) use a fixed 0.35 head instead. Exported so scenes that need the
+// boundary itself (not just revealHead's tweens) — e.g. RagFlowScene mapping design §9 beats into
+// [headEnd, 1] — read it from one place instead of re-deriving the formula (Task 26 review round 1).
+export function headArrival(scene: { pin: boolean; scrollLength: number }): number {
+  const arrival = 1 / scene.scrollLength;
+  return scene.pin ? arrival : 0.35;
+}
+
 // Arrival pose (CONTRACTS §6/§11, A9): pinned scenes complete metadata+title by 1/scrollLength and
 // keep supporting beats in [that, 1]; unpinned scenes (scrollLength 1) play the whole metadata ->
 // title -> supporting sequence across 0..1. Shared by every scene whose useGSAP timeline opens
@@ -49,8 +58,7 @@ export function revealHead(
   titleEl: Element | null,
   scene: { pin: boolean; scrollLength: number },
 ): HeadReveal {
-  const arrival = 1 / scene.scrollLength;
-  const headEnd = scene.pin ? arrival : 0.35;
+  const headEnd = headArrival(scene);
 
   if (eyebrowEl) {
     tl.fromTo(eyebrowEl, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
