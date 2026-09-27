@@ -187,7 +187,11 @@ describe('SocDemo', () => {
       to: 'approved',
     });
 
-    // repeat press is a no-op (ApprovalGate buttons never disable)
+    // Ruling accepted (disputed ruling 1): once decided, ApprovalGate disables both buttons
+    // (CONTRACTS §9.3 lists "Controls –" for approved/rejected) — a repeat press is a no-op both
+    // because the button is disabled and because the reducer itself no-ops the transition.
+    expect((getButton(container, socCopy.approve) as HTMLButtonElement).disabled).toBe(true);
+    expect((getButton(container, socCopy.reject) as HTMLButtonElement).disabled).toBe(true);
     track.mockClear();
     fireEvent.click(getButton(container, socCopy.approve) as HTMLButtonElement);
     expect(track).not.toHaveBeenCalled();
@@ -216,7 +220,9 @@ describe('SocDemo', () => {
       to: 'rejected',
     });
 
-    // repeat press is a no-op
+    // Ruling accepted (disputed ruling 1): decided outcome disables both buttons.
+    expect((getButton(container, socCopy.approve) as HTMLButtonElement).disabled).toBe(true);
+    expect((getButton(container, socCopy.reject) as HTMLButtonElement).disabled).toBe(true);
     track.mockClear();
     fireEvent.click(getButton(container, socCopy.reject) as HTMLButtonElement);
     expect(track).not.toHaveBeenCalled();

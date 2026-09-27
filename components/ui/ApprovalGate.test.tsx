@@ -78,7 +78,7 @@ describe('ApprovalGate click mode', () => {
     expect(container.firstElementChild?.getAttribute('data-outcome')).toBe('pending');
   });
 
-  it('shows Approved with an svg icon when outcome is approved, buttons stay rendered and enabled', () => {
+  it('shows Approved with an svg icon when outcome is approved, and disables both buttons (ruling: §9.3 lists Controls – once decided)', () => {
     const { container } = render(
       <ApprovalGate
         mode="click"
@@ -97,7 +97,26 @@ describe('ApprovalGate click mode', () => {
     expect(container.firstElementChild?.getAttribute('data-outcome')).toBe('approved');
     const buttons = Array.from(container.querySelectorAll('button'));
     expect(buttons.length).toBe(2);
-    buttons.forEach((btn) => expect(btn.disabled).toBe(false));
+    buttons.forEach((btn) => expect(btn.disabled).toBe(true));
+  });
+
+  it('the proposal is marked committed (icon) once approved, distinct from the outcome pill', () => {
+    const { container } = render(
+      <ApprovalGate
+        mode="click"
+        heading="Escalate"
+        proposal="Do it"
+        approveLabel="Approve"
+        rejectLabel="Reject"
+        outcome="approved"
+        onApprove={() => {}}
+        onReject={() => {}}
+      />
+    );
+
+    const proposal = container.querySelector('p') as HTMLElement;
+    expect(proposal.querySelector('svg')).not.toBeNull();
+    expect(proposal.textContent).toBe('Do it');
   });
 
   it('shows Rejected with an svg icon when outcome is rejected, neutral tone (never green/orange), proposal struck through', () => {
@@ -122,6 +141,8 @@ describe('ApprovalGate click mode', () => {
     expect(container.querySelector('[data-tone="alert"]')).toBeNull();
     const struck = container.querySelector('s');
     expect(struck?.textContent).toBe('Do it');
+    const buttons = Array.from(container.querySelectorAll('button'));
+    buttons.forEach((btn) => expect(btn.disabled).toBe(true));
   });
 
   it('approved keeps the safe tone and does not strike the proposal', () => {

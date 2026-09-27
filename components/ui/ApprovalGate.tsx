@@ -19,6 +19,24 @@ export type ApprovalGateProps =
     }
   | { mode: 'scroll'; heading: string; progress: number };
 
+// §9.3 "approved: suggested marked committed" — the StatusPill already carries the green
+// check for the outcome itself; this marks the proposal paragraph too, so the commit isn't
+// shown only by colour (icon + a connecting rule, same technique as the rejected strikethrough).
+function CommittedIcon() {
+  return (
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="14" height="14">
+      <path
+        d="M3 8.5 6.5 12 13 4"
+        fill="none"
+        stroke="var(--green)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ScrollIcon({ lit }: { lit: boolean }) {
   const color = lit ? 'var(--green)' : 'var(--rule)';
   if (lit) {
@@ -59,15 +77,24 @@ export function ApprovalGate(props: ApprovalGateProps) {
   }
 
   const { heading, proposal, approveLabel, rejectLabel, outcome, onApprove, onReject } = props;
+  // Ruling accepted (disputed ruling 1 / Minor 8): CONTRACTS §9.3 lists "Controls –" for both
+  // approved and rejected, so once a decision is made the buttons disable rather than staying
+  // live for a stray Reject-after-Approve. SocDemo's reducer already no-ops a repeat press; this
+  // also stops the click from reaching it at all, and shows the state (dashed border + reduced
+  // opacity via .demo-btn:disabled — never colour alone).
+  const decided = outcome !== 'pending';
 
   return (
     <div data-outcome={outcome}>
       <h3>{heading}</h3>
-      <p>{outcome === 'rejected' ? <s>{proposal}</s> : proposal}</p>
-      <button type="button" onClick={onApprove}>
+      <p>
+        {outcome === 'approved' ? <CommittedIcon /> : null}
+        {outcome === 'rejected' ? <s>{proposal}</s> : proposal}
+      </p>
+      <button type="button" className="demo-btn" disabled={decided} onClick={onApprove}>
         {approveLabel}
       </button>
-      <button type="button" onClick={onReject}>
+      <button type="button" className="demo-btn" disabled={decided} onClick={onReject}>
         {rejectLabel}
       </button>
       <AnimatePresence initial={false}>
