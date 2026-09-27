@@ -129,10 +129,10 @@ describe('scenes manifest', () => {
   // Task 20 fills slides 1, 2, 8, 15; Task 21 (part A) fills slide 7; Task 21 (part B) fills slides 10, 12, 21, 22, 30, 33, 40, 42, 45;
   // Task 22 fills slide 3; Task 23 fills slides 19, 20; Task 24 fills slides 9, 13, 16, 17, 18, 24, 27, 28.
   // Task 25 fills slides 31, 32, 35, 36, 37, 39, 41, 44. Task 26 fills slide 5. Task 27 fills slide 11.
-  // Task 28 fills slide 14. Task 29 fills slide 25.
+  // Task 28 fills slide 14. Task 29 fills slide 25. Task 30 fills slide 26.
   // Every other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
   const filledSlides = new Set([
-    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 27, 28, 30, 31, 32, 33, 35, 36, 37, 39, 40, 41, 42, 44, 45,
+    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 30, 31, 32, 33, 35, 36, 37, 39, 40, 41, 42, 44, 45,
   ]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
@@ -318,8 +318,8 @@ describe('scenes manifest', () => {
     });
   });
 
-  it('no scene has sourceNotes yet, except 8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 27, 31, 35, 36, 37, 41 (Tasks 20, 23, 24, 25, 27, 28, 29)', () => {
-    const sourceNotesSlides = new Set([8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 27, 31, 35, 36, 37, 41]);
+  it('no scene has sourceNotes yet, except 8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 26, 27, 31, 35, 36, 37, 41 (Tasks 20, 23, 24, 25, 27, 28, 29, 30)', () => {
+    const sourceNotesSlides = new Set([8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 26, 27, 31, 35, 36, 37, 41]);
     scenes.forEach((scene) => {
       if (sourceNotesSlides.has(scene.slide)) {
         expect(scene.sourceNotes).toBeDefined();

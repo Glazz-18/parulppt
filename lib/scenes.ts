@@ -560,9 +560,22 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'AI FINDS · AI FIXES · HUMANS DECIDE · 3 OF 4',
+    title: 'AI fixes the bug',
+    sourceNotes: ['Google Cloud Security / DeepMind (CodeMender) · OpenAI (Codex Security launch)'],
+    content: {
+      blocks: [
+        { type: 'flow', items: ['Find', 'Verify', 'Patch', 'Human approves'] },
+        {
+          type: 'terms',
+          items: [
+            { term: 'Google CodeMender', text: '72 upstream fixes · proves exploitability first · never pushes on its own' },
+            { term: 'OpenAI Codex Security', text: '1.2M commits in 30 days · 792 critical · opens a PR for review' },
+          ],
+        },
+        { type: 'lines', lines: ['AI recommends. Humans remain accountable.'] },
+      ],
+    },
   },
   {
     id: 'scene-27',
