@@ -141,10 +141,6 @@ describe('demoState: RAG reducer', () => {
     expect(next).toBe(s);
   });
 
-  it('no-op: before RESET is not a no-op (tested above)', () => {
-    // covered by RESET test
-  });
-
   it('no-op: poisoned PLANT returns same reference', () => {
     const s = 'poisoned' as const;
     const next = ragReducer(s, 'PLANT');
@@ -401,6 +397,113 @@ describe('demoState: SOC reducer', () => {
   it('no-op: rejected REJECT returns same reference', () => {
     const m: Parameters<typeof socReducer>[0] = { state: 'rejected', inspected: null };
     const next = socReducer(m, { type: 'REJECT' });
+    expect(next).toBe(m);
+  });
+
+  // Missing no-op exhaustiveness: correlated + INSPECT variants
+  it('no-op: correlated INSPECT(0) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'correlated', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 0 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: correlated INSPECT(1) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'correlated', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 1 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: correlated INSPECT(2) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'correlated', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 2 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: correlated INSPECT(3) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'correlated', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 3 });
+    expect(next).toBe(m);
+  });
+
+  // Missing no-op exhaustiveness: correlated + CORRELATE
+  it('no-op: correlated CORRELATE returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'correlated', inspected: null };
+    const next = socReducer(m, { type: 'CORRELATE' });
+    expect(next).toBe(m);
+  });
+
+  // Missing no-op exhaustiveness: pending-approval + INSPECT variants
+  it('no-op: pending-approval INSPECT(0) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'pending-approval', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 0 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: pending-approval INSPECT(1) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'pending-approval', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 1 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: pending-approval INSPECT(2) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'pending-approval', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 2 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: pending-approval INSPECT(3) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'pending-approval', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 3 });
+    expect(next).toBe(m);
+  });
+
+  // Missing no-op exhaustiveness: approved + INSPECT variants
+  it('no-op: approved INSPECT(0) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'approved', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 0 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: approved INSPECT(1) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'approved', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 1 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: approved INSPECT(2) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'approved', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 2 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: approved INSPECT(3) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'approved', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 3 });
+    expect(next).toBe(m);
+  });
+
+  // Missing no-op exhaustiveness: rejected + INSPECT variants
+  it('no-op: rejected INSPECT(0) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'rejected', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 0 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: rejected INSPECT(1) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'rejected', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 1 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: rejected INSPECT(2) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'rejected', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 2 });
+    expect(next).toBe(m);
+  });
+
+  it('no-op: rejected INSPECT(3) returns same reference', () => {
+    const m: Parameters<typeof socReducer>[0] = { state: 'rejected', inspected: null };
+    const next = socReducer(m, { type: 'INSPECT', event: 3 });
     expect(next).toBe(m);
   });
 });
