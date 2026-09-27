@@ -651,9 +651,17 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · SECURITY → STARTUP',
+    title: 'Every security problem is a product',
+    content: {
+      blocks: [
+        { type: 'flow', items: ['Phishing', '→', 'Security awareness'] },
+        { type: 'flow', items: ['Deepfakes', '→', 'Identity verification'] },
+        { type: 'flow', items: ['RAG leakage', '→', 'AI data security'] },
+        { type: 'flow', items: ['Prompt injection', '→', 'AI red-teaming platforms'] },
+        { type: 'flow', items: ['Alert fatigue', '→', 'SOC automation for SMEs'] },
+      ],
+    },
   },
   {
     id: 'scene-30',

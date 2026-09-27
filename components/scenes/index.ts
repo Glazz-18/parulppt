@@ -10,6 +10,7 @@ import { AgentLoopScene } from './AgentLoopScene';
 import { SupplyChainScene } from './SupplyChainScene';
 import { AiWritesBugScene } from './AiWritesBugScene';
 import { AiFixesBugScene } from './AiFixesBugScene';
+import { ProblemProductScene } from './ProblemProductScene';
 
 export const registry: Partial<Record<SceneComponentName, ComponentType<SceneProps>>> = {
   TitleScene,
@@ -22,4 +23,5 @@ export const registry: Partial<Record<SceneComponentName, ComponentType<ScenePro
   SupplyChainScene,
   AiWritesBugScene,
   AiFixesBugScene,
+  ProblemProductScene,
 };
