@@ -15,12 +15,14 @@ import {
   getDemoEscape,
   getDrawerSlide,
   getDrawerTrigger,
+  getIndexEscape,
   getNavigationTarget,
   goToScene,
   isNavigationInFlight,
   keyToAction,
   nearestSnapTarget,
   setCurrentScene,
+  setIndexEscape,
   startNavigationEngine,
   subscribeCurrentScene,
   useCurrentScene,
@@ -867,6 +869,41 @@ describe('navigation engine', () => {
       key({ key: 'ArrowDown' });
       expect(scrollTo).toHaveBeenLastCalledWith({ top: TOPS[5], behavior: 'smooth' });
       expect(getCurrentScene()).toBe(6);
+    });
+  });
+
+  describe('Escape precedence: index overlay closes first (A21, Task 38)', () => {
+    afterEach(() => setIndexEscape(null)); // module-level singleton; never leak into later tests
+
+    it('closes the index overlay via the real engine listener, even with the drawer and a demo escape also active', () => {
+      start();
+      const indexClose = vi.fn();
+      const demoEscape = vi.fn();
+      setIndexEscape(indexClose);
+      renderHook(() => useDemoEscape(1, demoEscape));
+      const drawer = renderHook(() => useSourceDrawer());
+      act(() => drawer.result.current.open(1));
+
+      let event!: KeyboardEvent;
+      act(() => {
+        event = key({ key: 'Escape' });
+      });
+      expect(event.defaultPrevented).toBe(true);
+      expect(indexClose).toHaveBeenCalledTimes(1);
+      expect(drawer.result.current.slide).toBe(1); // untouched: index is the topmost layer
+      expect(demoEscape).not.toHaveBeenCalled();
+    });
+
+    it('with the index overlay closed, falls through to the drawer as before', () => {
+      start();
+      expect(getIndexEscape()).toBeNull();
+      const drawer = renderHook(() => useSourceDrawer());
+      act(() => drawer.result.current.open(1));
+
+      act(() => {
+        key({ key: 'Escape' });
+      });
+      expect(drawer.result.current.slide).toBeNull();
     });
   });
 

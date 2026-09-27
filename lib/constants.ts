@@ -33,6 +33,7 @@ export const UI_COPY = {
   relevance: 'Retrieval relevance', authorization: 'Authorization', // technical §11
   soc: { queue: 'Queue', investigating: 'Investigating', correlated: 'Correlated',
          'pending-approval': 'Pending approval', approved: 'Approved', rejected: 'Rejected' }, // TRD §6
+  index: 'INDEX',                                               // IndexOverlay trigger (A17)
 } as const;
 
 export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisional, Needs user N1

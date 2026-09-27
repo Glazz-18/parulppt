@@ -78,6 +78,17 @@ export function useSourceDrawer(): { slide: number | null; open: (slide: number)
 // A scene change (any cause) closes the drawer; it never shows stale notes for a scene you left.
 subscribeCurrentScene(() => setDrawerSlide(null));
 
+// ---- index overlay escape registry (CONTRACTS §5.5/A21: IndexOverlay registers its close while open) ----
+let indexEscape: (() => void) | null = null;
+
+export function getIndexEscape(): (() => void) | null {
+  return indexEscape;
+}
+
+export function setIndexEscape(onClose: (() => void) | null): void {
+  indexEscape = onClose;
+}
+
 // ---- demo escape registry (CONTRACTS §8: SocDemo etc. register their transient-UI Escape handler) ----
 const demoEscapeHandlers = new Map<number, () => void>();
 
@@ -251,6 +262,7 @@ export function startNavigationEngine(): () => void {
       scrollLength: scene.scrollLength,
       // In flight: act from the pending destination, not the mid-animation measurement.
       progress: target ? target.progress : getSceneProgress(slide),
+      indexOpen: getIndexEscape() !== null,
       drawerOpen: getDrawerSlide() !== null,
       demoEscape: getDemoEscape(slide) !== undefined,
     });
@@ -261,6 +273,8 @@ export function startNavigationEngine(): () => void {
         return goToScene(action.slide);
       case 'scrollBy':
         return scrollInScene(slide, action.direction);
+      case 'closeIndex':
+        return getIndexEscape()?.();
       case 'closeDrawer':
         return closeDrawer();
       case 'demoEscape':
@@ -305,6 +319,7 @@ export const PROGRESS_EPSILON = 1e-3;
 export type NavAction =
   | { type: 'goTo'; slide: number }
   | { type: 'scrollBy'; direction: 1 | -1 } // engine clamps one viewport to the pinned scene's range
+  | { type: 'closeIndex' }
   | { type: 'closeDrawer' }
   | { type: 'demoEscape' };
 
@@ -313,6 +328,7 @@ export type KeyContext = {
   pinned: boolean;
   scrollLength: number;
   progress: number;
+  indexOpen?: boolean;
   drawerOpen: boolean;
   demoEscape: boolean;
 };
@@ -321,6 +337,7 @@ export type KeyContext = {
 export function keyToAction(event: KeyboardEvent, ctx: KeyContext): NavAction | null {
   if (event.altKey || event.ctrlKey || event.metaKey) return null;
   if (event.key === 'Escape') {
+    if (ctx.indexOpen) return { type: 'closeIndex' };
     if (ctx.drawerOpen) return { type: 'closeDrawer' };
     return ctx.demoEscape ? { type: 'demoEscape' } : null;
   }
