@@ -64,23 +64,29 @@ export function TitleScene({ scene }: SceneProps) {
   );
 
   return (
-    <div ref={containerRef} data-title-root={scene.id} className="flex h-full flex-col justify-between gap-10">
+    <div ref={containerRef} data-title-root={scene.id} className="flex flex-1 flex-col justify-between gap-10">
       <div ref={eyebrowRef} style={eyebrowStyle}>
         {scene.eyebrow ? <MonoLabel as="p">{scene.eyebrow}</MonoLabel> : null}
       </div>
       <h1 style={h1Style}>
-        {content.words.map((word, i) => (
-          <span
-            key={i}
-            data-word={i}
-            ref={(el) => {
-              wordRefs.current[i] = el;
-            }}
-            style={{ color: WORD_COLORS[i] ?? 'var(--fg)' }}
-          >
-            {word}
-          </span>
-        ))}
+        {content.words.flatMap((word, i) => {
+          const span = (
+            <span
+              key={`word-${i}`}
+              data-word={i}
+              ref={(el) => {
+                wordRefs.current[i] = el;
+              }}
+              style={{ color: WORD_COLORS[i] ?? 'var(--fg)' }}
+            >
+              {word}
+            </span>
+          );
+          // Finding 7 (Task 22b): a plain space text node between words so h1.textContent reads
+          // with spaces; whitespace-only text is not itself rendered as a flex item (CSS Flexbox
+          // §4), so this doesn't add visual spacing beyond h1Style's own columnGap.
+          return i < content.words.length - 1 ? [span, ' '] : [span];
+        })}
       </h1>
       <div className="flex flex-col gap-1">
         <p ref={speakerRef} style={speakerStyle}>
@@ -91,15 +97,20 @@ export function TitleScene({ scene }: SceneProps) {
         </p>
       </div>
       {/*
-        CONTRACTS §11 scene-1 exception: a CSS keyframe failsafe that shows the words after 3s
-        if the GSAP intro above never runs (e.g. it throws). React 19 href+precedence dedupes
+        Finding 2 (Task 22b) + CONTRACTS §11 scene-1 exception: the words start at opacity 0 in
+        CSS itself (not just via the GSAP effect after mount), so there is no server-paint-then-
+        hide flash — under no-preference they are hidden from first paint, and the GSAP intro
+        (which sets their inline opacity) overrides this rule as soon as it runs. A CSS keyframe
+        failsafe still shows them after 3s if the GSAP intro above never runs (e.g. it throws;
+        Task 40's boot sequence must finish well before this). React 19 href+precedence dedupes
         this across re-renders/mounts of the same scene. Scoped to this scene's own id so it
-        never touches any other section, and wrapped in the same no-preference media query as
-        the GSAP path so reduced motion never sees an opacity:0 word.
+        never touches any other section, and wrapped in the same no-preference media query so
+        reduced motion never sees an opacity:0 word.
       */}
       <style href={`${scene.id}-word-failsafe`} precedence="medium">{`
         @media (prefers-reduced-motion: no-preference) {
           [data-title-root="${scene.id}"] [data-word] {
+            opacity: 0;
             animation: ${scene.id}-words-in 0.01s linear 3s forwards;
           }
           @keyframes ${scene.id}-words-in {

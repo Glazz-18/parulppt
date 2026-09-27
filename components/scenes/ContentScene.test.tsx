@@ -162,4 +162,76 @@ describe('ContentScene', () => {
     tl.progress(1);
     [heading, value, ...context].forEach((el) => expect(el.style.opacity).toBe('1'));
   });
+
+  // Finding 8 (Task 22b): the progress-1 settle test previously covered `steps` only. Extend it
+  // to `flow`, `metrics`, `columns` and `bars` (plus `layers`, whose marker/footer share the same
+  // finding-3 trailing-reveal logic as flow's label/marker and bars' note) — every part, including
+  // the previously-unanimated layer marker/footer, flow label/marker and bars note (finding 3),
+  // must be fully settled (opacity 1, no leftover transform) at progress 1.
+  it('progress 1 settles flow, metrics, columns, bars and layers blocks, including their trailing marker/label/note parts', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+    const scene = baseScene({
+      id: 'scene-11',
+      slide: 11,
+      content: {
+        blocks: [
+          { type: 'flow', label: 'Agent · loops until done', items: ['Plan', '→', 'Act'], marker: 'You are here' },
+          { type: 'metrics', items: [{ value: '$8.80', label: 'cost', heading: 'Heading', versus: ['vs', '$25'] }] },
+          { type: 'columns', items: [{ heading: 'Col A', lines: ['a1'] }, { heading: 'Col B', lines: ['b1'] }] },
+          { type: 'bars', series: ['A', 'B'], note: 'a note', ratios: [0.3, 0.9] },
+          {
+            type: 'layers',
+            items: [{ term: 'App', text: 'Application layer' }],
+            footer: 'Every layer logged',
+            marker: '1',
+          },
+        ],
+      },
+    });
+    const { container } = render(<ContentScene scene={scene} />);
+    const tl = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
+    tl.progress(1);
+
+    const flowWrapper = container.querySelector('[data-block="flow"]') as HTMLElement;
+    const nodes = Array.from(flowWrapper.querySelectorAll('[data-part="node"], [data-part="connector"]')) as HTMLElement[];
+    const flowLabel = flowWrapper.querySelector('[data-part="flow-label"]') as HTMLElement;
+    const flowMarker = flowWrapper.querySelector('[data-part="marker"]') as HTMLElement;
+
+    const metricsWrapper = container.querySelector('[data-block="metrics"]') as HTMLElement;
+    const metricValue = metricsWrapper.querySelector('[data-part="value"]') as HTMLElement;
+
+    const columns = Array.from(container.querySelectorAll('[data-part="column"]')) as HTMLElement[];
+
+    const barsWrapper = container.querySelector('[data-block="bars"]') as HTMLElement;
+    const bars = Array.from(barsWrapper.querySelectorAll('[data-part="bar"]')) as HTMLElement[];
+    const fills = Array.from(barsWrapper.querySelectorAll('[data-part="fill"]')) as HTMLElement[];
+    const barsNote = barsWrapper.querySelector('[data-part="note"]') as HTMLElement;
+
+    const layersWrapper = container.querySelector('[data-block="layers"]') as HTMLElement;
+    const layerItems = Array.from(layersWrapper.querySelectorAll('[data-part="layer"]')) as HTMLElement[];
+    const layersFooter = layersWrapper.querySelector('[data-part="footer"]') as HTMLElement;
+    const layersMarker = layersWrapper.querySelector('[data-part="marker"]') as HTMLElement;
+
+    [
+      ...nodes,
+      flowLabel,
+      flowMarker,
+      metricValue,
+      ...columns,
+      ...bars,
+      barsNote,
+      ...layerItems,
+      layersFooter,
+      layersMarker,
+    ].forEach((el) => expect(el.style.opacity).toBe('1'));
+
+    nodes.forEach((el) => expect(gsap.getProperty(el, 'scale')).toBe(1));
+    [flowLabel, flowMarker, barsNote, layersFooter, layersMarker].forEach((el) =>
+      expect(gsap.getProperty(el, 'y')).toBe(0),
+    );
+    [...columns].forEach((el) => expect(gsap.getProperty(el, 'x')).toBe(0));
+    expect(gsap.getProperty(metricValue, 'scale')).toBe(1);
+    [...bars, ...layerItems].forEach((el) => expect(gsap.getProperty(el, 'y')).toBe(0));
+    fills.forEach((el) => expect(gsap.getProperty(el, 'scaleX')).toBe(1));
+  });
 });

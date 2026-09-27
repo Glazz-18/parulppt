@@ -109,6 +109,18 @@ function revealMetrics(tl: gsap.core.Timeline, metricEls: Element[], start: numb
   });
 }
 
+// Finding 3 (Task 22b): secondary/annotation parts (layer marker/footer, flow label/marker, bars
+// note) were never animated and so showed before their block's own items landed. They now reveal
+// at the END of their own block's [start, end) slot, after the items — carving a small tail off
+// the slot for them when present, so the block's own span (and the timeline's total duration,
+// CONTRACTS §6) is unchanged either way.
+const TRAILING_SPAN = 0.15;
+function splitTrailing(start: number, end: number, hasTrailing: boolean) {
+  if (!hasTrailing) return { itemsEnd: end, trailStart: end };
+  const trailStart = start + (end - start) * (1 - TRAILING_SPAN);
+  return { itemsEnd: trailStart, trailStart };
+}
+
 // Bars grow (beat 28): the fill scales in from the left; the row itself also fades up so a
 // bar with no ratio yet (undefined -> full width, see Blocks.tsx) still reads as a reveal.
 function revealBars(tl: gsap.core.Timeline, barEls: Element[], start: number, end: number) {
@@ -137,6 +149,15 @@ export function ContentScene({ scene }: SceneProps) {
   const eyebrowRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  // Finding 4 (Task 22b): the matchMedia callback below only re-runs when the media query's
+  // match state changes at runtime (e.g. the OS reduced-motion setting flips mid-scroll), not on
+  // every progress change — reading the `progress` closure variable there would apply whatever
+  // value was current at mount, not the latest one. Keep the latest value in a ref (updated every
+  // render) and read from the ref when (re)building the timeline instead.
+  const progressRef = useRef(progress);
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
 
   const blocks = 'blocks' in scene.content ? scene.content.blocks : [];
 
@@ -182,7 +203,25 @@ export function ContentScene({ scene }: SceneProps) {
             return;
           }
           if (block.type === 'bars') {
-            revealBars(tl, Array.from(wrapper.querySelectorAll('[data-part="bar"]')), start, end);
+            const note = wrapper.querySelector('[data-part="note"]');
+            const { itemsEnd, trailStart } = splitTrailing(start, end, !!note);
+            revealBars(tl, Array.from(wrapper.querySelectorAll('[data-part="bar"]')), start, itemsEnd);
+            if (note) revealStagger(tl, [note], trailStart, end, { opacity: 0, y: 8 }, { opacity: 1, y: 0 });
+            return;
+          }
+          if (block.type === 'layers' || block.type === 'flow') {
+            const cfg = BLOCK_ANIM[block.type];
+            if (!cfg) return;
+            // layers' marker/footer (Blocks.tsx ~97-124) and flow's label/marker (~153-162) are
+            // never part of the block's own item selector, so they're picked up separately here.
+            const trailingSelector =
+              block.type === 'layers'
+                ? '[data-part="marker"], [data-part="footer"]'
+                : '[data-part="flow-label"], [data-part="marker"]';
+            const trailing = Array.from(wrapper.querySelectorAll(trailingSelector));
+            const { itemsEnd, trailStart } = splitTrailing(start, end, trailing.length > 0);
+            revealStagger(tl, wrapper.querySelectorAll(cfg.selector), start, itemsEnd, cfg.from, cfg.to);
+            if (trailing.length) revealStagger(tl, trailing, trailStart, end, { opacity: 0, y: 8 }, { opacity: 1, y: 0 });
             return;
           }
           const cfg = BLOCK_ANIM[block.type];
@@ -193,7 +232,7 @@ export function ContentScene({ scene }: SceneProps) {
         // Guarantees total duration 1 (CONTRACTS §6) even when content is empty or float
         // rounding left the last beat a hair short.
         tl.set({}, {}, 1);
-        tl.progress(progress);
+        tl.progress(progressRef.current);
 
         return () => {
           tlRef.current = null;

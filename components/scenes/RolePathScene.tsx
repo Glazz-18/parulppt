@@ -19,6 +19,13 @@ const bodyTextStyle = {
 // 4381500/7620000/10858500/14097000) — the marker rests over the first (lowest) step, User.
 const RESTING_ROLE_INDEX = 0;
 
+// Finding 5 (Task 22b): the roles list is five equal `flex-1` columns (see the `<ol>` below), so
+// column 1 (User) is centred at 10% and column 5 (System designer) at 90%. `path`/`pointer` were
+// `inset-x-0` (0%..100%), overshooting past System designer's dot centre; inset them to the first
+// and last dot centres instead so the pointer's resting position (progress 1, x: 0) lines up with
+// the last dot, not the column's outer edge.
+const PATH_INSET = '10%';
+
 export function RolePathScene({ scene }: SceneProps) {
   const progress = useSceneProgress();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -139,13 +146,19 @@ export function RolePathScene({ scene }: SceneProps) {
         <div
           ref={pathRef}
           data-part="path"
-          className="absolute inset-x-0 top-2 h-px origin-left"
-          style={{ background: 'var(--rule)' }}
+          className="absolute top-2 h-px origin-left"
+          style={{ left: PATH_INSET, right: PATH_INSET, background: 'var(--rule)' }}
         />
         {/* Decorative path-head pointer (not the "You are here" marker): same width as `path`, so
             translating it by its own -100%/0% moves it exactly one path-length. Its natural,
             untransformed position (the inner dot at `right-0`) is the path's end. */}
-        <div ref={pointerRef} data-part="pointer" aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-2 h-0">
+        <div
+          ref={pointerRef}
+          data-part="pointer"
+          aria-hidden="true"
+          className="pointer-events-none absolute top-2 h-0"
+          style={{ left: PATH_INSET, right: PATH_INSET }}
+        >
           <span className="absolute right-0 top-1/2 block h-2 w-2 -translate-y-1/2 rounded-full" style={{ background: 'var(--label)' }} />
         </div>
         <ol data-part="roles" className="relative flex items-start justify-between gap-2">

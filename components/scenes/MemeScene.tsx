@@ -13,7 +13,7 @@ import { useSceneProgress } from '@/components/presentation/SceneProgress';
 // one wrapper div, so typography and layout are applied here via descendant selectors on that
 // wrapper (CONTRACTS/design instruction) rather than per-element refs or new props.
 const wrapperClassName = [
-  'flex h-full max-w-[880px] flex-col justify-center gap-6',
+  'flex flex-1 max-w-[880px] flex-col justify-center gap-6',
   // MemeInterstitial's own root div: lay its children out with breathing room.
   '[&>div]:flex [&>div]:flex-col [&>div]:gap-5',
   // Zero default margins; the flex gap above owns all spacing.
@@ -21,7 +21,7 @@ const wrapperClassName = [
   // Eyebrow (MonoLabel as="p", carries data-tone) and the fallback's title label share the mono
   // metadata tier (design §4: 12–16px mono); every other <p> (lines + fallback captions) is body tier.
   '[&_p[data-tone]]:text-[clamp(12px,1vw,16px)]',
-  '[&_p:not([data-tone])]:text-[clamp(18px,1.6vw,26px)] [&_p:not([data-tone])]:leading-snug',
+  '[&_p:not([data-tone])]:text-[clamp(20px,1.6vw,28px)] [&_p:not([data-tone])]:leading-snug',
   // Huge punchline (design §4 hero/major tier; design §10 "huge headline or punchline").
   '[&_h2]:font-bold [&_h2]:leading-[0.98] [&_h2]:text-[clamp(56px,8vw,120px)]',
   // The meme box is the root div's last child (image or fallback); cap its width so the

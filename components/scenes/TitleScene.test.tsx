@@ -82,6 +82,14 @@ describe('TitleScene', () => {
     expect(container.textContent).toContain('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
   });
 
+  // Finding 7 (Task 22b): the words were adjacent spans with no space text node between them, so
+  // reading the h1's full text ran the words together (e.g. for a screen reader or a copy/paste).
+  it('reads the four words with spaces between them (not run together)', () => {
+    const { container } = render(<TitleScene scene={scene1} />);
+    const h1 = container.querySelector('h1')!;
+    expect(h1.textContent).toBe('BUILD. BREAK. SECURE. SCALE.');
+  });
+
   it('renders a scoped <style> failsafe under no-preference, targeting scene 1 words', () => {
     render(<TitleScene scene={scene1} />);
     // React 19 hoists <style href/precedence> into <head>; assert it exists in the document
@@ -90,6 +98,31 @@ describe('TitleScene', () => {
     const match = styles.find((s) => s.textContent?.includes(scene1.id));
     expect(match).toBeTruthy();
     expect(match?.textContent).toContain('prefers-reduced-motion: no-preference');
+  });
+
+  // Finding 2 (Task 22b): the words must start at opacity 0 in CSS itself (scoped to the
+  // no-preference query), not just via the GSAP effect after mount, so there is no
+  // server-paint-then-hide flash.
+  it('the no-preference style rule starts the words at opacity 0 (failsafe still present)', () => {
+    render(<TitleScene scene={scene1} />);
+    const styles = Array.from(document.querySelectorAll('style'));
+    const match = styles.find((s) => s.textContent?.includes(scene1.id));
+    const noPreferenceBlock = match?.textContent?.match(
+      /prefers-reduced-motion: no-preference\)\s*{([\s\S]*)}\s*$/,
+    )?.[1];
+    expect(noPreferenceBlock).toBeTruthy();
+    expect(noPreferenceBlock).toContain('opacity: 0');
+    expect(noPreferenceBlock).toContain('animation:');
+  });
+
+  // Finding 2 (Task 22b): the opacity:0 rule lives only inside the no-preference media query, so
+  // under reduced motion the words are never hidden — no timeline runs and no CSS rule applies.
+  it('under reduced motion, the words are not hidden (no inline opacity 0)', () => {
+    reduced = true;
+    const { container } = render(<TitleScene scene={scene1} />);
+    const words = Array.from(container.querySelectorAll('[data-word]')) as HTMLElement[];
+    expect(words).toHaveLength(4);
+    words.forEach((word) => expect(word.style.opacity).not.toBe('0'));
   });
 
   it('builds a GSAP timeline only under no-preference, never under reduce', () => {
