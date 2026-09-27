@@ -5,10 +5,16 @@ import { UI_COPY } from '@/lib/constants';
 import { SceneRenderer } from './SceneRenderer';
 import { Presentation } from './Presentation';
 
+// This file's fallback tests must stay true regardless of which scene components the registry
+// gains over time (Task 20 added TitleScene/ContentScene; Task 23 adds TimelineScene, etc.), so
+// the registry is forced empty here rather than picking a scene kind that happens to be
+// unregistered today.
+vi.mock('@/components/scenes', () => ({ registry: {} }));
+
 let warnSpy: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
-  // Registry is empty (Task 7); every scene hits the fallback and would warn.
+  // Registry is mocked empty above, so every scene hits the fallback and would warn.
   // Silence it here so test output stays pristine; specific tests assert on it directly.
   warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });

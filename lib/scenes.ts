@@ -9,9 +9,12 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'title',
-    eyebrow: '',
-    title: '',
-    content: { words: [], speaker: '', role: '' },
+    eyebrow: 'AI × CYBERSECURITY × ENTREPRENEURSHIP',
+    content: {
+      words: ['BUILD.', 'BREAK.', 'SECURE.', 'SCALE.'],
+      speaker: 'Atharv Tiwari',
+      role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
+    },
   },
   {
     id: 'scene-02',
@@ -21,9 +24,20 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'editorial',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 1 · THE WORLD CHANGED',
+    title: 'Three hands',
+    content: {
+      blocks: [
+        {
+          type: 'steps',
+          items: [
+            { n: '01', text: 'Who used AI today?' },
+            { n: '02', text: 'Who knows what happens behind the answer?' },
+            { n: '03', text: 'Who has tried to break one?' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-03',
@@ -34,9 +48,17 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 1 · THE WORLD CHANGED',
+    title: 'AI is bigger than ChatGPT',
+    content: {
+      blocks: [
+        {
+          type: 'flow',
+          marker: 'You are here',
+          items: ['User', 'Power user', 'Builder', 'Founder', 'System designer'],
+        },
+      ],
+    },
   },
   {
     id: 'scene-04',
@@ -88,9 +110,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 4, lines: [] },
+    eyebrow: 'RAG ≠ AUTHORIZATION',
+    content: { memeId: 4, lines: ['RAG hai bhai.'] },
   },
   {
     id: 'scene-08',
@@ -101,9 +122,21 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 2,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 2 · BREAK AI',
+    title: 'The lethal trifecta',
+    sourceNotes: ['Concept: Simon Willison, 2025 · CVE-2025-32711, Microsoft MSRC, 2025'],
+    content: {
+      blocks: [
+        {
+          type: 'flow',
+          items: ['Private data', '+', 'Untrusted content', '+', 'A way to send data out', '=', 'Exploitable'],
+        },
+        {
+          type: 'lines',
+          lines: ['EchoLeak, 2025 · one crafted email, zero clicks, data pulled out of Microsoft 365 Copilot.'],
+        },
+      ],
+    },
   },
   {
     id: 'scene-09',
@@ -125,9 +158,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 22, lines: [] },
+    eyebrow: "CHATBOT VS AGENT",
+    content: { memeId: 22, lines: ["…maine kab bola?"] },
   },
   {
     id: 'scene-11',
@@ -150,9 +182,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 3, lines: [] },
+    eyebrow: "OVER-PERMISSIONED AGENTS",
+    content: { memeId: 3, lines: ["Bhai intern ko CEO ki permissions kyun di?"] },
   },
   {
     id: 'scene-13',
@@ -187,9 +218,25 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'data',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 3 · GUARDRAILS',
+    title: 'Shadow AI',
+    sourceNotes: ['Verizon DBIR 2026 · IBM Cost of a Data Breach 2026 · IBM Cost of a Data Breach, India, 2026'],
+    content: {
+      blocks: [
+        {
+          type: 'metrics',
+          items: [
+            { value: '45%', label: 'employee AI use is unapproved, up 3×' },
+            { value: '43%', label: 'of breached orgs had shadow AI, up from 20%' },
+            { value: '₹1.79cr', label: 'added per breach in India' },
+          ],
+        },
+        {
+          type: 'lines',
+          lines: ['The college project you built on a free API key, with the placement data in it.'],
+        },
+      ],
+    },
   },
   {
     id: 'scene-16',
@@ -260,9 +307,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 14, lines: [] },
+    eyebrow: "MTTR",
+    content: { memeId: 14, lines: ["SOC: We found the attacker!","Attacker: Cool. I’m still inside."] },
   },
   {
     id: 'scene-22',
@@ -272,9 +318,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 12, lines: [] },
+    eyebrow: "ALERT FATIGUE",
+    content: { memeId: 12, lines: ["10,000 alerts later…","Jo hoga dekha jayega."] },
   },
   {
     id: 'scene-23',
@@ -372,9 +417,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 15, lines: [] },
+    eyebrow: "PROBLEM DISCOVERY",
+    content: { memeId: 15, lines: ["“Who has this problem?”","“Everyone.”"] },
   },
   {
     id: 'scene-31',
@@ -408,9 +452,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 6, lines: [] },
+    eyebrow: "GOVERNANCE DEBT",
+    content: { memeId: 6, lines: ["Customer: Please complete our 187-question security questionnaire.","Founder: …"] },
   },
   {
     id: 'scene-34',
@@ -495,9 +538,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 18, lines: [] },
+    eyebrow: "HACKATHON REALITY",
+    content: { memeId: 18, lines: ["9 AM: revolutionary product.","2 AM: Bhai database connect nahi ho raha."] },
   },
   {
     id: 'scene-41',
@@ -519,9 +561,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 19, lines: [] },
+    eyebrow: "NETWORKING",
+    content: { memeId: 19, lines: ["“I don’t need networking.”","Six months later: internship kaise milegi?"] },
   },
   {
     id: 'scene-43',
@@ -555,9 +596,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 28, lines: [] },
+    eyebrow: "START NOW",
+    content: { memeId: 28, lines: ["“Exams ke baad start karunga.”","Graduation day: I should have started in college."] },
   },
   {
     id: 'scene-46',
