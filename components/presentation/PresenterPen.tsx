@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { motion } from 'framer-motion';
 import { UI_COPY } from '@/lib/constants';
+import { scenes } from '@/lib/scenes';
 import { setPenEscape, useCurrentScene } from '@/lib/sceneNavigation';
 
 // CONTRACTS §5.6: PEN / UNDO / two-step CLEAR toolbar + a full-viewport canvas overlay; strokes
@@ -48,6 +49,13 @@ function canvasStyle(penMode: boolean): CSSProperties {
 
 export function PresenterPen() {
   const currentScene = useCurrentScene();
+  const scene = scenes[currentScene - 1];
+  // CONTRACTS §5.3/Task 42: toolbar text/border take --fg/--rule from the current scene's theme
+  // (like SideNav/SceneControls already do), so PEN/UNDO/CLEAR stay readable on every scene.
+  const themeProps = {
+    'data-theme': scene.theme,
+    ...(scene.accent ? { 'data-accent': scene.accent } : {}),
+  };
   const [penMode, setPenMode] = useState(false);
   const [strokes, setStrokes] = useState<Point[][]>([]);
   const [confirming, setConfirming] = useState(false);
@@ -154,7 +162,7 @@ export function PresenterPen() {
 
   return (
     <>
-      <div style={toolbarStyle}>
+      <div {...themeProps} style={toolbarStyle}>
         <motion.button
           type="button"
           aria-pressed={penMode}

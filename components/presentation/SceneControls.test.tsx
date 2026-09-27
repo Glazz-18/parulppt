@@ -20,6 +20,20 @@ afterEach(() => {
 });
 
 describe('SceneControls', () => {
+  it("the chrome root carries the current scene's theme (scene 3 = light, scene 7 = orange, scene 1 = dark)", () => {
+    act(() => setCurrentScene(3));
+    const { container, rerender } = render(<SceneControls />);
+    expect(container.querySelector('[data-theme]')?.getAttribute('data-theme')).toBe('light');
+
+    act(() => setCurrentScene(7));
+    rerender(<SceneControls />);
+    expect(container.querySelector('[data-theme]')?.getAttribute('data-theme')).toBe('orange');
+
+    act(() => setCurrentScene(1));
+    rerender(<SceneControls />);
+    expect(container.querySelector('[data-theme]')?.getAttribute('data-theme')).toBe('dark');
+  });
+
   it('reads the counter as "01 / 46" on scene 1', () => {
     const { getByText } = render(<SceneControls />);
     expect(getByText('01 / 46')).toBeTruthy();

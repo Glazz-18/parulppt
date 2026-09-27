@@ -100,6 +100,27 @@ describe('IndexOverlay', () => {
     expect(trigger.textContent).toBe(UI_COPY.index);
   });
 
+  it("trigger and dialog carry the current scene's theme (scene 3 = light, scene 7 = orange, scene 1 = dark)", () => {
+    setCurrentScene(3);
+    const { unmount: unmount1 } = render(<IndexOverlay />);
+    let trigger = document.querySelector('button[aria-controls="scene-index"]') as HTMLButtonElement;
+    expect(trigger.getAttribute('data-theme')).toBe('light');
+    fireEvent.click(trigger);
+    expect((document.getElementById('scene-index') as HTMLElement).getAttribute('data-theme')).toBe('light');
+    unmount1();
+
+    setCurrentScene(7);
+    const { unmount: unmount2 } = render(<IndexOverlay />);
+    trigger = document.querySelector('button[aria-controls="scene-index"]') as HTMLButtonElement;
+    expect(trigger.getAttribute('data-theme')).toBe('orange');
+    unmount2();
+
+    setCurrentScene(1);
+    render(<IndexOverlay />);
+    trigger = document.querySelector('button[aria-controls="scene-index"]') as HTMLButtonElement;
+    expect(trigger.getAttribute('data-theme')).toBe('dark');
+  });
+
   it('dialog has the required role/aria wiring', () => {
     render(<IndexOverlay />);
     const { dialog } = openOverlay();
