@@ -462,6 +462,18 @@
 - [ ] **Step 1:** Failing tests: with `matchMedia` → `reduce`, no boot text is in the DOM and all six title lines are visible; with `no-preference`, the boot heading is rendered first and the words exist in the DOM (visibility handled by GSAP); a `keydown` during boot removes the boot block.
 - [ ] **Step 2:** Implement inside the existing `useGSAP` one-shot intro (GSAP owns it). Tests PASS; lint; browser check at 1440×900. Commit `feat(w4): boot sequence before the title`.
 
+### Task 41: SceneShell frame fixes (Phase 1 gate conditions I1, I2)
+
+**Model:** Sonnet (W1-owned follow-up, dispatched by Fable on build/site; reviewer Sonnet)
+**Files:**
+- Modify: `components/ui/SceneShell.tsx` (+ `.test.tsx`), `app/globals.css`
+
+**Interfaces:**
+- Produces: SceneShell padding `paddingInline: 'calc(var(--rail-w) + 5vw) 5vw'` and `paddingBlock: 'max(7vh, 72px)'` so the fixed HUD (INDEX top-left; Act label + pen toolbar bottom-left, ~67px tall) never overlaps scene content at 1280×720 or 1440×900; `[data-pin="false"] .scene-viewport { min-height: 100vh; display: flex; flex-direction: column }` so unpinned scene roots can use `flex-1` to fill the viewport (TitleScene speaker line at the bottom per design §16, MemeScene centred); pinned behaviour unchanged (`[data-pin="true"] .scene-viewport` stays sticky, `height: 100vh`); reduced-motion override unchanged.
+
+- [ ] **Step 1:** Failing tests in `SceneShell.test.tsx`: the root's inline style (or computed class) carries the two padding values; a `pin: false` scene's `.scene-viewport` is a flex column with `min-height: 100vh` (assert via the CSS text of `app/globals.css` read with Node `fs`, since jsdom does not compute stylesheet rules); a `pin: true` scene keeps `position: sticky` in the same CSS.
+- [ ] **Step 2:** Implement; `npm run lint && npm test && npm run build`; commit `fix(w1): scene frame padding floor and unpinned viewport height`.
+
 ---
 
 ## Phase gates (Fable records, Opus signs) — see `docs/AGENT_HIERARCHY.md` §11
