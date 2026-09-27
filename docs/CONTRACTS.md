@@ -1,5 +1,5 @@
 # CONTRACTS — interface authority
-v1 · 2026-09-27 · Phase 0 · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
+v1.1 · 2026-09-27 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
 
 ## 1. Rulings
 | # | Conflict | Ruling | Why |
@@ -16,7 +16,7 @@ Additional rulings found while reading the sources:
 | # | Topic | Ruling | Why |
 |---|---|---|---|
 | A1 | Scene 43 prompts | Five prompts (deck 01–05, incl. `One problem you care about`), not MASTER_PROMPT §20's four | §8 source precedence |
-| A2 | `sourceNotes` origin | Speaker notes hold only the slide number on all 46 slides; `sourceNotes` = the slide's citation paragraph (§3.1 rule 4) | Notes carry no text |
+| A2 | `sourceNotes` origin | Every slide carries full speaker notes with timing brackets (e.g. slide 1: `[0:00–0:30 · 30s] WHAT TO SAY: …`); `sourceNotes` = the slide's citation paragraph (§3.1 rule 4); speaker notes are worker reference for intent and timing, never on-screen copy | Notes are the presenter's script, not deck-visible text (AGENT_HIERARCHY §8) |
 | A3 | Demo copy home | Demo strings live in `lib/demoState.ts` (W3), not `lib/scenes.ts` | `lib/scenes.ts` has one writer (W4) and W3 runs in Phase 1 |
 | A4 | Pinning mechanism | CSS `position: sticky` inside a `scrollLength × 100vh` section; ScrollTrigger only measures progress and never uses `pin` | Server layout equals final layout: no pin-spacer, no reflow after hydration, stable mid-page refresh (requirement H) |
 | A5 | TRD files not created | `ChallengeScene.tsx` (44 renders with `TimelineScene`), `SceneViewport.tsx` (sticky lives in `SceneShell` CSS), `Tooltip.tsx`, `public/icons/`, `public/textures/` | No documented consumer; 44 is timeline data (AGENT_HIERARCHY §4) |
@@ -24,6 +24,13 @@ Additional rulings found while reading the sources:
 | A7 | Light-theme label colour | Add `--orange-ink: #AF4000` | It is the deck's own label colour on light slides; `#F47F46` on `#F4F1EA` is 2.3:1 |
 | A8 | Eyebrow accent on dark | `accent: 'orange'` on 4, 5, 6, 8, 19, 39; other dark scenes use green | Deck eyebrow colours (19 attacker orange, 20 defender green) |
 | A9 | Scene handoffs (design §8) | Built only in the outgoing scene; its hand-off pose is its progress-1 state | Keeps "progress 1 = static markup" true (§11) |
+| A10 | Missing meme rasters | `source/memes.json` ids 4 and 17 have `file: null` plus a `missing` note; `public/memes/` holds 26 PNGs; their `src` is `''` (§7, §10) | Their `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27) |
+| A11 | First progress measurement | The engine stores `self.progress` in `onRefresh` as well as `onUpdate` (§6) | `onUpdate` fires only on change, so a scene whose true progress is 0 would keep the pre-measure 1 |
+| A12 | Who renders `SceneShell` | Only `SceneRenderer`; registry components, including `DemoShell`, render inside `.scene-viewport` and never render `SceneShell` or a `<section>` | A second shell nests `section[data-scene]` and breaks the 46-section count (§5.1, TRD §16) |
+| A13 | `<main>` and chrome placement | `Presentation` renders `<main id="presentation">` holding only the 46 sections; `SideNav`, `SceneControls` and `SourceDrawer` are its siblings; `app/page.tsx` returns `<Presentation />` only; `MotionConfig` wraps them inside `Presentation` | Keeps the nav landmark out of `<main>` and the section list pure; §2 already puts `MotionConfig` in the engine |
+| A14 | CampusBot baseline chip | Chip text = `campusBotCopy.labels.roleplay` (`role-play`); pressing it adds the Student `roleplay` message (§9.1) | v1 "chip labelled `roleplay`" could mean the long prompt, which would then print twice |
+| A15 | Demo subtitle vs caption | `DemoShell` renders `content.subtitle` once; `caption` is `UI_COPY.fictional` on scene 4 only; scenes 6 and 23 have no separate caption (§9) | v1 made the RAG and SOC caption the deck subtitle, printing the same string twice |
+| A16 | Ownership exceptions (Fable ledger rulings) | `lib/memes.ts`, `public/memes/` and `scripts/build-memes.mjs`: W1 Task 6; `lib/scenes.ts` skeleton and empty `components/scenes/index.ts`: W2 Task 7, then W4 sole writer; `scripts/verify-copy.mjs`: W4 Task 19; `package.json` script lines they add are applied by their manager | Records Fable's rulings so §2 no longer contradicts the plan |
 
 ## 2. Repo layout
 ```text
@@ -56,7 +63,7 @@ lib/
   demoState.ts               W3 (§9)
   scenes.ts                  W4: export const scenes: Scene[] (46 entries)
   memes.ts                   W0: generated (§10)
-public/memes/                W0: 28 vendored PNGs
+public/memes/                W0: 26 vendored PNGs (ids 4 and 17 have none, A10)
 source/                      W0: slides.json, memes.json, memes/*.png (pptx-raw/ is gitignored scratch)
 scripts/                     W0: extraction, meme vendoring, copy verification
 docs/                        read-only; this file: Opus only
@@ -242,7 +249,7 @@ export const ACTS = [
   <div class="scene-viewport">…scene component…</div>
 </section>
 ```
-- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the direct children of `<main id="presentation">`, in slide order.
+- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the only children of `<main id="presentation">`, in slide order (A13).
 - `data-pin="true"`: section `height: calc(var(--scroll-length) * 100vh)` and `.scene-viewport { position: sticky; top: 0; height: 100vh }`; `data-pin="false"`: section `min-height: 100vh`, no sticky.
 - `prefers-reduced-motion: reduce`: every section is `min-height: 100vh; height: auto` and `.scene-viewport` is `position: static` (CSS only).
 - `section[data-scene]:focus { outline: none }`; every control shows a high-contrast `:focus-visible` ring (technical §17).
@@ -285,7 +292,7 @@ export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisio
 export function useSceneProgress(): number; // enclosing scene's progress, clamped 0..1
 export function beatProgress(p: number, beat: SceneBeat): number; // clamp((p - beat.start) / (beat.end - beat.start), 0, 1)
 ```
-- Only the engine writes progress: one ScrollTrigger per scene, `trigger` = its section, `start: 'top bottom'`, `end: pin ? 'bottom bottom' : 'top top'`, no `pin`, no attached animation; `onUpdate` stores `self.progress`.
+- Only the engine writes progress: one ScrollTrigger per scene, `trigger` = its section, `start: 'top bottom'`, `end: pin ? 'bottom bottom' : 'top top'`, no `pin`, no attached animation; `onRefresh` and `onUpdate` store `self.progress` (A11).
 - Equivalently `progress = clamp((scrollY − (sectionTop − innerHeight)) / (pin ? sectionHeight : innerHeight), 0, 1)` (technical §7).
 - Arrival pose (section top at viewport top, where `goToScene` lands) is `progress = 1 / scrollLength`: 1 for unpinned scenes; pinned scenes scrub from `1 / scrollLength` to 1 while sticky; eyebrow and title are complete by `1 / scrollLength` and pinned beats live in `[1 / scrollLength, 1]`.
 - `useSceneProgress()` returns 1 during SSR, until the engine's first measurement, and always under `prefers-reduced-motion: reduce`; subscription is per scene, so a progress change re-renders only that scene.
@@ -300,11 +307,11 @@ Array<{ slide: number; title: string | null; texts: string[]; notes: string[]; l
 
 // source/memes.json
 Array<{ id: number; slug: string; title: string; template: string; captionLines: string[];
-        sourceUrl: string; file: string; suggestedScenes: number[] }>
-// file looks like 'source/memes/01-prompt-injection.png'
+        sourceUrl: string; file: string | null; missing?: string; suggestedScenes: number[] }>
+// file looks like 'source/memes/01-prompt-injection.png'; null for ids 4 and 17 (A10)
 ```
 - Copy precedence (AGENT_HIERARCHY §8): PDF visible wording > PPTX text > content-map; the content-map "Core content" column is a summary and is never used as copy.
-- Observed in the PPTX: every slide's notes contain only its slide number, and no slide has a hyperlink, so `links` is `[]` for all 46; `slides.json` `title` is advisory and the manifest follows §3.1.
+- Observed in the PPTX: every slide carries full speaker notes with timing brackets (e.g. slide 1: `[0:00–0:30 · 30s] WHAT TO SAY: …`), which are worker reference for intent and timing and never on-screen copy (A2); no slide has a hyperlink, so `links` is `[]` for all 46; `slides.json` `title` is advisory and the manifest follows §3.1.
 - Verification (W0 script): every string value in `lib/scenes.ts` except identifier fields (`id`, `act`, `theme`, `accent`, `kind`, `component`, `type`) occurs verbatim inside a `texts` entry of the same slide.
 - Line-break artifacts are fixed against the PDF by Sonnet workers and logged one line each in the deviations ledger.
 
@@ -378,7 +385,7 @@ export const campusBotCopy = { // slide 4
 
 | State | Workspace (cumulative) | Controls | Tone | Detail |
 |---|---|---|---|---|
-| baseline | SYSTEM card (muted mono: `systemLabel` + `system`); Student `question`; CampusBot `refusal` | chip labelled `roleplay` → ROLEPLAY | neutral | `refusal` |
+| baseline | SYSTEM card (muted mono: `systemLabel` + `system`); Student `question`; CampusBot `refusal` | chip labelled `labels.roleplay` → ROLEPLAY (A14) | neutral | `refusal` |
 | roleplay | + Student `roleplay` | `No guardrail` → GUARDRAIL_OFF, `Guardrail on` → GUARDRAIL_ON, both `aria-pressed="false"` | neutral | `roleplay` |
 | guardrail-off | + CampusBot `leak` (orange emphasis + warning icon) | same pair; `No guardrail` pressed | alert | `leak` |
 | guardrail-on | + `blocked` status (green + shield icon) | same pair; `Guardrail on` pressed | safe | `blocked` |
@@ -423,7 +430,7 @@ export const ragRanking: Record<RagState, string[]> = { // relevance order (retr
 | before | 3 approved docs in `ragRanking.before` order | `answers.before` | `After the plant` → PLANT | neutral | `answers.before` |
 | poisoned | + `policy_update_oct.docx` at rank 1 with `hidden` shown | `answers.poisoned`; `link` as plain text + untrusted marker | `Fixed` → FIX | alert | `answers.poisoned` |
 | fixed | `policy_update_oct.docx` keeps rank 1 but shows excluded (strike + `unapproved` badge) | `answers.fixed` | none | safe | `answers.fixed` |
-- Label = `ragCopy.labels[state]`; caption = the deck subtitle.
+- Label = `ragCopy.labels[state]`; no caption beyond the deck subtitle (A15).
 - Each index row shows two separate indicators: rank under `UI_COPY.relevance` and trust badge (`approved` / `unapproved`, text + icon) under `UI_COPY.authorization`.
 - The three labels form a stepper of buttons in deck order; the current one has `aria-current="step"`; only the next one is enabled.
 - `link` is never an `<a>` and is never fetched.
@@ -475,7 +482,7 @@ export const SOC_PROPOSE_DELAY_MS = 1200; // 0 under reduced motion
 | pending-approval | + ApprovalGate click mode: heading `gate`, proposal `suggested`, buttons `approve` / `reject` | APPROVE, REJECT | alert | `gate` |
 | approved | gate outcome `UI_COPY.soc.approved` (green + check); `suggested` marked committed | – | safe | – |
 | rejected | gate outcome `UI_COPY.soc.rejected` (`--muted`, never green); `suggested` struck through | – | neutral | – |
-- Label = `UI_COPY.soc[state]`; caption = the deck subtitle (`Synthetic logs · aarav-startup.example`).
+- Label = `UI_COPY.soc[state]`; no caption beyond the deck subtitle (`Synthetic logs · aarav-startup.example`, A15).
 - Never render 10,412 or 10,408 DOM rows; counts appear only as the deck strings.
 - MTTD/MTTR improvement is shown only by the collapse and the chain; no invented timings or metrics.
 
@@ -486,7 +493,7 @@ export type MemeAsset = {
   slug: string;              // 'prompt-injection'
   title: string;             // 'Prompt injection' (HTML heading after 'NN — ')
   template: string;          // Memegen template id, e.g. 'drake'
-  src: string;               // '/memes/' + basename(file), served from public/memes/
+  src: string;               // '/memes/' + basename(file), served from public/memes/; '' when file is null (A10)
   alt: string;               // `${title}: ${caption.join(' / ')}`
   caption: string[];         // = captionLines, verbatim
   sourceUrl: string;         // original https://api.memegen.link/… URL; metadata only
@@ -496,7 +503,8 @@ export const memes: MemeAsset[]; // 28 entries sorted by id
 ```
 - Runtime code never requests `sourceUrl`; the only meme URL rendered is `src`, via native `<img src alt loading="lazy" decoding="async">` inside a fixed-aspect box.
 - MemeScene passes `memes.find((m) => m.id === scene.content.memeId)` (possibly `undefined`) to MemeInterstitial.
-- Fallback (MASTER_PROMPT §24, technical §15): on `onError`, or when the meme is `undefined`, the same box renders a styled block with `title` as a mono label and each `caption` line as text; the scene's eyebrow and lines stay visible either way.
+- `src` is `''` for ids 4 and 17: their `source/memes.json` entry has `file: null` because the `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27). When `src === ''`, `MemeInterstitial` renders the fallback immediately and issues no request (no `<img>`).
+- Fallback (MASTER_PROMPT §24, technical §15): on `onError`, when `src === ''`, or when the meme is `undefined`, the same box renders a styled block with `title` as a mono label and each `caption` line as text; the scene's eyebrow and lines stay visible either way.
 
 ## 11. Motion contract
 - GSAP (`gsap` + `useGSAP`) owns scroll-scrubbed scene timelines, SVG path draws, counters and scene 1's one-shot intro; only the engine imports `ScrollTrigger` and calls `gsap.registerPlugin`.
@@ -584,6 +592,6 @@ export function track(event: AnalyticsEvent, payload: Record<string, string | nu
 ## 14. Needs user
 | # | Item | Facts (not decided here) |
 |---|---|---|
-| N1 | Scene 46 LinkedIn destination | The deck shows `linkedin.com/in/atharvtiwari` as visible text only (slide 46, paragraph [7]); the PPTX has no hyperlink (no `hlinkClick`, no hyperlink relationship) and the PDF has no `/URI` annotation. `LINKEDIN_HREF` is `https://` + that text provisionally, logged as a deviation until the user confirms or replaces it. |
-| N2 | "Previous project's system" (README; MASTER_PROMPT §2, §25.1–2) | Not in this folder, which holds only `docs/`, the PPTX, the PDF and the meme HTML. These contracts derive from `docs/` alone; the user supplies it or waives it. |
+| N1 | Scene 46 LinkedIn destination | The deck shows `linkedin.com/in/atharvtiwari` as visible text only (slide 46, paragraph [7]); the PPTX has no hyperlink (no `hlinkClick`, no hyperlink relationship) and the PDF has no `/URI` annotation. `LINKEDIN_HREF` is `https://` + that text provisionally, logged as a deviation until the user confirms or replaces it. The user has said they will supply the final LinkedIn URL later; until then `LINKEDIN_HREF` stays provisional. |
+| N2 | "Previous project's system" (README; MASTER_PROMPT §2, §25.1–2) | Not in this folder, which holds only `docs/`, the PPTX, the PDF and the meme HTML. These contracts derive from `docs/` alone. **WAIVED** by user direction (2026-09-27): exploration and build are scoped to this folder only. |
 - No other AGENT_HIERARCHY §12 item arose: no scene is removed, merged or reordered, and no web font is added.
