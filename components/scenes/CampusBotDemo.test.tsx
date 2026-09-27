@@ -54,6 +54,16 @@ describe('CampusBotDemo', () => {
     expect(container.textContent).not.toContain(campusBotCopy.leak);
     expect(container.textContent).not.toContain(campusBotCopy.blocked);
 
+    // I4 (residual): the refusal card was the last cream (--fg) background card in this demo —
+    // its default-tone MonoLabel (--label, --orange on this dark+accent-orange scene) on cream
+    // measured ~2.3:1. It now sits on the dark ground like every other card.
+    const refusalText = Array.from(container.querySelectorAll('p')).find(
+      (p) => p.textContent === campusBotCopy.refusal,
+    );
+    const refusalCard = refusalText?.parentElement as HTMLElement;
+    expect(refusalCard.style.backgroundColor).not.toBe('var(--fg)');
+    expect(refusalCard.style.backgroundColor).toBe('var(--bg)');
+
     const chip = getButton(container, campusBotCopy.labels.roleplay);
     expect(chip).toBeDefined();
     expect(getButton(container, campusBotCopy.labels['guardrail-off'])).toBeUndefined();

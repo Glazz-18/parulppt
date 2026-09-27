@@ -121,7 +121,12 @@ export function CampusBotDemo({ scene }: SceneProps) {
           <MonoLabel as="span">{campusBotCopy.user}</MonoLabel>
           <p>{campusBotCopy.question}</p>
         </div>
-        <div style={{ backgroundColor: 'var(--fg)', color: 'var(--bg)' }}>
+        {/* I4 (residual): this card was the last cream (--fg) background in the demo — its
+            default-tone MonoLabel renders --label (--orange on this dark+accent-orange scene)
+            on cream at ~2.3:1. Moved to the dark ground (--bg) with --fg text, matching every
+            other card in this demo (the user/roleplay/leak cards all sit on --bg), so the label
+            is orange-on-dark like the rest. */}
+        <div style={{ backgroundColor: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--rule)' }}>
           <MonoLabel as="span">{campusBotCopy.bot}</MonoLabel>
           <p>{campusBotCopy.refusal}</p>
         </div>

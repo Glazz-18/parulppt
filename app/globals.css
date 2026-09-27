@@ -131,6 +131,17 @@ section[data-scene]:focus {
   cursor: not-allowed;
 }
 
+/* RagDemo's current step is both aria-current="step" and disabled (it's the active step, not a
+   future one) — without this, :disabled's dashed/faded look (same specificity, later in source)
+   wins over the current-step highlight, making the active step read as the faintest control.
+   (0,3,0) beats both (0,2,0) rules above regardless of source order, so the current step always
+   stays fully filled/solid; only its cursor and opacity differ from a live current-step button. */
+.demo-btn[aria-current='step']:disabled {
+  opacity: 1;
+  border-style: solid;
+  cursor: default;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

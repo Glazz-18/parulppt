@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import type { Scene } from '@/lib/types';
@@ -77,6 +79,21 @@ describe('RagDemo', () => {
     expect(beforeBtn?.disabled).toBe(true);
     expect(poisonedBtn?.disabled).toBe(false);
     expect(fixedBtn?.disabled).toBe(true);
+  });
+
+  it('the current step (aria-current="step" AND disabled — jsdom has no cascade) keeps full precedence over the plain :disabled look in globals.css', () => {
+    // RagDemo's active step is always both aria-current="step" and disabled (it's the current
+    // step, not a future one), so .demo-btn[aria-current='step'] and .demo-btn:disabled have
+    // equal specificity (0,2,0) and would otherwise fight on source order — leaving the active
+    // step looking like the faintest (dashed, 0.45 opacity) control on screen. A higher-
+    // specificity override (0,3,0) must win regardless of where it's declared.
+    const globalsCss = readFileSync(path.join(process.cwd(), 'app/globals.css'), 'utf8');
+    const override = globalsCss.match(
+      /\.demo-btn\[aria-current=['"]?step['"]?\]:disabled\s*\{([^}]*)\}/,
+    );
+    expect(override).toBeTruthy();
+    expect(override![1]).toMatch(/opacity:\s*1;?/);
+    expect(override![1]).not.toMatch(/border-style:\s*dashed/);
   });
 
   it('PLANT: 4 rows with poisoned doc at rank 1, hidden text shown, exact answer, link never an <a>, tracks, live region', () => {
