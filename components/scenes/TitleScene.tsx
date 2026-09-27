@@ -35,6 +35,12 @@ const ROLE_DELAY = 0.8;
 // boot text — this is process/module state, not component state, by design (Manager addition).
 let hasBooted = false;
 
+// Test-only: give each test a pristine module instance without resorting to vi.resetModules()
+// dynamic-import gymnastics in every spec that cares about "once per page load".
+export function __resetBootForTests() {
+  hasBooted = false;
+}
+
 const eyebrowStyle: CSSProperties = { fontSize: 'clamp(12px, 1vw, 16px)' };
 
 const h1Style: CSSProperties = {
@@ -81,13 +87,18 @@ export function TitleScene({ scene }: SceneProps) {
       if (typeof window.matchMedia !== 'function') return;
       gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
         const words = wordRefs.current.filter((el): el is HTMLSpanElement => !!el);
-        // Cancel the 3s CSS failsafe the instant the real intro starts: an inline
-        // `animation: none` beats the stylesheet's `animation` property (cascade), so the
-        // keyframe only ever fires if this callback never runs at all (matchMedia missing, or
-        // GSAP setup throwing before this line).
+        // Cancel both 3s CSS failsafes (words-in, boot-out) the instant the real intro starts:
+        // an inline `animation: none` beats the stylesheet's `animation` property (cascade), so
+        // the keyframes only ever fire if this callback never runs at all (matchMedia missing,
+        // or GSAP setup throwing before this line) — CONTRACTS §11's "GSAP throws → static
+        // markup stands" fallback, covering the boot overlay the same way it already covers the
+        // words.
         words.forEach((el) => {
           el.style.animation = 'none';
         });
+        if (bootRef.current) {
+          bootRef.current.style.animation = 'none';
+        }
 
         const alreadyBooted = hasBooted;
         hasBooted = true;
@@ -228,10 +239,17 @@ export function TitleScene({ scene }: SceneProps) {
         hide flash — under no-preference they are hidden from first paint, and the GSAP intro
         (which sets their inline opacity) overrides this rule as soon as it runs. A CSS keyframe
         failsafe still shows them after 3s if the GSAP intro above never runs (e.g. it throws;
-        Task 40's boot sequence finishes well before this — total intro ≤2.9s). React 19 href+
+        Task 40's boot sequence finishes well before this — total intro ≤2.9s). A matching
+        failsafe hides the boot overlay after 3s for the same reason (CONTRACTS §11: "if GSAP
+        setup throws, the scene keeps its static markup" — without this, a thrown setup would
+        leave the boot text permanently overlapping the eyebrow/h1/speaker/role). Both failsafes
+        are cancelled the instant the real GSAP run starts (inline `animation: none`, set above),
+        so they never fight a normal run or the input-abort path. `visibility: hidden` is added
+        alongside `opacity: 0` because `display` itself isn't animatable. React 19 href+
         precedence dedupes this across re-renders/mounts of the same scene. Scoped to this scene's
         own id so it never touches any other section, and wrapped in the same no-preference media
-        query so reduced motion never sees an opacity:0 word.
+        query so reduced motion never sees an opacity:0 word or a hidden boot block (it's already
+        `display: none` there via the rule above).
       */}
       <style href={`${scene.id}-word-failsafe`} precedence="medium">{`
         @media (prefers-reduced-motion: reduce) {
@@ -246,6 +264,12 @@ export function TitleScene({ scene }: SceneProps) {
           }
           @keyframes ${scene.id}-words-in {
             to { opacity: 1; }
+          }
+          [data-title-root="${scene.id}"] [data-boot] {
+            animation: ${scene.id}-boot-out 0.01s linear 3s forwards;
+          }
+          @keyframes ${scene.id}-boot-out {
+            to { opacity: 0; visibility: hidden; }
           }
         }
       `}</style>

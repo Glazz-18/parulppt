@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import gsap from 'gsap';
-import { TitleScene } from './TitleScene';
+import { __resetBootForTests, TitleScene } from './TitleScene';
 import { UI_COPY } from '@/lib/constants';
 import type { Scene } from '@/lib/types';
 
@@ -48,6 +48,9 @@ function mockMatchMedia() {
 beforeEach(() => {
   reduced = false;
   mockMatchMedia();
+  // The "once per page load" boot guard is module-level state (by design); reset it so every
+  // test starts from a pristine "never booted" instance regardless of execution order.
+  __resetBootForTests();
 });
 
 afterEach(() => {
@@ -177,10 +180,30 @@ describe('TitleScene', () => {
       expect(container.querySelectorAll('[data-word]')).toHaveLength(4);
     });
 
-    it('sets animation: none inline on the words the instant the intro starts (defuses the 3s CSS failsafe)', () => {
+    it('sets animation: none inline on the words and the boot block the instant the intro starts (defuses both 3s CSS failsafes)', () => {
       const { container } = render(<TitleScene scene={scene1} />);
       const words = Array.from(container.querySelectorAll('[data-word]')) as HTMLElement[];
       words.forEach((word) => expect(word.style.animation).toBe('none'));
+      const boot = container.querySelector('[data-boot]') as HTMLElement;
+      expect(boot.style.animation).toBe('none');
+    });
+
+    // Review finding (Important): if GSAP setup throws before ever cancelling the inline
+    // `animation: none` above, the boot overlay would otherwise stay visible forever, permanently
+    // overlapping the eyebrow/h1/speaker/role — contradicting CONTRACTS §11's "if GSAP setup
+    // throws, the scene keeps its static markup". A CSS-only failsafe (scoped to no-preference,
+    // same technique as the words-in failsafe) hides it after 3s in that case.
+    it('has a CSS-only failsafe that hides the boot block after 3s if GSAP never runs', () => {
+      render(<TitleScene scene={scene1} />);
+      const styles = Array.from(document.querySelectorAll('style'));
+      const match = styles.find((s) => s.textContent?.includes(scene1.id));
+      const noPreferenceBlock = match?.textContent?.match(
+        /prefers-reduced-motion: no-preference\)\s*{([\s\S]*)}\s*$/,
+      )?.[1];
+      expect(noPreferenceBlock).toBeTruthy();
+      expect(noPreferenceBlock).toContain('[data-boot]');
+      expect(noPreferenceBlock).toMatch(/animation:\s*scene-01-boot-out/);
+      expect(noPreferenceBlock).toContain('visibility: hidden');
     });
 
     it('a keydown ends the intro immediately: words go opaque, boot hides, and listeners are removed', () => {
@@ -245,39 +268,37 @@ describe('TitleScene', () => {
       UI_COPY.boot.lines.forEach((line) => expect(boot?.textContent).toContain(line));
     });
 
-    // These two need a pristine module instance (the module-level "once per page load" flag
-    // must start false) regardless of test execution order within this file, so they reset
-    // vitest's module cache and re-import both TitleScene and gsap fresh.
-    it('keeps the whole intro (boot + words) within budget: timeline ≤2.9s, BUILD. visible by 2.5s', async () => {
-      vi.resetModules();
-      const freshGsap = (await import('gsap')).default;
-      const { TitleScene: FreshTitleScene } = await import('./TitleScene');
-      const timelineSpy = vi.spyOn(freshGsap, 'timeline');
+    // beforeEach's __resetBootForTests() guarantees a pristine "never booted" instance here,
+    // regardless of execution order.
+    it('keeps the whole intro (boot + words) within budget: timeline ≤2.9s, BUILD. visible by 2.5s', () => {
+      const timelineSpy = vi.spyOn(gsap, 'timeline');
 
-      const { container } = render(<FreshTitleScene scene={scene1} />);
+      const { container } = render(<TitleScene scene={scene1} />);
       const tl = timelineSpy.mock.results[0]?.value as gsap.core.Timeline;
       expect(tl).toBeTruthy();
       expect(tl.duration()).toBeLessThanOrEqual(2.9);
 
       const buildWord = container.querySelector('[data-word="0"]') as HTMLElement;
-      const children = tl.getChildren(true, true, true) as gsap.core.Tween[];
+      // Filter to real (non-zero-duration) tweens so this pins the actual BUILD. reveal tween,
+      // not the earlier zero-duration `tl.set(words, { opacity: 0, y: 16 }, bootEnd)` call, which
+      // also targets the same words array.
+      const children = (tl.getChildren(true, true, true) as gsap.core.Tween[]).filter(
+        (child) => child.duration() > 0,
+      );
       const wordTween = children.find((child) => child.targets().includes(buildWord));
       expect(wordTween).toBeTruthy();
       expect(wordTween!.startTime()).toBeLessThanOrEqual(2.5);
     });
 
-    it('does not replay the boot sequence on a remount within the same module instance', async () => {
-      vi.resetModules();
-      const freshGsap = (await import('gsap')).default;
-      const { TitleScene: FreshTitleScene } = await import('./TitleScene');
-      const timelineSpy = vi.spyOn(freshGsap, 'timeline');
+    it('does not replay the boot sequence on a remount within the same module instance', () => {
+      const timelineSpy = vi.spyOn(gsap, 'timeline');
 
-      const { unmount } = render(<FreshTitleScene scene={scene1} />);
+      const { unmount } = render(<TitleScene scene={scene1} />);
       const firstTl = timelineSpy.mock.results[0]?.value as gsap.core.Timeline;
       const firstDuration = firstTl.duration();
       unmount();
 
-      render(<FreshTitleScene scene={scene1} />);
+      render(<TitleScene scene={scene1} />);
       const secondTl = timelineSpy.mock.results[1]?.value as gsap.core.Timeline;
       const secondDuration = secondTl.duration();
 
