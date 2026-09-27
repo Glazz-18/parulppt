@@ -1,0 +1,191 @@
+import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import { scenes } from '@/lib/scenes';
+
+describe('scenes manifest', () => {
+  // Appendix A encoded independently: [slide, kind, theme, component|null, memeId|null, pin, scrollLength, act]
+  const appendixA = [
+    [1, 'title', 'dark', null, null, false, 1, 'act-0'],
+    [2, 'editorial', 'light', null, null, false, 1, 'act-1'],
+    [3, 'diagram', 'light', 'RolePathScene', null, false, 1, 'act-1'],
+    [4, 'demo', 'dark', 'CampusBotDemo', null, false, 1, 'act-2'],
+    [5, 'diagram', 'dark', 'RagFlowScene', null, true, 3, 'act-2'],
+    [6, 'demo', 'dark', 'RagDemo', null, false, 1, 'act-2'],
+    [7, 'meme', 'orange', null, 4, false, 1, 'act-2'],
+    [8, 'diagram', 'dark', null, null, true, 2, 'act-2'],
+    [9, 'diagram', 'dark', null, null, true, 3, 'act-3'],
+    [10, 'meme', 'orange', null, 22, false, 1, 'act-3'],
+    [11, 'diagram', 'dark', 'AgentLoopScene', null, true, 3, 'act-3'],
+    [12, 'meme', 'orange', null, 3, false, 1, 'act-3'],
+    [13, 'diagram', 'dark', null, null, true, 3, 'act-3'],
+    [14, 'data', 'dark', 'SupplyChainScene', null, true, 3, 'act-3'],
+    [15, 'data', 'dark', null, null, false, 1, 'act-3'],
+    [16, 'editorial', 'dark', null, null, false, 1, 'act-4'],
+    [17, 'editorial', 'dark', null, null, true, 3, 'act-4'],
+    [18, 'editorial', 'dark', null, null, true, 3, 'act-4'],
+    [19, 'timeline', 'dark', null, null, true, 3, 'act-4'],
+    [20, 'timeline', 'dark', null, null, true, 3, 'act-4'],
+    [21, 'meme', 'orange', null, 14, false, 1, 'act-4'],
+    [22, 'meme', 'orange', null, 12, false, 1, 'act-4'],
+    [23, 'demo', 'dark', 'SocDemo', null, false, 1, 'act-4'],
+    [24, 'data', 'dark', null, null, true, 3, 'act-4'],
+    [25, 'data', 'dark', 'AiWritesBugScene', null, true, 2, 'act-4'],
+    [26, 'diagram', 'dark', 'AiFixesBugScene', null, true, 3, 'act-4'],
+    [27, 'data', 'dark', null, null, true, 3, 'act-4'],
+    [28, 'diagram', 'dark', null, null, true, 2, 'act-4'],
+    [29, 'diagram', 'light', 'ProblemProductScene', null, true, 3, 'act-5'],
+    [30, 'meme', 'orange', null, 15, false, 1, 'act-5'],
+    [31, 'data', 'light', null, null, false, 1, 'act-5'],
+    [32, 'editorial', 'light', null, null, false, 1, 'act-5'],
+    [33, 'meme', 'orange', null, 6, false, 1, 'act-5'],
+    [34, 'diagram', 'light', 'GovernanceCurveScene', null, true, 2, 'act-5'],
+    [35, 'timeline', 'light', null, null, true, 2, 'act-5'],
+    [36, 'diagram', 'light', null, null, true, 2, 'act-5'],
+    [37, 'editorial', 'light', null, null, false, 1, 'act-5'],
+    [38, 'diagram', 'light', 'ProgrammeScene', null, false, 1, 'act-5'],
+    [39, 'editorial', 'dark', null, null, false, 1, 'act-5'],
+    [40, 'meme', 'orange', null, 18, false, 1, 'act-5'],
+    [41, 'diagram', 'light', null, null, true, 2, 'act-6'],
+    [42, 'meme', 'orange', null, 19, false, 1, 'act-7'],
+    [43, 'network', 'light', null, null, false, 1, 'act-7'],
+    [44, 'challenge', 'light', null, null, true, 3, 'act-8'],
+    [45, 'meme', 'orange', null, 28, false, 1, 'act-8'],
+    [46, 'cta', 'dark', null, null, false, 1, 'act-8'],
+  ] as const;
+
+  const accentSlides = new Set([4, 5, 6, 8, 19, 39]);
+
+  it('has 46 scenes', () => {
+    expect(scenes).toHaveLength(46);
+  });
+
+  it('each scene has id === scene-NN format with correct slide', () => {
+    scenes.forEach((scene, index) => {
+      const slide = index + 1;
+      const expectedId = 'scene-' + String(slide).padStart(2, '0');
+      expect(scene.id).toBe(expectedId);
+      expect(scene.slide).toBe(slide);
+    });
+  });
+
+  it('all scenes match Appendix A fields', () => {
+    appendixA.forEach(([slide, kind, theme, component, memeId, pin, scrollLength, act], index) => {
+      const scene = scenes[index];
+      expect(scene.slide).toBe(slide);
+      expect(scene.kind).toBe(kind);
+      expect(scene.theme).toBe(theme);
+      expect(scene.pin).toBe(pin);
+      expect(scene.scrollLength).toBe(scrollLength);
+      expect(scene.act).toBe(act);
+
+      // component is only set on rows marked * in Appendix A: 3, 4, 5, 6, 11, 14, 23, 25, 26, 29, 34, 38
+      const hasComponentOverride = [3, 4, 5, 6, 11, 14, 23, 25, 26, 29, 34, 38].includes(slide);
+      if (hasComponentOverride) {
+        expect(scene.component).toBe(component);
+      } else {
+        expect(scene.component).toBeUndefined();
+      }
+
+      // memeId is present only for meme scenes
+      if (kind === 'meme') {
+        const memeContent = scene.content as { memeId: number; lines: string[] };
+        expect(memeContent.memeId).toBe(memeId);
+      }
+    });
+  });
+
+  it('accent === orange exactly on slides 4, 5, 6, 8, 19, 39', () => {
+    scenes.forEach((scene) => {
+      if (accentSlides.has(scene.slide)) {
+        expect(scene.accent).toBe('orange');
+      } else {
+        expect(scene.accent).toBeUndefined();
+      }
+    });
+  });
+
+  it('scrollLength === 1 iff pin === false', () => {
+    scenes.forEach((scene) => {
+      if (scene.pin === false) {
+        expect(scene.scrollLength).toBe(1);
+      } else {
+        expect(scene.scrollLength).toBeGreaterThanOrEqual(2);
+      }
+    });
+  });
+
+  it('lib/scenes.ts uses import type only (no runtime imports)', () => {
+    const scenesPath = path.resolve(__dirname, 'scenes.ts');
+    const content = fs.readFileSync(scenesPath, 'utf8');
+    const lines = content.split('\n');
+    const importLines = lines.filter((line) => line.trim().startsWith('import'));
+
+    importLines.forEach((line) => {
+      expect(line).toMatch(/^\s*import\s+type\s+/);
+    });
+  });
+
+  it('every scene has empty eyebrow and title', () => {
+    scenes.forEach((scene) => {
+      expect(scene.eyebrow).toBe('');
+      expect(scene.title).toBe('');
+    });
+  });
+
+  it('every scene has appropriate content shape', () => {
+    scenes.forEach((scene) => {
+      if (scene.kind === 'title') {
+        const content = scene.content as { words: string[]; speaker: string; role: string };
+        expect(content).toHaveProperty('words');
+        expect(content).toHaveProperty('speaker');
+        expect(content).toHaveProperty('role');
+        expect(Array.isArray(content.words)).toBe(true);
+        expect(typeof content.speaker).toBe('string');
+        expect(typeof content.role).toBe('string');
+      } else if (['editorial', 'diagram', 'data', 'timeline', 'challenge'].includes(scene.kind)) {
+        const content = scene.content as { blocks: unknown[] };
+        expect(content).toHaveProperty('blocks');
+        expect(Array.isArray(content.blocks)).toBe(true);
+      } else if (scene.kind === 'demo') {
+        const content = scene.content as { subtitle: string };
+        expect(content).toHaveProperty('subtitle');
+        expect(typeof content.subtitle).toBe('string');
+      } else if (scene.kind === 'meme') {
+        const content = scene.content as { memeId: number; lines: string[] };
+        expect(content).toHaveProperty('memeId');
+        expect(content).toHaveProperty('lines');
+        expect(typeof content.memeId).toBe('number');
+        expect(Array.isArray(content.lines)).toBe(true);
+      } else if (scene.kind === 'network') {
+        const content = scene.content as { lead: string; timer: string; seconds: number; prompts: unknown[] };
+        expect(content).toHaveProperty('lead');
+        expect(content).toHaveProperty('timer');
+        expect(content).toHaveProperty('seconds');
+        expect(content).toHaveProperty('prompts');
+        expect(typeof content.lead).toBe('string');
+        expect(typeof content.timer).toBe('string');
+        expect(typeof content.seconds).toBe('number');
+        expect(Array.isArray(content.prompts)).toBe(true);
+      } else if (scene.kind === 'cta') {
+        const content = scene.content as { lines: string[]; closing: string; speaker: string; role: string; linkedin: string };
+        expect(content).toHaveProperty('lines');
+        expect(content).toHaveProperty('closing');
+        expect(content).toHaveProperty('speaker');
+        expect(content).toHaveProperty('role');
+        expect(content).toHaveProperty('linkedin');
+        expect(Array.isArray(content.lines)).toBe(true);
+        expect(typeof content.closing).toBe('string');
+        expect(typeof content.speaker).toBe('string');
+        expect(typeof content.role).toBe('string');
+        expect(typeof content.linkedin).toBe('string');
+      }
+    });
+  });
+
+  it('no scene has sourceNotes', () => {
+    scenes.forEach((scene) => {
+      expect(scene.sourceNotes).toBeUndefined();
+    });
+  });
+});
