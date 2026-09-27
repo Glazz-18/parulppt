@@ -3,6 +3,7 @@ import type { SceneComponentName, SceneProps } from '@/lib/types';
 import { TitleScene } from './TitleScene';
 import { ContentScene } from './ContentScene';
 import { MemeScene } from './MemeScene';
+import { NetworkScene } from './NetworkScene';
 import { RolePathScene } from './RolePathScene';
 import { TimelineScene } from './TimelineScene';
 import { RagFlowScene } from './RagFlowScene';
@@ -18,6 +19,7 @@ export const registry: Partial<Record<SceneComponentName, ComponentType<ScenePro
   TitleScene,
   ContentScene,
   MemeScene,
+  NetworkScene,
   RolePathScene,
   TimelineScene,
   RagFlowScene,

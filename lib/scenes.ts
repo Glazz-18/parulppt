@@ -944,9 +944,20 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'network',
-    eyebrow: '',
-    title: '',
-    content: { lead: '', timer: '', seconds: 0, prompts: [] },
+    eyebrow: 'ACT 7 · NETWORK',
+    title: 'Look around.',
+    content: {
+      lead: 'Find one person you don’t know. Swap these, then swap LinkedIn.',
+      timer: '60s',
+      seconds: 60,
+      prompts: [
+        { n: '01', text: 'Name' },
+        { n: '02', text: 'Course and year' },
+        { n: '03', text: 'One skill' },
+        { n: '04', text: 'One thing you’re building' },
+        { n: '05', text: 'One problem you care about' },
+      ],
+    },
   },
   {
     id: 'scene-44',
