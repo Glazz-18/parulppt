@@ -146,9 +146,24 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 3 · GUARDRAILS',
+    title: 'Guardrails, layer by layer',
+    sourceNotes: ['OWASP Top 10 for LLM Apps 2026 · OWASP Top 10 for Agentic Apps (Dec 2025) · MITRE ATLAS · NIST AI RMF'],
+    content: {
+      blocks: [
+        {
+          type: 'layers',
+          items: [
+            { term: 'In', text: 'Input checks' },
+            { term: 'Prompt', text: 'Instructions kept separate' },
+            { term: 'Tools', text: 'Least permission' },
+            { term: 'Out', text: 'Output validation' },
+            { term: 'Act', text: 'Human approval' },
+          ],
+          footer: 'Every layer logged and monitored',
+        },
+      ],
+    },
   },
   {
     id: 'scene-10',
@@ -193,9 +208,23 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 3 · GUARDRAILS',
+    title: 'The AI attack surface',
+    content: {
+      blocks: [
+        {
+          type: 'layers',
+          items: [
+            { text: '1 · Your code' },
+            { text: '2 · Data you collected' },
+            { text: '3 · Agents, prompts, tools, indexes, logs' },
+            { text: '4 · Vendors and their vendors' },
+            { text: '5 · Users and jurisdictions' },
+          ],
+          marker: '1',
+        },
+      ],
+    },
   },
   {
     id: 'scene-14',
@@ -246,9 +275,23 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'editorial',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 4 · CYBER IN THE AI ERA',
+    title: 'Security in six letters',
+    content: {
+      blocks: [
+        {
+          type: 'terms',
+          items: [
+            { term: 'Confidentiality', text: 'Only you see your marks' },
+            { term: 'Integrity', text: 'Nobody edits your marks' },
+            { term: 'Availability', text: 'Portal works on result day' },
+            { term: 'Authentication', text: 'Who are you?' },
+            { term: 'Authorization', text: 'What can you do?' },
+            { term: 'Accounting', text: 'What did you do?' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-17',
@@ -258,9 +301,32 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'editorial',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 4 · THE HUMAN ATTACK SURFACE',
+    title: 'Meet Aarav.',
+    sourceNotes: ['Aarav is a hypothetical composite · Arup case: Hong Kong Police, 2024 · IIT Bombay case: Mumbai Police reporting'],
+    content: {
+      blocks: [
+        {
+          type: 'lines',
+          lines: ['21. Founder. Uses AI for everything.', 'Would you know?'],
+        },
+        {
+          type: 'marks',
+          items: [
+            { text: "Investor email · “term sheet attached”", at: '09:12' },
+            { text: "WhatsApp · “co-founder, new number”", at: '11:40' },
+            { text: "Video call · the “investor”", at: '15:00' },
+          ],
+        },
+        {
+          type: 'metrics',
+          items: [
+            { value: '$25M', label: 'Arup, 2024 · every other face on the call was a deepfake' },
+            { value: '₹7.29L', label: "IIT Bombay student · fake “TRAI” digital arrest" },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-18',
@@ -270,9 +336,33 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'editorial',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 4 · THE HUMAN ATTACK SURFACE',
+    title: 'How to verify a human',
+    sourceNotes: ['Ferrari case: Bloomberg, 2024 · FBI IC3 Internet Crime Report 2025'],
+    content: {
+      blocks: [
+        {
+          type: 'lines',
+          lines: ['Ferrari, 2024 · the attack that failed', 'An executive asked a question only the real CEO would know. The deepfake hung up.'],
+        },
+        {
+          type: 'metrics',
+          items: [
+            { value: '$893M', label: 'AI-related fraud losses reported to FBI IC3, 2025' },
+          ],
+        },
+        {
+          type: 'steps',
+          items: [
+            { n: '01', text: 'Call back on a number you already have' },
+            { n: '02', text: 'Confirm on a second channel' },
+            { n: '03', text: 'Two people approve any transfer' },
+            { n: '04', text: 'Agree a passphrase in advance' },
+            { n: '05', text: "Treat “urgent” as a red flag" },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-19',
@@ -370,9 +460,29 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'data',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'AI FINDS · AI FIXES · HUMANS DECIDE · 1 OF 4',
+    title: 'AI finds the bug',
+    sourceNotes: ['Google Project Zero · AISLE · Anthropic · UIUC 2024 academic estimate, cited by Cloud Security Alliance 2026'],
+    content: {
+      blocks: [
+        {
+          type: 'marks',
+          items: [
+            { at: 'Nov 2024', text: 'Big Sleep finds a real SQLite zero-day' },
+            { at: '2025', text: 'CVE-2025-6965 found before attackers' },
+            { at: 'Jan 2026', text: 'AISLE: 12 of 12 OpenSSL CVEs' },
+            { at: 'Early 2026', text: '16-year-old FFmpeg bug, missed by 5M fuzz runs' },
+            { at: 'Apr 2026', text: 'Mythos Preview: thousands found, not released' },
+          ],
+        },
+        {
+          type: 'metrics',
+          items: [
+            { value: '$8.80', versus: ['vs', '$25'], label: 'AI vs skilled human, exploiting a disclosed CVE (2024 estimate)' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-25',
@@ -408,9 +518,35 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'data',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'AI FINDS · AI FIXES · HUMANS DECIDE · 4 OF 4',
+    title: "The defender’s AI stack",
+    sourceNotes: ['IBM Cost of a Data Breach 2026 · IBM Cost of a Data Breach, India, 2026'],
+    content: {
+      blocks: [
+        {
+          type: 'layers',
+          items: [
+            { term: 'AI apps', text: 'Prompt, tool and output guardrails · permission-aware retrieval' },
+            { term: 'Runtime', text: 'AI correlation in the SOC · UEBA · SOAR with approval gates' },
+            { term: 'Dependencies', text: 'SBOM · AI-assisted triage' },
+            { term: 'Code', text: 'AI review + SAST / CodeQL on every PR' },
+          ],
+        },
+        {
+          type: 'metrics',
+          items: [
+            { value: '−$1.93M per breach' },
+            { value: '65 days faster' },
+            { value: 'India: 175 vs 236 days' },
+            { value: 'Red teaming: ₹2.47 cr saved' },
+          ],
+        },
+        {
+          type: 'lines',
+          lines: ["Half these tools cost more than an SME’s IT budget. That gap is your startup."],
+        },
+      ],
+    },
   },
   {
     id: 'scene-28',
@@ -420,9 +556,24 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 2,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 4 · CYBER IN THE AI ERA',
+    title: 'MTTD and MTTR',
+    content: {
+      blocks: [
+        {
+          type: 'terms',
+          items: [
+            { term: 'MTTD', text: 'How fast did we notice?' },
+            { term: 'MTTR', text: 'How fast did we stop it?' },
+          ],
+        },
+        {
+          type: 'bars',
+          series: ['Alone in the queue', 'AI copilot + human approval'],
+          note: 'Illustrative proportions',
+        },
+      ],
+    },
   },
   {
     id: 'scene-29',
