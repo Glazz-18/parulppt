@@ -1,5 +1,5 @@
 # CONTRACTS — interface authority
-v1.1 · 2026-09-27 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
+v1.2 · 2026-09-27 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
 
 ## 1. Rulings
 | # | Conflict | Ruling | Why |
@@ -31,6 +31,11 @@ Additional rulings found while reading the sources:
 | A14 | CampusBot baseline chip | Chip text = `campusBotCopy.labels.roleplay` (`role-play`); pressing it adds the Student `roleplay` message (§9.1) | v1 "chip labelled `roleplay`" could mean the long prompt, which would then print twice |
 | A15 | Demo subtitle vs caption | `DemoShell` renders `content.subtitle` once; `caption` is `UI_COPY.fictional` on scene 4 only; scenes 6 and 23 have no separate caption (§9) | v1 made the RAG and SOC caption the deck subtitle, printing the same string twice |
 | A16 | Ownership exceptions (Fable ledger rulings) | `lib/memes.ts`, `public/memes/` and `scripts/build-memes.mjs`: W1 Task 6; `lib/scenes.ts` skeleton and empty `components/scenes/index.ts`: W2 Task 7, then W4 sole writer; `scripts/verify-copy.mjs`: W4 Task 19; `package.json` script lines they add are applied by their manager | Records Fable's rulings so §2 no longer contradicts the plan |
+| A17 | `IndexOverlay` (§5.5) | W2 file `components/presentation/IndexOverlay.tsx`: `INDEX` trigger top-left, modal scene index grouped by act, `goToScene` + close | User-approved feature from the reference site |
+| A18 | `PresenterPen` (§5.6) | W2 file `components/presentation/PresenterPen.tsx`: `PEN` / `UNDO` / two-step `CLEAR` toolbar bottom-left + canvas overlay, strokes in state only | User-approved feature from the reference site |
+| A19 | Scene 1 boot sequence (§11) | `TitleScene` (W4) types `UI_COPY.boot` before the four words; motion-only, any input ends it, no SKIP control | User-approved feature from the reference site |
+| A20 | New chrome copy (§5.4) | `index`, `pen`, `undo`, `clear`, `clearConfirm`, `boot` join `UI_COPY` (A6) | User-approved feature from the reference site; boot words are user-approved invented copy |
+| A21 | Escape precedence (§8) | IndexOverlay → SourceDrawer → pen mode → demo escape → nothing; still one engine listener | User-approved feature from the reference site; topmost layer closes first |
 
 ## 2. Repo layout
 ```text
@@ -45,6 +50,8 @@ components/
     SceneProgress.tsx        useSceneProgress(), beatProgress() (§6)
     SideNav.tsx
     SceneControls.tsx
+    IndexOverlay.tsx         scene index dialog (§5.5, A17, Task 38)
+    PresenterPen.tsx         pen toolbar + canvas (§5.6, A18, Task 39)
   scenes/                    W4, except the four W3 files
     index.ts                 registry: SceneComponentName → component (W4 single writer)
     Blocks.tsx               shared Block renderer (§3)
@@ -72,6 +79,7 @@ docs/                        read-only; this file: Opus only
 - W1 also owns root config: `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `postcss.config.mjs`, `eslint.config.mjs`, `vitest.config.ts`; other workstreams request script or dependency changes through their manager.
 - `lib/scenes.ts` and `components/scenes/index.ts` have one writer at a time (W4 manager serialises; W4 registers W3's demos).
 - Everything under `components/` is a client component and `app/layout.tsx`, `app/page.tsx` stay server components; the registry imports `CampusBotDemo`, `RagDemo`, `SocDemo` with `next/dynamic` (SSR on), all other scenes statically (PRD §15).
+- Tasks 38–39 (`IndexOverlay`, `PresenterPen`) are W2-owned follow-ups dispatched after the W2 merge; Task 40 (boot sequence in `TitleScene`) is W4.
 - W2 needs the manifest skeleton (Appendix A transcribed; content may be empty arrays and empty strings) before it starts.
 - Runtime dependencies: `next`, `react`, `react-dom`, `gsap`, `@gsap/react`, `framer-motion`; dev: `typescript`, `tailwindcss` 4, `@tailwindcss/postcss`, `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/dom`, plus create-next-app's own ESLint and `@types/*` packages.
 - Scripts: `dev`, `build`, `start`, `lint`, `test` (= `vitest run`); `vitest.config.ts`: `environment: 'jsdom'`, `esbuild: { jsx: 'automatic' }`, `resolve.alias: { '@': <repo root> }`, no Vite plugins.
@@ -249,7 +257,7 @@ export const ACTS = [
   <div class="scene-viewport">…scene component…</div>
 </section>
 ```
-- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the only children of `<main id="presentation">`, in slide order (A13).
+- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the only children of `<main id="presentation">`, in slide order (A13); the IndexOverlay trigger and dialog and the PresenterPen toolbar and canvas are siblings of `<main>`, like SideNav, SceneControls and SourceDrawer.
 - `data-pin="true"`: section `height: calc(var(--scroll-length) * 100vh)` and `.scene-viewport { position: sticky; top: 0; height: 100vh }`; `data-pin="false"`: section `min-height: 100vh`, no sticky.
 - `prefers-reduced-motion: reduce`: every section is `min-height: 100vh; height: auto` and `.scene-viewport` is `position: static` (CSS only).
 - `section[data-scene]:focus { outline: none }`; every control shows a high-contrast `:focus-visible` ring (technical §17).
@@ -282,9 +290,25 @@ export const UI_COPY = {
   relevance: 'Retrieval relevance', authorization: 'Authorization', // technical §11
   soc: { queue: 'Queue', investigating: 'Investigating', correlated: 'Correlated',
          'pending-approval': 'Pending approval', approved: 'Approved', rejected: 'Rejected' }, // TRD §6
+  index: 'INDEX',                                               // IndexOverlay trigger (A17)
+  pen: 'PEN', undo: 'UNDO', clear: 'CLEAR', clearConfirm: 'CLEAR?', // PresenterPen (A18)
+  boot: { heading: 'INITIALIZING KEYNOTE…',                     // scene 1 boot (A19), user-approved
+          lines: ['> loading 46 scenes', '> loading 3 live demos', '> checking guardrails'],
+          status: 'SYSTEM STATUS', ready: 'READY' },
 } as const;
 export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisional, Needs user N1
 ```
+
+### 5.5 IndexOverlay (`components/presentation/IndexOverlay.tsx`, W2, A17)
+- Trigger: mono `<button type="button" aria-expanded="true|false" aria-controls="scene-index">` labelled `UI_COPY.index`, fixed top-left of the viewport (HUD corner); SideNav's rail is unchanged.
+- Dialog: `<div id="scene-index" role="dialog" aria-modal="true" aria-labelledby="scene-index-title">` covering the viewport; scene 1 first, then the 8 ACTS in order, each headed `Act ${n} — ${label}`, with one `<button type="button">` per scene whose accessible name is `Go to scene NN: ${title ?? eyebrow}` (`Go to scene NN` when both are absent).
+- Click → `goToScene(slide)` + close. Focus is trapped; opening focuses the first scene button; closing returns focus to the trigger; closes on Escape, backdrop click or its `UI_COPY.close` button. Framer Motion `AnimatePresence`; no storage.
+
+### 5.6 PresenterPen (`components/presentation/PresenterPen.tsx`, W2, A18)
+- Toolbar fixed bottom-left beside the current-Act label: three mono `<button type="button">`s: `UI_COPY.pen` (`aria-pressed` = pen mode), `UI_COPY.undo` (removes the last stroke), `UI_COPY.clear`.
+- CLEAR is two-step and state-driven: the first click sets `confirming` and relabels to `UI_COPY.clearConfirm`; a second click within 4000 ms clears all strokes; 4000 ms without one reverts to `UI_COPY.clear` (timer set in an effect keyed on `confirming` and cleared on cleanup, so no race).
+- `<canvas aria-hidden="true">` covers the viewport with `pointer-events: none` unless pen mode is on; pointer events draw strokes in `--orange`, 3px, round caps and joins; strokes live in component state as point arrays, are redrawn on resize, and are all cleared when the current scene changes.
+- The canvas never takes focus or keys, so keyboard navigation works in pen mode; no storage, no network; reduced motion changes nothing (drawing is user-driven).
 
 ## 6. Progress API
 ```ts
@@ -340,7 +364,7 @@ export function useDemoEscape(slide: number, onEscape: (() => void) | null): voi
 | `ArrowDown`, `PageDown`, `Space` | Current scene pinned and progress < 1: scroll +1 viewport, clamped to its sticky range end; else `goToScene(current + 1)` |
 | `ArrowUp`, `PageUp`, `Shift+Space` | Current scene pinned and scrolled past its top: scroll −1 viewport, clamped to its top; else `goToScene(current − 1)` |
 | `Home` / `End` | `goToScene(1)` / `goToScene(46)` |
-| `Escape` | SourceDrawer open → close it; else the current scene's registered demo escape → call it; else nothing |
+| `Escape` | IndexOverlay open → close it; else SourceDrawer open → close it; else pen mode on → turn it off; else the current scene's registered demo escape → call it; else nothing (A21) |
 - One `keydown` listener on `window`, owned by the engine; a handled key calls `preventDefault()`.
 - Navigation keys never fire when `event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="slider"], [role="spinbutton"], [role="listbox"], [role="radiogroup"], [role="tablist"], [role="menu"], [role="grid"]')` matches, or when `altKey`, `ctrlKey` or `metaKey` is set.
 - `Space` also never fires on `button, summary, [role="button"], [role="checkbox"], [role="switch"]`; `Escape` is exempt from both filters because no control used here has a native Escape action.
@@ -508,13 +532,14 @@ export const memes: MemeAsset[]; // 28 entries sorted by id
 
 ## 11. Motion contract
 - GSAP (`gsap` + `useGSAP`) owns scroll-scrubbed scene timelines, SVG path draws, counters and scene 1's one-shot intro; only the engine imports `ScrollTrigger` and calls `gsap.registerPlugin`.
-- Framer Motion owns SourceDrawer, SideNav / SceneControls micro-motion, hover and focus, and every transition in the demos (4, 6, 23) and interactions (38, 43); these never use GSAP.
+- Framer Motion owns SourceDrawer, IndexOverlay and PresenterPen toolbar transitions, SideNav / SceneControls micro-motion, hover and focus, and every transition in the demos (4, 6, 23) and interactions (38, 43); these never use GSAP.
 - No element's `transform` or `opacity` is driven by both libraries (technical §6); nest a wrapper when both are needed.
 - Markup is visible by default: no server HTML or base CSS hides meaningful content (`opacity: 0`, `visibility: hidden`, off-screen transform); from-states are applied only inside `useGSAP`, after mount; if GSAP setup throws, the scene keeps its static markup and navigation keeps working (technical §15).
 - Scene timelines exist only inside `gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', …)`; under `reduce` there is no timeline and the markup stands (requirement H).
 - A timeline's progress-1 state equals the static markup (`from` / `fromTo` tweens ending at natural layout); a hand-off pose (A9) is part of that markup and keeps all content readable.
 - `<MotionConfig reducedMotion="user">` wraps the app; anything present at first render uses `initial={false}`; `AnimatePresence` is only for elements mounted by user action.
 - Scene 1 exception: its four words may start at `opacity: 0` only under `prefers-reduced-motion: no-preference`, with a CSS keyframe failsafe that shows them after 3s if the GSAP intro never runs; the intro never blocks scroll or input.
+- Scene 1 boot (A19) is part of that GSAP one-shot intro: a mono block types `UI_COPY.boot.heading`, then each of `lines` ~350 ms apart, then `status` + `ready`, then fades and the word intro runs; `BUILD.` appears ≤ 2.5 s after start. Once per page load, only under `no-preference`; under `reduce` the block is not rendered and the title is static. Any scroll, key or pointer input kills it at once and shows the resting title; no SKIP control. The block is `aria-hidden` and never the `<h1>`.
 - Animate `transform` and `opacity` only; no `box-shadow` or filter animation per scroll tick; no `repeat: -1`; no free-running `requestAnimationFrame`; scene 43's `setInterval(1000)` runs only while its countdown runs (requirement K).
 - Render is deterministic: no `Date`, `Math.random`, `toLocaleString`, `window` or `matchMedia` reads during render (requirement K, no hydration mismatch).
 - Grammar per kind (MASTER_PROMPT §10): `editorial`, `title`, `network`, `cta`: metadata → title → supporting; `diagram`, `timeline`, `challenge`: causality in sequence; `data`: label → number (small emphasis) → context; `meme`: hard cut, minimal UI, short punchy motion; `demo`: only meaningful state changes.

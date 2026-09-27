@@ -419,6 +419,51 @@
 
 ---
 
+## Additions approved by the user on 2026-09-27 (from the previous project's site) — CONTRACTS v1.2
+
+### Task 38: IndexOverlay
+
+**Model:** Sonnet (W2-owned follow-up, dispatched by Fable after the W2 merge; reviewer Sonnet)
+**Files:**
+- Create: `components/presentation/IndexOverlay.tsx` (+ `.test.tsx`)
+- Modify: `components/presentation/Presentation.tsx` (mount trigger + overlay beside `<main>`; add the overlay to the single keydown listener's Escape precedence per CONTRACTS §8 v1.2), `lib/constants.ts` only if `UI_COPY.index` / `close` are missing (they are specified in CONTRACTS §5.4 v1.2)
+
+**Interfaces:**
+- Consumes: `ACTS`, `scenes`, `goToScene`, `UI_COPY.index`, `UI_COPY.close`, `useCurrentScene`.
+- Produces: fixed top-left mono `<button aria-expanded aria-controls="scene-index">INDEX</button>`; `<div id="scene-index" role="dialog" aria-modal="true" aria-labelledby="scene-index-title">` listing scene 1 then the 8 Acts (`Act ${n} — ${label}`) each with `<button>`s named `Go to scene NN: ${title ?? eyebrow}`; click → `goToScene(slide)` and close; focus trap; focus to first scene button on open, back to trigger on close; closes on Escape, backdrop click, Close button. Framer Motion presence.
+
+- [ ] **Step 1:** Failing tests: trigger toggles `aria-expanded`; overlay lists 46 buttons with the exact accessible names and 8 act headings; clicking a scene button calls `goToScene(n)` and closes; Escape closes and returns focus to the trigger; backdrop click closes; the current scene's button has `aria-current="step"`.
+- [ ] **Step 2:** Implement; wire Escape precedence in the existing listener (index → drawer → pen → demo → nothing). Tests PASS; lint; build. Commit `feat(w2): IndexOverlay`.
+
+### Task 39: PresenterPen
+
+**Model:** Sonnet (W2-owned follow-up, dispatched by Fable after the W2 merge; reviewer Sonnet)
+**Files:**
+- Create: `components/presentation/PresenterPen.tsx` (+ `.test.tsx`)
+- Modify: `components/presentation/Presentation.tsx` (mount toolbar + canvas beside `<main>`; Escape turns pen mode off per precedence)
+
+**Interfaces:**
+- Consumes: `UI_COPY.pen|undo|clear|clearConfirm`, `useCurrentScene` (clear strokes on change), reduced-motion irrelevant.
+- Produces: fixed bottom-left toolbar of three mono buttons; `PEN` has `aria-pressed`; `UNDO` removes the last stroke; `CLEAR` is two-step: first click → label `CLEAR?` and a confirming state, second click within 4000 ms clears everything, otherwise it reverts to `CLEAR` (state + one timer, cancelled on confirm); full-viewport `<canvas aria-hidden="true">` with `pointer-events: none` unless pen mode; strokes (arrays of points) drawn in `--orange` 3px round joins with pointer events; redraw on resize; strokes cleared when the current scene changes; keyboard navigation keeps working in pen mode; no storage.
+
+- [ ] **Step 1:** Failing tests (jsdom, mock canvas `getContext`): PEN toggles `aria-pressed` and the canvas `pointer-events`; a pointerdown/move/up sequence adds one stroke; UNDO removes it; CLEAR → `CLEAR?` → CLEAR clears; `CLEAR?` reverts after 4000 ms with fake timers; strokes cleared when `useCurrentScene` changes; Escape in pen mode turns it off (via the engine listener).
+- [ ] **Step 2:** Implement. Tests PASS; lint; build; browser check: draw, undo, clear at 1440×900. Commit `feat(w2): PresenterPen`.
+
+### Task 40: Boot sequence in TitleScene
+
+**Model:** Sonnet (W4; run after Task 20)
+**Files:**
+- Modify: `components/scenes/TitleScene.tsx` (+ `.test.tsx`), `lib/constants.ts` only if `UI_COPY.boot` is missing
+
+**Interfaces:**
+- Consumes: `UI_COPY.boot` = `{ heading: 'INITIALIZING KEYNOTE…', lines: ['> loading 46 scenes', '> loading 3 live demos', '> checking guardrails'], status: 'SYSTEM STATUS', ready: 'READY' }`.
+- Produces: under `prefers-reduced-motion: no-preference` only, a typed mono block rendered before the four title words: heading, then the three lines one per ~350 ms, then status + `READY`, then the block fades and the existing word intro runs; ≤ 2.5 s before `BUILD.` appears; runs once per page load; never blocks scroll or input; any scroll/key/pointer input ends it at once and shows the resting title; the 3 s CSS failsafe on the words stays. Under `reduce`: the boot block is not rendered; title static.
+
+- [ ] **Step 1:** Failing tests: with `matchMedia` → `reduce`, no boot text is in the DOM and all six title lines are visible; with `no-preference`, the boot heading is rendered first and the words exist in the DOM (visibility handled by GSAP); a `keydown` during boot removes the boot block.
+- [ ] **Step 2:** Implement inside the existing `useGSAP` one-shot intro (GSAP owns it). Tests PASS; lint; browser check at 1440×900. Commit `feat(w4): boot sequence before the title`.
+
+---
+
 ## Phase gates (Fable records, Opus signs) — see `docs/AGENT_HIERARCHY.md` §11
 - **Phase 1 exit (visual proof):** Tasks 1–22 complete; scenes 1, 2, 3 and 7 run in a browser at 1440×900 and Opus approves the motion grammar; engine tests (Tasks 9–13) and demo tests (Tasks 14–18) green.
 - **Phase 2 exit:** Tasks 19–37 complete; 46 scenes render with copy; `verify:copy` exit 0; `requirement.md` A and B ticked.
