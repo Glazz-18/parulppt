@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import gsap from 'gsap';
-import { ContentScene } from './ContentScene';
+import { ContentScene, useProgressRef } from './ContentScene';
 import type { Scene } from '@/lib/types';
 
 const baseScene = (overrides: Partial<Scene> = {}): Scene =>
@@ -233,5 +234,28 @@ describe('ContentScene', () => {
     expect(gsap.getProperty(metricValue, 'scale')).toBe(1);
     [...bars, ...layerItems].forEach((el) => expect(gsap.getProperty(el, 'y')).toBe(0));
     fills.forEach((el) => expect(gsap.getProperty(el, 'scaleX')).toBe(1));
+  });
+});
+
+// Finding 4 (Task 22b, fix round 1, manager ruling): the stale-progress-in-closure bug's root
+// cause (reading a `progress` closure variable inside a `gsap.matchMedia().add(...)` callback,
+// which only re-runs on a runtime media-query change, not on every progress update) was fixed
+// once via this shared `useProgressRef` hook, now reused by ContentScene, MemeScene and
+// RolePathScene. This regression-tests the hook's own contract directly (a ref that always holds
+// the latest `progress` after each render's effects flush), independent of GSAP's internal
+// matchMedia re-invocation timing, which jsdom's `matchMedia` mock cannot simulate.
+describe('useProgressRef', () => {
+  it('keeps the latest progress value in a ref, updated on every progress change', () => {
+    const seen: number[] = [];
+    function Probe({ progress }: { progress: number }) {
+      const ref = useProgressRef(progress);
+      useEffect(() => {
+        seen.push(ref.current);
+      });
+      return null;
+    }
+    const { rerender } = render(<Probe progress={0.2} />);
+    rerender(<Probe progress={0.7} />);
+    expect(seen).toEqual([0.2, 0.7]);
   });
 });

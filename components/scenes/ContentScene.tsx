@@ -19,6 +19,23 @@ export const titleStyle = {
 
 export const eyebrowStyle = { fontSize: 'clamp(12px, 1vw, 16px)' };
 
+// Finding 4 (Task 22b, fix round 1): shared by every scene whose `useGSAP` builds its paused
+// timeline inside `gsap.matchMedia().add(...)` and scrubs it with `tl.progress(progress)` there
+// (ContentScene, MemeScene, RolePathScene, and any later scene with the same shape). That
+// matchMedia callback only re-runs when the media query's match state changes at runtime (e.g.
+// the OS reduced-motion setting flips mid-scroll) — not on every `progress` change — so reading
+// the `progress` closure variable directly would apply whatever value was current when the
+// effect last ran, not the latest one. Keep the latest value in a ref instead, updated via effect
+// (mutating a ref during render trips the `react-hooks/refs` lint rule), and read `ref.current`
+// when (re)building the timeline.
+export function useProgressRef(progress: number) {
+  const progressRef = useRef(progress);
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+  return progressRef;
+}
+
 type BlockAnim = { selector: string; from: gsap.TweenVars; to: gsap.TweenVars };
 
 // CONTRACTS §11 grammar (MASTER_PROMPT §19 beats): choreography keyed by block type, not by
@@ -149,15 +166,7 @@ export function ContentScene({ scene }: SceneProps) {
   const eyebrowRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
-  // Finding 4 (Task 22b): the matchMedia callback below only re-runs when the media query's
-  // match state changes at runtime (e.g. the OS reduced-motion setting flips mid-scroll), not on
-  // every progress change — reading the `progress` closure variable there would apply whatever
-  // value was current at mount, not the latest one. Keep the latest value in a ref (updated every
-  // render) and read from the ref when (re)building the timeline instead.
-  const progressRef = useRef(progress);
-  useEffect(() => {
-    progressRef.current = progress;
-  }, [progress]);
+  const progressRef = useProgressRef(progress);
 
   const blocks = 'blocks' in scene.content ? scene.content.blocks : [];
 

@@ -103,4 +103,15 @@ describe('MemeScene', () => {
     const created = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
     expect(created.duration()).toBe(1);
   });
+
+  // Finding 4 (Task 22b, fix round 1): scrubbing now goes through the shared `useProgressRef`
+  // (`./ContentScene`) instead of a local ref — this confirms the refactor still wires
+  // `tl.progress(progressRef.current)` correctly (no provider wraps this render, so
+  // `useSceneProgress()` reads its documented no-measurement default of 1, CONTRACTS §6).
+  it('scrubs the built timeline to the current progress via the shared progress ref', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+    render(<MemeScene scene={baseScene()} />);
+    const created = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
+    expect(created.progress()).toBe(1);
+  });
 });

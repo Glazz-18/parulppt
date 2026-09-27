@@ -7,6 +7,7 @@ import type { SceneProps } from '@/lib/types';
 import { MemeInterstitial } from '@/components/ui/MemeInterstitial';
 import { memes } from '@/lib/memes';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
+import { useProgressRef } from './ContentScene';
 
 // design §10: fast, bold orange interruption — minimal UI, one dominant meme, huge punchline.
 // MemeInterstitial (W1, not edited here) renders eyebrow/h2/lines/box as flat siblings inside
@@ -33,6 +34,7 @@ export function MemeScene({ scene }: SceneProps) {
   const progress = useSceneProgress();
   const containerRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const progressRef = useProgressRef(progress);
 
   // MemeScene only ever renders for kind 'meme' (KIND_COMPONENT); this keeps hooks unconditional
   // (rules of hooks) while staying type-safe for the Scene union (TitleScene's same pattern).
@@ -59,7 +61,7 @@ export function MemeScene({ scene }: SceneProps) {
           );
         }
         tl.set({}, {}, 1); // guarantees total duration 1 (CONTRACTS §6) even with no content
-        tl.progress(progress);
+        tl.progress(progressRef.current);
 
         return () => {
           tlRef.current = null;

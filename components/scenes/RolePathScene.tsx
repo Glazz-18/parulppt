@@ -6,7 +6,7 @@ import { useGSAP } from '@gsap/react';
 import type { SceneProps } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
-import { titleStyle, eyebrowStyle, revealStagger } from './ContentScene';
+import { titleStyle, eyebrowStyle, revealStagger, useProgressRef } from './ContentScene';
 
 const bodyTextStyle = {
   fontSize: 'clamp(20px, 1.6vw, 28px)',
@@ -35,6 +35,7 @@ export function RolePathScene({ scene }: SceneProps) {
   const pointerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const progressRef = useProgressRef(progress);
 
   const blocks = 'blocks' in scene.content ? scene.content.blocks : [];
   const flowBlock = blocks.find((b) => b.type === 'flow');
@@ -113,7 +114,7 @@ export function RolePathScene({ scene }: SceneProps) {
 
         // Guarantees total duration 1 (CONTRACTS §6) even when float rounding left a beat short.
         tl.set({}, {}, 1);
-        tl.progress(progress);
+        tl.progress(progressRef.current);
 
         return () => {
           tlRef.current = null;
