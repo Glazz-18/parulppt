@@ -283,9 +283,23 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'timeline',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 4 · TIMELINE COMPRESSION · 1 OF 2',
+    title: 'The attacker’s clock',
+    sourceNotes: ['CrowdStrike 2026 Global Threat Report (2025 data) · Mandiant M-Trends 2026'],
+    content: {
+      blocks: [
+        {
+          type: 'marks',
+          items: [
+            { at: '22s', text: 'access broker hands off to ransomware crew' },
+            { at: '27s', text: 'fastest breakout' },
+            { at: '4m', text: 'to first data out' },
+            { at: '29m', text: 'average breakout' },
+            { at: '−7 days', text: 'mean time-to-exploit: used before the patch exists' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-20',
@@ -295,9 +309,23 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'timeline',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 4 · TIMELINE COMPRESSION · 2 OF 2',
+    title: 'The defender’s clock',
+    sourceNotes: ['Mandiant M-Trends 2026 · IBM Cost of a Data Breach 2026 · IBM Cost of a Data Breach, India, 2026'],
+    content: {
+      blocks: [
+        {
+          type: 'marks',
+          items: [
+            { at: '14d', text: 'median dwell time, up from 11' },
+            { at: '236d', text: 'to identify, India, no automation · 175 with it' },
+            { at: '247d', text: 'to identify and contain, global' },
+            { at: '−$1.93M', text: 'and 65 days faster with extensive security AI and automation' },
+          ],
+        },
+        { type: 'lines', lines: ['The human doesn’t get faster. The tooling and the design do.'] },
+      ],
+    },
   },
   {
     id: 'scene-21',

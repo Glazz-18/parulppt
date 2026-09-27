@@ -4,10 +4,12 @@ import { TitleScene } from './TitleScene';
 import { ContentScene } from './ContentScene';
 import { MemeScene } from './MemeScene';
 import { RolePathScene } from './RolePathScene';
+import { TimelineScene } from './TimelineScene';
 
 export const registry: Partial<Record<SceneComponentName, ComponentType<SceneProps>>> = {
   TitleScene,
   ContentScene,
   MemeScene,
   RolePathScene,
+  TimelineScene,
 };
