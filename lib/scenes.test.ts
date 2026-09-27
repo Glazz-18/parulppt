@@ -133,7 +133,7 @@ describe('scenes manifest', () => {
   // Task 32 fills slide 34. Every other slide is still the W2 skeleton (empty strings) until its
   // own manifest task lands.
   const filledSlides = new Set([
-    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45,
+    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45,
   ]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {

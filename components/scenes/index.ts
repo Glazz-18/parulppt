@@ -12,6 +12,7 @@ import { AiWritesBugScene } from './AiWritesBugScene';
 import { AiFixesBugScene } from './AiFixesBugScene';
 import { ProblemProductScene } from './ProblemProductScene';
 import { GovernanceCurveScene } from './GovernanceCurveScene';
+import { ProgrammeScene } from './ProgrammeScene';
 
 export const registry: Partial<Record<SceneComponentName, ComponentType<SceneProps>>> = {
   TitleScene,
@@ -26,4 +27,5 @@ export const registry: Partial<Record<SceneComponentName, ComponentType<ScenePro
   AiFixesBugScene,
   ProblemProductScene,
   GovernanceCurveScene,
+  ProgrammeScene,
 };

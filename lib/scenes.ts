@@ -850,9 +850,24 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · KEEP IT SIMPLE · 2 OF 3',
+    title: 'Your security programme, on one page',
+    content: {
+      blocks: [
+        { type: 'lines', lines: ['One owner. Reviewed monthly. Five questions.'] },
+        { type: 'lines', lines: ['Owner: ______', 'Reviewed: __ / __'] },
+        {
+          type: 'steps',
+          items: [
+            { n: '01', text: 'What data do we collect?' },
+            { n: '02', text: 'Where does it live, and for how long?' },
+            { n: '03', text: 'Which AI features can reach it?' },
+            { n: '04', text: 'Which vendors touch it?' },
+            { n: '05', text: 'What do we do in the first six hours?' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-39',
