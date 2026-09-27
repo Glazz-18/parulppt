@@ -638,6 +638,7 @@ export const scenes: Scene[] = [
           type: 'bars',
           series: ['Alone in the queue', 'AI copilot + human approval'],
           note: 'Illustrative proportions',
+          ratios: [1, 0.12],
         },
       ],
     },
@@ -743,9 +744,19 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 2,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · SECURITY → STARTUP',
+    title: 'Governance debt',
+    content: {
+      blocks: [
+        { type: 'flow', items: ['Prototype', 'First users', 'Enterprise deal', 'Diligence, incident'] },
+        {
+          type: 'bars',
+          series: ['Built in', 'Deferred'],
+          note: 'Cost to fix · illustrative shape',
+          ratios: [0.28, 1],
+        },
+      ],
+    },
   },
   {
     id: 'scene-35',

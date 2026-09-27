@@ -130,9 +130,10 @@ describe('scenes manifest', () => {
   // Task 22 fills slide 3; Task 23 fills slides 19, 20; Task 24 fills slides 9, 13, 16, 17, 18, 24, 27, 28.
   // Task 25 fills slides 31, 32, 35, 36, 37, 39, 41, 44. Task 26 fills slide 5. Task 27 fills slide 11.
   // Task 28 fills slide 14. Task 29 fills slide 25. Task 30 fills slide 26. Task 31 fills slide 29.
-  // Every other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
+  // Task 32 fills slide 34. Every other slide is still the W2 skeleton (empty strings) until its
+  // own manifest task lands.
   const filledSlides = new Set([
-    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 35, 36, 37, 39, 40, 41, 42, 44, 45,
+    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45,
   ]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
@@ -342,6 +343,23 @@ describe('scenes manifest', () => {
       } else {
         expect(scene.sourceNotes).toBeUndefined();
       }
+    });
+  });
+
+  it('every bars block (slides 28, 34) carries measured ratios: length 2, each in (0, 1], max 1', () => {
+    const barsSlides = [28, 34];
+    barsSlides.forEach((slide) => {
+      const scene = scenes[slide - 1];
+      const content = scene.content as { blocks: Array<{ type: string; ratios?: number[] }> };
+      const barsBlock = content.blocks.find((b) => b.type === 'bars');
+      expect(barsBlock).toBeTruthy();
+      const ratios = barsBlock!.ratios;
+      expect(ratios).toHaveLength(2);
+      ratios!.forEach((r) => {
+        expect(r).toBeGreaterThan(0);
+        expect(r).toBeLessThanOrEqual(1);
+      });
+      expect(Math.max(...ratios!)).toBe(1);
     });
   });
 });
