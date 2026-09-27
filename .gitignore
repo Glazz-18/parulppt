@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.env*
+!.env.example
+.superpowers/
+.worktrees/
+source/pptx-raw/
+.DS_Store
+Thumbs.db
+npm-debug.log*
