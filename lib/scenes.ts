@@ -259,9 +259,16 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'data',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 3 · MODEL SUPPLY CHAIN',
+    title: 'Three people, thirty dependencies',
+    sourceNotes: ['LiteLLM PyPI advisory, Mar 2026 · Verizon Data Breach Investigations Report 2026'],
+    content: {
+      blocks: [
+        { type: 'flow', label: 'Your agent app', items: ['CrewAI', 'DSPy', 'Mem0', 'litellm 1.82.7 / 1.82.8'] },
+        { type: 'lines', lines: ['24 Mar 2026 · live ~40 min · stole credentials'] },
+        { type: 'metrics', items: [{ value: '48%', label: 'of breaches involved a third party' }] },
+      ],
+    },
   },
   {
     id: 'scene-15',
