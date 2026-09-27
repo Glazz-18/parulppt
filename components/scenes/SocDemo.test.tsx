@@ -92,6 +92,41 @@ describe('SocDemo', () => {
     expect(getLiveRegion(container)?.textContent).toBe('');
   });
 
+  it('I3: noise rows have a fixed height and a muted fill, and the 4 events are interleaved among them (not all first)', () => {
+    const { container } = render(<SocDemo scene={makeScene()} />);
+
+    const noise = noiseRows(container);
+    noise.forEach((row) => {
+      const el = row as HTMLElement;
+      expect(el.style.height).not.toBe('');
+      expect(el.style.background).toBe('var(--muted)');
+    });
+
+    const rows = allRows(container);
+    const firstEventPosition = rows.findIndex((row) => row.textContent?.includes(linkedEvents[0]!));
+    const noiseBeforeFirstEvent = rows.slice(0, firstEventPosition).filter((row) => row.getAttribute('aria-hidden') === 'true');
+    // Interleaved, not "all 12 noise rows, then the events": some noise precedes the first event,
+    // but not the entire SOC_NOISE_ROWS block.
+    expect(noiseBeforeFirstEvent.length).toBeGreaterThan(0);
+    expect(noiseBeforeFirstEvent.length).toBeLessThan(SOC_NOISE_ROWS);
+
+    const lastEventPosition = rows.findIndex((row) => row.textContent?.includes(linkedEvents[3]!));
+    expect(lastEventPosition).toBeGreaterThan(firstEventPosition);
+  });
+
+  it('I3: correlated+ renders the 4 events as one connected chain (a connecting rule, not bare siblings)', () => {
+    const { container } = render(<SocDemo scene={makeScene()} />);
+    fireEvent.click(getButton(container, socCopy.copilot) as HTMLButtonElement);
+
+    const items = linkedEvents.map((text) =>
+      Array.from(container.querySelectorAll('li')).find((li) => li.textContent === text),
+    );
+    items.forEach((li) => {
+      expect(li).toBeTruthy();
+      expect((li as HTMLElement).style.borderInlineStart).not.toBe('');
+    });
+  });
+
   it('INSPECT: highlights row and splits it into time/source/detail; tracks; live region', () => {
     const { container } = render(<SocDemo scene={makeScene()} />);
     fireEvent.click(getButton(container, linkedEvents[0]) as HTMLButtonElement);

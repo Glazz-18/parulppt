@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DemoShell } from './DemoShell';
 import { MonoLabel } from '@/components/ui/MonoLabel';
@@ -52,6 +52,41 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
+// I3: the 4 real events interleaved among the noise rows at deterministic positions (no
+// Math.random — CONTRACTS §11 render determinism), so the queue reads dense the way design §11
+// intends instead of showing all 12 blanks before any event. Groups noise rows evenly around each
+// event; any remainder from an uneven split lands after the last event.
+type QueueRow = { kind: 'noise'; key: string } | { kind: 'event'; index: 0 | 1 | 2 | 3 };
+
+const QUEUE_ROW_ORDER: QueueRow[] = (() => {
+  const perGroup = Math.floor(SOC_NOISE_ROWS / linkedEvents.length);
+  const rows: QueueRow[] = [];
+  let noiseCount = 0;
+  const pushNoise = (n: number) => {
+    for (let i = 0; i < n; i++) rows.push({ kind: 'noise', key: `noise-${noiseCount++}` });
+  };
+  linkedEvents.forEach((_, i) => {
+    pushNoise(perGroup);
+    rows.push({ kind: 'event', index: i as 0 | 1 | 2 | 3 });
+  });
+  pushNoise(SOC_NOISE_ROWS - noiseCount); // any remainder from an uneven split
+  return rows;
+})();
+
+const noiseRowStyle: CSSProperties = {
+  height: '1.4em',
+  background: 'var(--muted)',
+  opacity: 0.3,
+};
+
+// Correlated+ (§9.3): the 4 events join in order as one visible chain — a connecting rule down
+// the list, not just plain sibling <li>s (I3's "no chain treatment" gap).
+const chainItemStyle: CSSProperties = {
+  borderInlineStart: '2px solid var(--rule)',
+  marginInlineStart: '0.35em',
+  paddingInlineStart: '0.75em',
+};
+
 export function SocDemo({ scene }: SceneProps) {
   const [model, setModel] = useState<SocModel>(socInitial);
 
@@ -89,6 +124,43 @@ export function SocDemo({ scene }: SceneProps) {
       ? linkedEvents[model.inspected]
       : DETAIL[model.state];
 
+  // Rows in QUEUE_ROW_ORDER's fixed, interleaved positions; noise rows only exist while queue-like
+  // (their motion.li exit animates away on CORRELATE), event rows persist across the boundary
+  // under the same key so they morph in place (interactive -> highlighted -> chain) rather than
+  // remounting.
+  const queueRows: ReactElement[] = QUEUE_ROW_ORDER.flatMap((row) => {
+    if (row.kind === 'noise') {
+      return isQueueLike
+        ? [<motion.li key={row.key} aria-hidden="true" exit={{ opacity: 0 }} style={noiseRowStyle} />]
+        : [];
+    }
+    const idx = row.index;
+    const text = linkedEvents[idx];
+    if (!isQueueLike) {
+      return [
+        <li key={`event-${idx}`} style={chainItemStyle}>
+          {text}
+        </li>,
+      ];
+    }
+    const highlighted = model.state === 'investigating' && model.inspected === idx;
+    if (highlighted) {
+      const parts = parseEvent(text);
+      return [
+        <li key={`event-${idx}`} data-highlighted="true" style={{ border: '1px solid var(--fg)' }}>
+          <span>{parts.time}</span> <span>{parts.source}</span> <span>{parts.detail}</span>
+        </li>,
+      ];
+    }
+    return [
+      <li key={`event-${idx}`}>
+        <button type="button" className="demo-btn" onClick={() => dispatch({ type: 'INSPECT', event: idx })}>
+          {text}
+        </button>
+      </li>,
+    ];
+  });
+
   return (
     <DemoShell
       scene={scene}
@@ -98,7 +170,7 @@ export function SocDemo({ scene }: SceneProps) {
       onReset={() => dispatch({ type: 'RESET' })}
       actions={
         isQueueLike ? (
-          <button type="button" onClick={() => dispatch({ type: 'CORRELATE' })}>
+          <button type="button" className="demo-btn" onClick={() => dispatch({ type: 'CORRELATE' })}>
             {socCopy.copilot}
           </button>
         ) : undefined
@@ -107,35 +179,7 @@ export function SocDemo({ scene }: SceneProps) {
       <div className="flex flex-col gap-3">
         {isQueueLike ? <MonoLabel as="p">{socCopy.queue}</MonoLabel> : null}
         <ul className="flex flex-col gap-1">
-          <AnimatePresence initial={false}>
-            {isQueueLike
-              ? Array.from({ length: SOC_NOISE_ROWS }, (_, i) => (
-                  <motion.li key={`noise-${i}`} aria-hidden="true" exit={{ opacity: 0 }} />
-                ))
-              : null}
-          </AnimatePresence>
-          {linkedEvents.map((text, i) => {
-            const idx = i as 0 | 1 | 2 | 3;
-            if (!isQueueLike) {
-              return <li key={i}>{text}</li>; // correlated+: plain chain item, no longer interactive
-            }
-            const highlighted = model.state === 'investigating' && model.inspected === idx;
-            if (highlighted) {
-              const parts = parseEvent(text);
-              return (
-                <li key={i} data-highlighted="true" style={{ border: '1px solid var(--fg)' }}>
-                  <span>{parts.time}</span> <span>{parts.source}</span> <span>{parts.detail}</span>
-                </li>
-              );
-            }
-            return (
-              <li key={i}>
-                <button type="button" onClick={() => dispatch({ type: 'INSPECT', event: idx })}>
-                  {text}
-                </button>
-              </li>
-            );
-          })}
+          <AnimatePresence initial={false}>{queueRows}</AnimatePresence>
         </ul>
         <p style={{ color: 'var(--muted)' }}>{socCopy.unrelated}</p>
         {!isQueueLike ? (
