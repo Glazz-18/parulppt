@@ -8,8 +8,10 @@ import { Presentation } from './Presentation';
 let warnSpy: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
-  // Registry is empty (Task 7); every scene hits the fallback and would warn.
-  // Silence it here so test output stays pristine; specific tests assert on it directly.
+  // baseScene below uses kind 'timeline', which Task 20 (W4) leaves unregistered (only
+  // TitleScene and ContentScene are registered so far), so every scene here still hits the
+  // fallback and would warn. Silence it here so test output stays pristine; specific tests
+  // assert on it directly.
   warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
@@ -25,7 +27,7 @@ const baseScene: Scene = {
   theme: 'dark',
   pin: true,
   scrollLength: 3,
-  kind: 'editorial',
+  kind: 'timeline',
   eyebrow: 'Eyebrow text',
   title: 'Scene title',
   content: { blocks: [] },

@@ -126,11 +126,75 @@ describe('scenes manifest', () => {
     });
   });
 
-  it('every scene has empty eyebrow and title', () => {
+  // Task 20 fills slides 1, 2, 8, 15 (CONTRACTS §3.1); every other slide is still the W2
+  // skeleton (empty strings) until its own manifest task lands.
+  const filledSlides = new Set([1, 2, 8, 15]);
+
+  it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
     scenes.forEach((scene) => {
+      if (filledSlides.has(scene.slide)) return;
       expect(scene.eyebrow).toBe('');
       expect(scene.title).toBe('');
     });
+  });
+
+  it('slide 1 (title) has its tagline eyebrow and no title field (§3.1 recipe row 1)', () => {
+    const scene = scenes[0];
+    expect(scene.eyebrow).toBe('AI × CYBERSECURITY × ENTREPRENEURSHIP');
+    expect(scene.title).toBeUndefined();
+    expect(scene.kind).toBe('title');
+    const content = scene.content as { words: string[]; speaker: string; role: string };
+    expect(content.words).toEqual(['BUILD.', 'BREAK.', 'SECURE.', 'SCALE.']);
+    expect(content.speaker).toBe('Atharv Tiwari');
+    expect(content.role).toBe('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+  });
+
+  it('slide 2 (editorial) has eyebrow, title and a steps block of 3 items', () => {
+    const scene = scenes[1];
+    expect(scene.eyebrow).toBe('ACT 1 · THE WORLD CHANGED');
+    expect(scene.title).toBe('Three hands');
+    const content = scene.content as { blocks: { type: string; items?: unknown[] }[] };
+    expect(content.blocks).toHaveLength(1);
+    expect(content.blocks[0].type).toBe('steps');
+    expect(content.blocks[0].items).toHaveLength(3);
+  });
+
+  it('slide 8 (diagram) has a flow block with connectors and a lines block, plus sourceNotes', () => {
+    const scene = scenes[7];
+    expect(scene.eyebrow).toBe('ACT 2 · BREAK AI');
+    expect(scene.title).toBe('The lethal trifecta');
+    expect(scene.sourceNotes).toEqual(['Concept: Simon Willison, 2025 · CVE-2025-32711, Microsoft MSRC, 2025']);
+    const content = scene.content as { blocks: { type: string; items?: string[]; lines?: string[] }[] };
+    expect(content.blocks[0].type).toBe('flow');
+    expect(content.blocks[0].items).toEqual([
+      'Private data',
+      '+',
+      'Untrusted content',
+      '+',
+      'A way to send data out',
+      '=',
+      'Exploitable',
+    ]);
+    expect(content.blocks[1].type).toBe('lines');
+    expect(content.blocks[1].lines).toEqual([
+      'EchoLeak, 2025 · one crafted email, zero clicks, data pulled out of Microsoft 365 Copilot.',
+    ]);
+  });
+
+  it('slide 15 (data) has a metrics block of 3 and a lines block, plus sourceNotes', () => {
+    const scene = scenes[14];
+    expect(scene.eyebrow).toBe('ACT 3 · GUARDRAILS');
+    expect(scene.title).toBe('Shadow AI');
+    expect(scene.sourceNotes).toEqual([
+      'Verizon DBIR 2026 · IBM Cost of a Data Breach 2026 · IBM Cost of a Data Breach, India, 2026',
+    ]);
+    const content = scene.content as { blocks: { type: string; items?: unknown[]; lines?: string[] }[] };
+    expect(content.blocks[0].type).toBe('metrics');
+    expect(content.blocks[0].items).toHaveLength(3);
+    expect(content.blocks[1].type).toBe('lines');
+    expect(content.blocks[1].lines).toEqual([
+      'The college project you built on a free API key, with the placement data in it.',
+    ]);
   });
 
   it('every scene has appropriate content shape', () => {
@@ -183,9 +247,14 @@ describe('scenes manifest', () => {
     });
   });
 
-  it('no scene has sourceNotes', () => {
+  it('no scene has sourceNotes yet, except 8 and 15 (Task 20)', () => {
+    const sourceNotesSlides = new Set([8, 15]);
     scenes.forEach((scene) => {
-      expect(scene.sourceNotes).toBeUndefined();
+      if (sourceNotesSlides.has(scene.slide)) {
+        expect(scene.sourceNotes).toBeDefined();
+      } else {
+        expect(scene.sourceNotes).toBeUndefined();
+      }
     });
   });
 });
