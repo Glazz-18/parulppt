@@ -70,6 +70,7 @@ export function computeIdleScene(sectionTops: number[], scrollY: number, innerHe
 export const KEY_IGNORE_SELECTOR =
   'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="slider"], [role="spinbutton"], [role="listbox"], [role="radiogroup"], [role="tablist"], [role="menu"], [role="grid"]';
 export const SPACE_IGNORE_SELECTOR = 'button, summary, [role="button"], [role="checkbox"], [role="switch"]';
+export const PROGRESS_EPSILON = 1e-3;
 
 export type NavAction =
   | { type: 'goTo'; slide: number }
@@ -119,9 +120,13 @@ export function keyToAction(event: KeyboardEvent, ctx: KeyContext): NavAction | 
       return null;
   }
 
-  // Ruling 3: forward while the pinned scene is unfinished; back while it is scrolled past its arrival pose.
+  // Rulings 3 + 12: forward while the pinned scene is unfinished; back while it is scrolled past its
+  // arrival pose. PROGRESS_EPSILON absorbs fractional scroll offsets so an edge never traps the key.
   const scrollInScene =
-    ctx.pinned && (direction === 1 ? ctx.progress < 1 : ctx.progress > 1 / ctx.scrollLength);
+    ctx.pinned &&
+    (direction === 1
+      ? ctx.progress < 1 - PROGRESS_EPSILON
+      : ctx.progress > 1 / ctx.scrollLength + PROGRESS_EPSILON);
   if (scrollInScene) return { type: 'scrollBy', direction };
   const slide = ctx.current + direction;
   return slide >= FIRST && slide <= LAST ? { type: 'goTo', slide } : null;

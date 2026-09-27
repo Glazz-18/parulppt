@@ -4,6 +4,7 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import {
   KEY_IGNORE_SELECTOR,
+  PROGRESS_EPSILON,
   SPACE_IGNORE_SELECTOR,
   computeIdleScene,
   endNavigation,
@@ -241,6 +242,21 @@ describe('keyToAction key table', () => {
   ])('%j (shift %s) in a pinned scene at its top goes to the previous scene', (key, shiftKey) => {
     expect(press({ key, shiftKey }, pinned(1 / 3))).toEqual(goTo(9));
     expect(press({ key, shiftKey }, pinned(0))).toEqual(goTo(9));
+  });
+
+  describe('pinned edges tolerate PROGRESS_EPSILON (ruling 12)', () => {
+    const top = 1 / 3;
+    it('within epsilon of an edge, the key goes to the adjacent scene', () => {
+      expect(press({ key: 'ArrowDown' }, pinned(1 - 0.0005))).toEqual(goTo(11));
+      expect(press({ key: SPACE }, pinned(1 - 0.0005))).toEqual(goTo(11));
+      expect(press({ key: 'ArrowUp' }, pinned(top + 0.0005))).toEqual(goTo(9));
+      expect(press({ key: SPACE, shiftKey: true }, pinned(top + 0.0005))).toEqual(goTo(9));
+    });
+    it('just beyond epsilon, the key still scrolls within the scene', () => {
+      const beyond = PROGRESS_EPSILON + 0.0005;
+      expect(press({ key: 'ArrowDown' }, pinned(1 - beyond))).toEqual({ type: 'scrollBy', direction: 1 });
+      expect(press({ key: 'ArrowUp' }, pinned(top + beyond))).toEqual({ type: 'scrollBy', direction: -1 });
+    });
   });
 
   it('Home and End go to the first and last scene, including when already there', () => {
