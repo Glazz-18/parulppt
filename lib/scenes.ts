@@ -524,9 +524,32 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 2,
     kind: 'data',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'AI FINDS · AI FIXES · HUMANS DECIDE · 2 OF 4',
+    title: 'AI writes the bug too',
+    sourceNotes: ['CodeRabbit, Dec 2025 (one vendor’s study) · OpenAI, Feb 2026 · Google Threat Intelligence Group, May 2026'],
+    content: {
+      blocks: [
+        {
+          type: 'metrics',
+          items: [
+            { value: '2.74×', label: 'more likely to introduce XSS · 1.57× more security findings, AI-assisted code' },
+          ],
+        },
+        {
+          type: 'terms',
+          items: [
+            { term: 'Codex CLI', text: 'command injection via an unsanitised branch name · patched Feb 2026' },
+          ],
+        },
+        {
+          type: 'lines',
+          lines: [
+            'The models hold. The wrappers, connectors, skills and configs around them don’t.',
+            'Vibe coding without vibe reviewing is how your startup ships its first CVE.',
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-26',
