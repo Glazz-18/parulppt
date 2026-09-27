@@ -6,6 +6,7 @@ import { MonoLabel } from '@/components/ui/MonoLabel';
 import { StatusPill, type StatusPillProps } from '@/components/ui/StatusPill';
 import { UI_COPY } from '@/lib/constants';
 import type { Scene } from '@/lib/types';
+import { titleStyle } from './ContentScene';
 
 export type DemoShellProps = {
   scene: Scene;
@@ -36,7 +37,7 @@ export function DemoShell({ scene, label, tone, detail, caption, actions, onRese
     <div className="flex h-full flex-col gap-6 md:flex-row md:gap-10">
       <div className="flex flex-col gap-3 md:w-1/3">
         {scene.eyebrow ? <MonoLabel as="p">{scene.eyebrow}</MonoLabel> : null}
-        {scene.title ? <h2>{scene.title}</h2> : null}
+        {scene.title ? <h2 style={titleStyle}>{scene.title}</h2> : null}
         {subtitle ? <p style={{ color: 'var(--muted)' }}>{subtitle}</p> : null}
         {caption ? <p style={{ color: 'var(--muted)' }}>{caption}</p> : null}
         <StatusPill label={label} tone={tone} />
@@ -45,7 +46,7 @@ export function DemoShell({ scene, label, tone, detail, caption, actions, onRese
         {children}
         <div className="flex items-center gap-3">
           {actions}
-          <button type="button" onClick={onReset}>
+          <button type="button" className="demo-btn" onClick={onReset}>
             {UI_COPY.reset}
           </button>
         </div>

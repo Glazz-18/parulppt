@@ -156,10 +156,17 @@ export function NetworkScene({ scene }: SceneProps) {
           <BigNumber value={display} />
         </div>
         <div className="flex gap-4">
-          <button type="button" onClick={status === 'running' ? pause : start}>
+          <button
+            type="button"
+            className="demo-btn"
+            // Task 34: Start at remaining 0 was a silent no-op (start() itself already guards
+            // against it) — now shown as disabled instead of inviting a dead click.
+            disabled={status !== 'running' && remaining <= 0}
+            onClick={status === 'running' ? pause : start}
+          >
             {status === 'running' ? UI_COPY.pause : UI_COPY.start}
           </button>
-          <button type="button" onClick={restart}>
+          <button type="button" className="demo-btn" onClick={restart}>
             {UI_COPY.restart}
           </button>
         </div>

@@ -113,6 +113,7 @@ export function RagDemo({ scene }: SceneProps) {
               <button
                 key={step}
                 type="button"
+                className="demo-btn"
                 aria-current={step === state ? 'step' : undefined}
                 disabled={action === null}
                 onClick={() => {

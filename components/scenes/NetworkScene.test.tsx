@@ -118,6 +118,15 @@ describe('NetworkScene', () => {
     expect(screen.getByText('0s')).toBeTruthy();
   });
 
+  it('Task 34: Start disables once the countdown reaches 0, instead of a silent no-op click', () => {
+    render(<NetworkScene scene={baseScene()} />);
+    fireEvent.click(screen.getByRole('button', { name: UI_COPY.start }));
+    act(() => vi.advanceTimersByTime(60_000));
+
+    const startButton = screen.getByRole('button', { name: UI_COPY.start }) as HTMLButtonElement;
+    expect(startButton.disabled).toBe(true);
+  });
+
   it('clears the interval on unmount', () => {
     const clearSpy = vi.spyOn(window, 'clearInterval');
     const { unmount } = render(<NetworkScene scene={baseScene()} />);

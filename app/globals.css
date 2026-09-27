@@ -103,6 +103,34 @@ section[data-scene]:focus {
   outline-color: var(--text-dark);
 }
 
+/* I2: shared demo control style (design §11 "one or two obvious actions"). State is never colour
+   alone: pressed/current also gain weight + a filled background, disabled also gains a dashed
+   border, on top of the colour change. */
+.demo-btn {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1vw, 14px);
+  letter-spacing: 0.02em;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--fg);
+  padding: 0.6em 1.1em;
+  cursor: pointer;
+}
+
+.demo-btn[aria-pressed='true'],
+.demo-btn[aria-current='step'] {
+  border-width: 2px;
+  font-weight: 700;
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.demo-btn:disabled {
+  opacity: 0.45;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

@@ -78,13 +78,14 @@ export function CampusBotDemo({ scene }: SceneProps) {
       onReset={() => dispatch('RESET')}
       actions={
         state === 'baseline' ? (
-          <button type="button" onClick={() => dispatch('ROLEPLAY')}>
+          <button type="button" className="demo-btn" onClick={() => dispatch('ROLEPLAY')}>
             {campusBotCopy.labels.roleplay}
           </button>
         ) : (
           <>
             <button
               type="button"
+              className="demo-btn"
               aria-pressed={state === 'guardrail-off'}
               onClick={() => dispatch('GUARDRAIL_OFF')}
             >
@@ -92,6 +93,7 @@ export function CampusBotDemo({ scene }: SceneProps) {
             </button>
             <button
               type="button"
+              className="demo-btn"
               aria-pressed={state === 'guardrail-on'}
               onClick={() => dispatch('GUARDRAIL_ON')}
             >
@@ -102,7 +104,14 @@ export function CampusBotDemo({ scene }: SceneProps) {
       }
     >
       <div className="flex flex-col gap-3">
-        <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--muted)',
+            border: '1px solid var(--rule)',
+            padding: '0.75em 1em',
+          }}
+        >
           <MonoLabel as="span" tone="muted">
             {campusBotCopy.systemLabel}
           </MonoLabel>
@@ -135,9 +144,15 @@ export function CampusBotDemo({ scene }: SceneProps) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              style={{ backgroundColor: 'var(--fg)', color: 'var(--orange)' }}
+              // I4: on this dark scene, --fg is cream — --orange text on it measures ~2.3:1. The
+              // leak card instead sits on the dark ground (--bg) with --orange text, which is the
+              // same accent/background pairing already used elsewhere on dark+orange-accent
+              // scenes, keeping the warning icon.
+              style={{ backgroundColor: 'var(--bg)', color: 'var(--orange)', border: '1px solid var(--rule)' }}
             >
-              <MonoLabel as="span">{campusBotCopy.bot}</MonoLabel>
+              <MonoLabel as="span" tone="muted">
+                {campusBotCopy.bot}
+              </MonoLabel>
               <p>
                 <WarningIcon /> {campusBotCopy.leak}
               </p>

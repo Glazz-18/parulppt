@@ -95,6 +95,16 @@ describe('CampusBotDemo', () => {
     expect(getButton(container, campusBotCopy.labels['guardrail-off'])?.getAttribute('aria-pressed')).toBe('true');
     expect(getButton(container, campusBotCopy.labels['guardrail-on'])?.getAttribute('aria-pressed')).toBe('false');
 
+    // I4: the leak card must not pair --orange text with --fg (cream on this dark scene, ~2.3:1).
+    // It sits on the dark ground (--bg) instead, keeping --orange text and the warning icon.
+    const leakText = Array.from(container.querySelectorAll('p')).find((p) =>
+      p.textContent?.includes(campusBotCopy.leak),
+    );
+    const leakCard = leakText?.parentElement as HTMLElement;
+    expect(leakCard.style.color).toBe('var(--orange)');
+    expect(leakCard.style.backgroundColor).not.toBe('var(--fg)');
+    expect(leakCard.style.backgroundColor).toBe('var(--bg)');
+
     expect(track).toHaveBeenCalledWith('demo_interaction', {
       slide: 4,
       demo: 'campusbot',
