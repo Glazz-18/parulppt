@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { act, cleanup, render } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import gsap from 'gsap';
 import { TitleScene } from './TitleScene';
+import { UI_COPY } from '@/lib/constants';
 import type { Scene } from '@/lib/types';
 
 const scene1: Scene = {
@@ -136,5 +138,151 @@ describe('TitleScene', () => {
     reduced = false;
     render(<TitleScene scene={scene1} />);
     expect(timelineSpy).toHaveBeenCalledTimes(1);
+  });
+
+  // --- Task 40: boot sequence -------------------------------------------------------------
+
+  describe('boot sequence (A19/A20)', () => {
+    it('under reduced motion, the boot block is hidden by the scoped CSS rule, not by omitting it from markup', () => {
+      reduced = true;
+      const { container } = render(<TitleScene scene={scene1} />);
+      const boot = container.querySelector('[data-boot]');
+      expect(boot).toBeTruthy();
+      expect(boot?.getAttribute('aria-hidden')).toBe('true');
+      // Hydration safety (CONTRACTS §11): the block is always in the markup; only a CSS rule
+      // (never a matchMedia/window read during render) hides it under reduce.
+      const styles = Array.from(document.querySelectorAll('style'));
+      const match = styles.find((s) => s.textContent?.includes(scene1.id));
+      expect(match?.textContent).toContain('prefers-reduced-motion: reduce');
+      const reduceBlock = match?.textContent?.match(
+        /prefers-reduced-motion: reduce\)\s*{([\s\S]*?)}\s*}/,
+      )?.[1];
+      expect(reduceBlock).toContain('[data-boot]');
+      expect(reduceBlock).toContain('display: none');
+      // all six title lines (four words + speaker + role) stay visible under reduce
+      expect(container.querySelectorAll('[data-word]')).toHaveLength(4);
+      expect(container.textContent).toContain(scene1.content.speaker);
+      expect(container.textContent).toContain(scene1.content.role);
+    });
+
+    it('under no-preference, the boot heading is rendered before the h1 in DOM order, and the words exist', () => {
+      const { container } = render(<TitleScene scene={scene1} />);
+      const boot = container.querySelector('[data-boot]');
+      const h1 = container.querySelector('h1');
+      expect(boot).toBeTruthy();
+      expect(boot?.textContent).toContain(UI_COPY.boot.heading);
+      expect(
+        boot!.compareDocumentPosition(h1!) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(container.querySelectorAll('[data-word]')).toHaveLength(4);
+    });
+
+    it('sets animation: none inline on the words the instant the intro starts (defuses the 3s CSS failsafe)', () => {
+      const { container } = render(<TitleScene scene={scene1} />);
+      const words = Array.from(container.querySelectorAll('[data-word]')) as HTMLElement[];
+      words.forEach((word) => expect(word.style.animation).toBe('none'));
+    });
+
+    it('a keydown ends the intro immediately: words go opaque, boot hides, and listeners are removed', () => {
+      const addSpy = vi.spyOn(window, 'addEventListener');
+      const removeSpy = vi.spyOn(window, 'removeEventListener');
+      const { container } = render(<TitleScene scene={scene1} />);
+
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown'));
+      });
+
+      const words = Array.from(container.querySelectorAll('[data-word]')) as HTMLElement[];
+      words.forEach((word) => expect(word.style.opacity).toBe('1'));
+      const boot = container.querySelector('[data-boot]') as HTMLElement;
+      expect(boot.style.opacity === '0' || boot.style.display === 'none').toBe(true);
+
+      const addedTypes = addSpy.mock.calls.map((call) => call[0]);
+      const removedTypes = removeSpy.mock.calls.map((call) => call[0]);
+      ['keydown', 'wheel', 'touchstart', 'pointerdown'].forEach((type) => {
+        expect(addedTypes).toContain(type);
+        expect(removedTypes).toContain(type);
+      });
+    });
+
+    it('a wheel event also ends the intro immediately (any input, not just keys)', () => {
+      const { container } = render(<TitleScene scene={scene1} />);
+      act(() => {
+        window.dispatchEvent(new Event('wheel'));
+      });
+      const words = Array.from(container.querySelectorAll('[data-word]')) as HTMLElement[];
+      words.forEach((word) => expect(word.style.opacity).toBe('1'));
+    });
+
+    it('never calls preventDefault and never registers non-passive listeners that would block scroll', () => {
+      const addSpy = vi.spyOn(window, 'addEventListener');
+      render(<TitleScene scene={scene1} />);
+      const wheelCall = addSpy.mock.calls.find((call) => call[0] === 'wheel');
+      expect(wheelCall).toBeTruthy();
+      const opts = wheelCall?.[2];
+      // Either an options object with passive:true, or no options — never { passive: false }.
+      if (opts && typeof opts === 'object') {
+        expect((opts as AddEventListenerOptions).passive).not.toBe(false);
+      }
+    });
+
+    it('server-rendered markup is deterministic and matches the client first-paint structure (no window/matchMedia reads during render)', () => {
+      const first = renderToString(<TitleScene scene={scene1} />);
+      const second = renderToString(<TitleScene scene={scene1} />);
+      expect(first).toBe(second);
+
+      expect(first).toContain('aria-hidden="true"');
+      expect(first).toContain(UI_COPY.boot.heading);
+      // react-dom/server HTML-escapes '>' as '&gt;' in text content.
+      UI_COPY.boot.lines.forEach((line) => expect(first).toContain(line.replace('>', '&gt;')));
+      expect(first).toContain(UI_COPY.boot.status);
+      expect(first).toContain(UI_COPY.boot.ready);
+
+      const { container } = render(<TitleScene scene={scene1} />);
+      const boot = container.querySelector('[data-boot]');
+      expect(boot?.getAttribute('aria-hidden')).toBe('true');
+      expect(boot?.textContent).toContain(UI_COPY.boot.heading);
+      UI_COPY.boot.lines.forEach((line) => expect(boot?.textContent).toContain(line));
+    });
+
+    // These two need a pristine module instance (the module-level "once per page load" flag
+    // must start false) regardless of test execution order within this file, so they reset
+    // vitest's module cache and re-import both TitleScene and gsap fresh.
+    it('keeps the whole intro (boot + words) within budget: timeline ≤2.9s, BUILD. visible by 2.5s', async () => {
+      vi.resetModules();
+      const freshGsap = (await import('gsap')).default;
+      const { TitleScene: FreshTitleScene } = await import('./TitleScene');
+      const timelineSpy = vi.spyOn(freshGsap, 'timeline');
+
+      const { container } = render(<FreshTitleScene scene={scene1} />);
+      const tl = timelineSpy.mock.results[0]?.value as gsap.core.Timeline;
+      expect(tl).toBeTruthy();
+      expect(tl.duration()).toBeLessThanOrEqual(2.9);
+
+      const buildWord = container.querySelector('[data-word="0"]') as HTMLElement;
+      const children = tl.getChildren(true, true, true) as gsap.core.Tween[];
+      const wordTween = children.find((child) => child.targets().includes(buildWord));
+      expect(wordTween).toBeTruthy();
+      expect(wordTween!.startTime()).toBeLessThanOrEqual(2.5);
+    });
+
+    it('does not replay the boot sequence on a remount within the same module instance', async () => {
+      vi.resetModules();
+      const freshGsap = (await import('gsap')).default;
+      const { TitleScene: FreshTitleScene } = await import('./TitleScene');
+      const timelineSpy = vi.spyOn(freshGsap, 'timeline');
+
+      const { unmount } = render(<FreshTitleScene scene={scene1} />);
+      const firstTl = timelineSpy.mock.results[0]?.value as gsap.core.Timeline;
+      const firstDuration = firstTl.duration();
+      unmount();
+
+      render(<FreshTitleScene scene={scene1} />);
+      const secondTl = timelineSpy.mock.results[1]?.value as gsap.core.Timeline;
+      const secondDuration = secondTl.duration();
+
+      expect(secondDuration).toBeLessThan(firstDuration);
+      expect(secondDuration).toBeLessThan(1.2);
+    });
   });
 });
