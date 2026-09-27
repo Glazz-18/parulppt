@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 import { act, cleanup, render, renderHook } from '@testing-library/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as analytics from '@/lib/analytics';
+import { isNavigationInFlight } from '@/lib/sceneNavigation';
 import { scenes } from '@/lib/scenes';
 import type { SceneBeat } from '@/lib/types';
 import { Presentation } from './Presentation';
@@ -51,7 +52,10 @@ beforeEach(() => {
   createSpy = vi.spyOn(ScrollTrigger, 'create');
   trackSpy = vi.spyOn(analytics, 'track');
   // Scenes without a resolved component name (demo kind) hit the SceneRenderer fallback warning.
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  const warn = console.warn;
+  vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+    if (!String(args[0]).startsWith('SceneRenderer:')) warn(...args);
+  });
   // ScrollTrigger restores scroll on revert; jsdom only logs "not implemented".
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
 });
@@ -163,6 +167,20 @@ describe('progress engine under prefers-reduced-motion: no-preference', () => {
     act(() => vars.onUpdate!(self(0.9)));
     act(() => vars.onUpdate!(self(1)));
     expect(completes()).toHaveLength(2);
+  });
+
+  it('installs the navigation engine on mount and removes it on unmount', () => {
+    const home = () => {
+      const event = new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true });
+      document.body.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    const { unmount } = render(<Presentation />);
+    expect(home()).toBe(true);
+    expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+    unmount();
+    expect(isNavigationInFlight()).toBe(false);
+    expect(home()).toBe(false);
   });
 
   it('kills triggers and resets to unmeasured when reduced motion turns on at runtime', () => {

@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { MotionConfig } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { startNavigationEngine } from '@/lib/sceneNavigation';
 import { scenes } from '@/lib/scenes';
 import { SceneRenderer } from './SceneRenderer';
 import { resetSceneProgress, setSceneProgress } from './SceneProgress';
@@ -14,6 +15,9 @@ gsap.registerPlugin(useGSAP);
 
 export function Presentation() {
   const mainRef = useRef<HTMLElement>(null);
+
+  // CONTRACTS §8: keyboard, scroll-derived current scene, soft snapping; the cleanup removes them all.
+  useEffect(() => startNavigationEngine(), []);
 
   // CONTRACTS §6 + A4/A11: one measuring trigger per section; no pin, no animation.
   useGSAP(
