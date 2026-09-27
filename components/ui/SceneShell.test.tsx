@@ -1,7 +1,11 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import type { Scene } from '@/lib/types';
 import { SceneShell } from './SceneShell';
+
+const globalsCss = readFileSync(path.join(process.cwd(), 'app/globals.css'), 'utf8');
 
 afterEach(cleanup);
 
@@ -76,5 +80,38 @@ describe('SceneShell', () => {
     expect(section?.children.length).toBe(1);
     expect(section?.children[0]).toBe(viewport);
     expect(viewport?.textContent).toBe('child content');
+  });
+
+  it('gives .scene-viewport the I1 padding floor so the fixed HUD never overlaps content', () => {
+    const { container } = render(
+      <SceneShell scene={pinnedScene}>
+        <p>child content</p>
+      </SceneShell>,
+    );
+    const viewport = container.querySelector('.scene-viewport') as HTMLElement;
+
+    expect(viewport.style.paddingInline).toBe('calc(var(--rail-w) + 5vw) 5vw');
+    expect(viewport.style.paddingBlock).toBe('max(7vh, 72px)');
+  });
+
+  it('makes an unpinned .scene-viewport a full-height flex column so flex-1 scene roots fill it (I2)', () => {
+    expect(globalsCss).toMatch(
+      /\[data-pin="false"\]\s*\.scene-viewport\s*\{[^}]*min-height:\s*100vh;?[^}]*\}/,
+    );
+    expect(globalsCss).toMatch(
+      /\[data-pin="false"\]\s*\.scene-viewport\s*\{[^}]*display:\s*flex;?[^}]*\}/,
+    );
+    expect(globalsCss).toMatch(
+      /\[data-pin="false"\]\s*\.scene-viewport\s*\{[^}]*flex-direction:\s*column;?[^}]*\}/,
+    );
+  });
+
+  it('keeps the pinned .scene-viewport sticky and full height (I2 regression guard)', () => {
+    expect(globalsCss).toMatch(
+      /\[data-pin="true"\]\s*\.scene-viewport\s*\{[^}]*position:\s*sticky;?[^}]*\}/,
+    );
+    expect(globalsCss).toMatch(
+      /\[data-pin="true"\]\s*\.scene-viewport\s*\{[^}]*height:\s*100vh;?[^}]*\}/,
+    );
   });
 });
