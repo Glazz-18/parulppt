@@ -8,7 +8,7 @@ import { goToScene, useCurrentScene } from '@/lib/sceneNavigation';
 
 // ponytail: mirrors app/globals.css --rail-w (W1-owned, not read at runtime — no window reads during render).
 const RAIL_W_PX = 56;
-const EXPANDED_W_PX = 208;
+const EXPANDED_W_PX = 224; // widened slightly so the longest act label needs fewer wrapped lines
 
 /** Ruling 16: "Go to scene NN" while the manifest title is empty, else "Go to scene NN: <title>". */
 export function sceneAriaLabel(slide: number, title?: string): string {
@@ -125,11 +125,14 @@ export function SideNav() {
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: '0.65rem',
+                  lineHeight: 1.4,
                   letterSpacing: '0.08em',
                   color: isCurrentAct ? 'var(--label)' : 'var(--muted)',
                   opacity: expanded ? 1 : 0,
-                  whiteSpace: 'nowrap',
-                  margin: '10px 0 4px 20px',
+                  // Collapsed: nowrap + the rail's overflowX: hidden clips/hides it (still invisible either way).
+                  // Expanded: full label must stay readable, so it wraps instead of getting cut off (review fix).
+                  whiteSpace: expanded ? 'normal' : 'nowrap',
+                  margin: '10px 8px 4px 20px',
                   transition: 'opacity 150ms',
                 }}
               >

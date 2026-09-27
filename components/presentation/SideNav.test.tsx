@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { ACTS } from '@/lib/constants';
 import { setCurrentScene } from '@/lib/sceneNavigation';
 import { SideNav, sceneAriaLabel } from './SideNav';
@@ -97,6 +97,29 @@ describe('SideNav', () => {
   it('has no act heading marked current while on scene 1 (above Act 1)', () => {
     const { container } = render(<SideNav />);
     expect(container.querySelectorAll('[data-current="true"]')).toHaveLength(0);
+  });
+
+  it('collapsed: the longest act heading is nowrap (clipped/hidden, not readable)', () => {
+    const { container } = render(<SideNav />);
+    const longest = ACTS.find((a) => a.label.length === Math.max(...ACTS.map((x) => x.label.length)))!;
+    const heading = container.querySelector(`#${longest.id}-heading`) as HTMLElement;
+    expect(heading.style.whiteSpace).toBe('nowrap');
+  });
+
+  it('expanded (hover): act headings wrap instead of clipping, so the longest label stays fully present', () => {
+    const { container } = render(<SideNav />);
+    const nav = container.querySelector('nav') as HTMLElement;
+    const longest = ACTS.find((a) => a.label.length === Math.max(...ACTS.map((x) => x.label.length)))!;
+    const heading = container.querySelector(`#${longest.id}-heading`) as HTMLElement;
+
+    fireEvent.mouseEnter(nav);
+
+    expect(heading.style.whiteSpace).not.toBe('nowrap');
+    expect(heading.style.whiteSpace).toBe('normal');
+    expect(heading.textContent).toBe(`Act ${longest.n} — ${longest.label}`);
+
+    fireEvent.mouseLeave(nav);
+    expect(heading.style.whiteSpace).toBe('nowrap');
   });
 
   it('calls goToScene(n) and prevents default when a link is clicked', () => {
