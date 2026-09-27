@@ -1,0 +1,442 @@
+[
+  {
+    "id": 1,
+    "title": "Prompt injection",
+    "template": "drake",
+    "sourceUrl": "https://api.memegen.link/images/drake/AI%3A_I_cannot_reveal_the_system_prompt/Student%3A_Bhai_please%E2%80%A6_last_time..png",
+    "slug": "prompt-injection",
+    "file": "source/memes/01-prompt-injection.png",
+    "captionLines": [
+      "AI: I cannot reveal the system prompt",
+      "Student: Bhai please… last time."
+    ],
+    "suggestedScenes": [
+      4
+    ]
+  },
+  {
+    "id": 2,
+    "title": "AI is not magic",
+    "template": "fine",
+    "sourceUrl": "https://api.memegen.link/images/fine/AI_will_solve_everything/AI%3A_first%2C_give_me_access_to_everything.png",
+    "slug": "ai-is-not-magic",
+    "file": "source/memes/02-ai-is-not-magic.png",
+    "captionLines": [
+      "AI will solve everything",
+      "AI: first, give me access to everything"
+    ],
+    "suggestedScenes": [
+      3,
+      5
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Over-permissioned agent",
+    "template": "db",
+    "sourceUrl": "https://api.memegen.link/images/db/Giving_an_AI_agent_production_access/Giving_it_only_the_permissions_it_actually_needs/Security%3A_please_tell_me_which_one_you_chose.png",
+    "slug": "over-permissioned-agent",
+    "file": "source/memes/03-over-permissioned-agent.png",
+    "captionLines": [
+      "Giving an AI agent production access",
+      "Giving it only the permissions it actually needs",
+      "Security: please tell me which one you chose"
+    ],
+    "suggestedScenes": [
+      12
+    ]
+  },
+  {
+    "id": 4,
+    "title": "RAG ≠ authorization",
+    "template": "two-buttons",
+    "sourceUrl": "https://api.memegen.link/images/two-buttons/Connect_AI_to_every_company_document/Add_proper_access_control_first.png",
+    "slug": "rag-authorization",
+    "file": null,
+    "captionLines": [
+      "Connect AI to every company document",
+      "Add proper access control first"
+    ],
+    "suggestedScenes": [
+      7
+    ],
+    "missing": "HTTP 404 — template 'two-buttons' no longer exists on memegen (checked 2026-09-27)"
+  },
+  {
+    "id": 5,
+    "title": "AI startup solves everything",
+    "template": "buzz",
+    "sourceUrl": "https://api.memegen.link/images/buzz/AI/AI_everywhere.png",
+    "slug": "ai-startup-solves-everything",
+    "file": "source/memes/05-ai-startup-solves-everything.png",
+    "captionLines": [
+      "AI",
+      "AI everywhere"
+    ],
+    "suggestedScenes": [
+      29,
+      30
+    ]
+  },
+  {
+    "id": 6,
+    "title": "First enterprise customer",
+    "template": "fry",
+    "sourceUrl": "https://api.memegen.link/images/fry/Customer%3A_Please_complete_our_187-question_security_questionnaire/Founder%3A_%F0%9F%98%90.png",
+    "slug": "first-enterprise-customer",
+    "file": "source/memes/06-first-enterprise-customer.png",
+    "captionLines": [
+      "Customer: Please complete our 187-question security questionnaire",
+      "Founder: 😐"
+    ],
+    "suggestedScenes": [
+      33
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Governance later",
+    "template": "fine",
+    "sourceUrl": "https://api.memegen.link/images/fine/Founder%3A_Security_baad_mein_karenge/5%2C000_users_later%3A_data_kahan_store_ho_raha_hai%3F.png",
+    "slug": "governance-later",
+    "file": "source/memes/07-governance-later.png",
+    "captionLines": [
+      "Founder: Security baad mein karenge",
+      "5,000 users later: data kahan store ho raha hai?"
+    ],
+    "suggestedScenes": [
+      33,
+      34
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Production credentials",
+    "template": "badchoice",
+    "sourceUrl": "https://api.memegen.link/images/badchoice/Giving_the_AI_the_production_API_key/was_a_bad_choice.png",
+    "slug": "production-credentials",
+    "file": "source/memes/08-production-credentials.png",
+    "captionLines": [
+      "Giving the AI the production API key",
+      "was a bad choice"
+    ],
+    "suggestedScenes": [
+      15
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Prompt engineering vs security",
+    "template": "cmm",
+    "sourceUrl": "https://api.memegen.link/images/cmm/Prompting_is_a_skill._Security_is_an_engineering_discipline..png",
+    "slug": "prompt-engineering-vs-security",
+    "file": "source/memes/09-prompt-engineering-vs-security.png",
+    "captionLines": [
+      "Prompting is a skill. Security is an engineering discipline."
+    ],
+    "suggestedScenes": [
+      8,
+      9
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Deepfake",
+    "template": "woman-cat",
+    "sourceUrl": "https://api.memegen.link/images/woman-cat/Friend%3A_Send_%E2%82%B920%2C000_urgently/Me%3A_Verify_the_voice%2C_number_and_context_first.png",
+    "slug": "deepfake",
+    "file": "source/memes/10-deepfake.png",
+    "captionLines": [
+      "Friend: Send ₹20,000 urgently",
+      "Me: Verify the voice, number and context first"
+    ],
+    "suggestedScenes": [
+      17,
+      18
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Phishing",
+    "template": "pigeon",
+    "sourceUrl": "https://api.memegen.link/images/pigeon/URGENT!_Your_placement_account_will_be_deleted_in_10_minutes./Student%3A_Arre_genuine_lag_raha_hai./Security%3A_urgency_is_a_weapon.png",
+    "slug": "phishing",
+    "file": "source/memes/11-phishing.png",
+    "captionLines": [
+      "URGENT! Your placement account will be deleted in 10 minutes.",
+      "Student: Arre genuine lag raha hai.",
+      "Security: urgency is a weapon"
+    ],
+    "suggestedScenes": [
+      17,
+      23
+    ]
+  },
+  {
+    "id": 12,
+    "title": "Alert fatigue",
+    "template": "fine",
+    "sourceUrl": "https://api.memegen.link/images/fine/SOC_analyst%3A_I_will_investigate_every_alert_carefully/10%2C000_alerts_later%3A_jo_hoga_dekha_jayega.png",
+    "slug": "alert-fatigue",
+    "file": "source/memes/12-alert-fatigue.png",
+    "captionLines": [
+      "SOC analyst: I will investigate every alert carefully",
+      "10,000 alerts later: jo hoga dekha jayega"
+    ],
+    "suggestedScenes": [
+      22
+    ]
+  },
+  {
+    "id": 13,
+    "title": "AI + SOC",
+    "template": "buzz",
+    "sourceUrl": "https://api.memegen.link/images/buzz/10%2C000_alerts/47_incidents.png",
+    "slug": "ai-soc",
+    "file": "source/memes/13-ai-soc.png",
+    "captionLines": [
+      "10,000 alerts",
+      "47 incidents"
+    ],
+    "suggestedScenes": [
+      23,
+      28
+    ]
+  },
+  {
+    "id": 14,
+    "title": "MTTD / MTTR",
+    "template": "chosen",
+    "sourceUrl": "https://api.memegen.link/images/chosen/SOC%3A_We_found_the_attacker!/Attacker%3A_Cool._I'm_still_inside..png",
+    "slug": "mttd-mttr",
+    "file": "source/memes/14-mttd-mttr.png",
+    "captionLines": [
+      "SOC: We found the attacker!",
+      "Attacker: Cool. I'm still inside."
+    ],
+    "suggestedScenes": [
+      21,
+      28
+    ]
+  },
+  {
+    "id": 15,
+    "title": "Startup idea",
+    "template": "cmm",
+    "sourceUrl": "https://api.memegen.link/images/cmm/I_have_an_AI_startup_idea/Mentor%3A_Who_has_this_problem%3F.png",
+    "slug": "startup-idea",
+    "file": "source/memes/15-startup-idea.png",
+    "captionLines": [
+      "I have an AI startup idea",
+      "Mentor: Who has this problem?"
+    ],
+    "suggestedScenes": [
+      30
+    ]
+  },
+  {
+    "id": 16,
+    "title": "Feature bloat",
+    "template": "gb",
+    "sourceUrl": "https://api.memegen.link/images/gb/17_dashboards/AI_%2B_blockchain_%2B_AR_%2B_Web3/User%3A_Can_it_solve_my_problem%3F.png",
+    "slug": "feature-bloat",
+    "file": "source/memes/16-feature-bloat.png",
+    "captionLines": [
+      "17 dashboards",
+      "AI + blockchain + AR + Web3",
+      "User: Can it solve my problem?"
+    ],
+    "suggestedScenes": [
+      32
+    ]
+  },
+  {
+    "id": 17,
+    "title": "MVP",
+    "template": "two-buttons",
+    "sourceUrl": "https://api.memegen.link/images/two-buttons/Build_for_6_months_without_users/Talk_to_5_users_first.png",
+    "slug": "mvp",
+    "file": null,
+    "captionLines": [
+      "Build for 6 months without users",
+      "Talk to 5 users first"
+    ],
+    "suggestedScenes": [
+      30,
+      44
+    ],
+    "missing": "HTTP 404 — template 'two-buttons' no longer exists on memegen (checked 2026-09-27)"
+  },
+  {
+    "id": 18,
+    "title": "Hackathon",
+    "template": "bongo",
+    "sourceUrl": "https://api.memegen.link/images/bongo/9_AM%3A_revolutionary_product/2_AM%3A_database_connect_nahi_ho_raha.png",
+    "slug": "hackathon",
+    "file": "source/memes/18-hackathon.png",
+    "captionLines": [
+      "9 AM: revolutionary product",
+      "2 AM: database connect nahi ho raha"
+    ],
+    "suggestedScenes": [
+      40
+    ]
+  },
+  {
+    "id": 19,
+    "title": "Networking",
+    "template": "buzz",
+    "sourceUrl": "https://api.memegen.link/images/buzz/I_don't_need_networking/Six_months_later%3A_internship_kaise_milegi%3F.png",
+    "slug": "networking",
+    "file": "source/memes/19-networking.png",
+    "captionLines": [
+      "I don't need networking",
+      "Six months later: internship kaise milegi?"
+    ],
+    "suggestedScenes": [
+      42,
+      43
+    ]
+  },
+  {
+    "id": 20,
+    "title": "Team building",
+    "template": "both",
+    "sourceUrl": "https://api.memegen.link/images/both/AI_guy_%2B_Cyber_guy_%2B_Designer_%2B_Business_guy/Why_not_build_together%3F.png",
+    "slug": "team-building",
+    "file": "source/memes/20-team-building.png",
+    "captionLines": [
+      "AI guy + Cyber guy + Designer + Business guy",
+      "Why not build together?"
+    ],
+    "suggestedScenes": [
+      43,
+      46
+    ]
+  },
+  {
+    "id": 21,
+    "title": "Student to founder",
+    "template": "success",
+    "sourceUrl": "https://api.memegen.link/images/success/I'm_just_a_college_student/100_users_later%3A_production_database_broke.png",
+    "slug": "student-to-founder",
+    "file": "source/memes/21-student-to-founder.png",
+    "captionLines": [
+      "I'm just a college student",
+      "100 users later: production database broke"
+    ],
+    "suggestedScenes": [
+      45
+    ]
+  },
+  {
+    "id": 22,
+    "title": "Chatbot vs agent",
+    "template": "spiderman",
+    "sourceUrl": "https://api.memegen.link/images/spiderman/Chatbot%3A_I_answer/Agent%3A_I_act/Both_can_create_different_risks.png",
+    "slug": "chatbot-vs-agent",
+    "file": "source/memes/22-chatbot-vs-agent.png",
+    "captionLines": [
+      "Chatbot: I answer",
+      "Agent: I act",
+      "Both can create different risks"
+    ],
+    "suggestedScenes": [
+      10,
+      11
+    ]
+  },
+  {
+    "id": 23,
+    "title": "Guardrails",
+    "template": "both",
+    "sourceUrl": "https://api.memegen.link/images/both/AI%3A_Can_I_access_production%3F/Developer%3A_No._Mummy_ne_mana_kiya_hai..png",
+    "slug": "guardrails",
+    "file": "source/memes/23-guardrails.png",
+    "captionLines": [
+      "AI: Can I access production?",
+      "Developer: No. Mummy ne mana kiya hai."
+    ],
+    "suggestedScenes": [
+      9,
+      12
+    ]
+  },
+  {
+    "id": 24,
+    "title": "Hallucination",
+    "template": "pigeon",
+    "sourceUrl": "https://api.memegen.link/images/pigeon/AI_confidently_cites_a_paper/Professor%3A_Link%3F/AI%3A_404.png",
+    "slug": "hallucination",
+    "file": "source/memes/24-hallucination.png",
+    "captionLines": [
+      "AI confidently cites a paper",
+      "Professor: Link?",
+      "AI: 404"
+    ],
+    "suggestedScenes": [
+      5
+    ]
+  },
+  {
+    "id": 25,
+    "title": "RAG enters the chat",
+    "template": "astronaut",
+    "sourceUrl": "https://api.memegen.link/images/astronaut/AI_with_no_context%3A_I_don't_know/AI_with_trusted_retrieval%3A_now_I_can_answer/Security%3A_who_controls_what_it_can_retrieve%3F.png",
+    "slug": "rag-enters-the-chat",
+    "file": "source/memes/25-rag-enters-the-chat.png",
+    "captionLines": [
+      "AI with no context: I don't know",
+      "AI with trusted retrieval: now I can answer",
+      "Security: who controls what it can retrieve?"
+    ],
+    "suggestedScenes": [
+      5,
+      7
+    ]
+  },
+  {
+    "id": 26,
+    "title": "AI security career",
+    "template": "cmm",
+    "sourceUrl": "https://api.memegen.link/images/cmm/AI_%2B_Cybersecurity_%3D_AI_Security_Engineering.png",
+    "slug": "ai-security-career",
+    "file": "source/memes/26-ai-security-career.png",
+    "captionLines": [
+      "AI + Cybersecurity = AI Security Engineering"
+    ],
+    "suggestedScenes": [
+      41
+    ]
+  },
+  {
+    "id": 27,
+    "title": "Cybersecurity is a family",
+    "template": "gb",
+    "sourceUrl": "https://api.memegen.link/images/gb/Hacking/SOC_%2F_AppSec_%2F_Cloud_%2F_DFIR_%2F_CTI_%2F_GRC_%2F_AI_Security.png",
+    "slug": "cybersecurity-is-a-family",
+    "file": "source/memes/27-cybersecurity-is-a-family.png",
+    "captionLines": [
+      "Hacking",
+      "SOC / AppSec / Cloud / DFIR / CTI / GRC / AI Security"
+    ],
+    "suggestedScenes": [
+      41
+    ]
+  },
+  {
+    "id": 28,
+    "title": "Start now",
+    "template": "cheems",
+    "sourceUrl": "https://api.memegen.link/images/cheems/I%E2%80%99ll_start_tomorrow/Tomorrow%3A_I_should_have_started_in_college.png",
+    "slug": "start-now",
+    "file": "source/memes/28-start-now.png",
+    "captionLines": [
+      "I’ll start tomorrow",
+      "Tomorrow: I should have started in college"
+    ],
+    "suggestedScenes": [
+      45
+    ]
+  }
+]
