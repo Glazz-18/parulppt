@@ -36,6 +36,7 @@ const dialogStyle: CSSProperties = {
   inset: 0,
   zIndex: 70,
   overflowY: 'auto',
+  overscrollBehavior: 'contain',
   background: 'var(--bg)',
   color: 'var(--fg)',
   fontFamily: 'var(--font-mono)',

@@ -130,6 +130,12 @@ describe('IndexOverlay', () => {
     expect(document.getElementById('scene-index-title')?.textContent).toBe(UI_COPY.index);
   });
 
+  it('Minor 6: the scrolling dialog contains overscroll so wheel past its end never reaches the deck', () => {
+    render(<IndexOverlay />);
+    const { dialog } = openOverlay();
+    expect((dialog as HTMLElement).style.overscrollBehavior).toBe('contain');
+  });
+
   it('lists exactly 46 scene buttons with the exact accessible names, and 8 act headings', () => {
     render(<IndexOverlay />);
     const { dialog } = openOverlay();

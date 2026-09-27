@@ -124,6 +124,18 @@ describe('SourceDrawer', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it('Minor 6: the scrolling panel contains overscroll so wheel past its end never reaches the deck', () => {
+    render(
+      <>
+        <Trigger slide={1} />
+        <SourceDrawer />
+      </>,
+    );
+    fireEvent.click(document.querySelector('button[aria-controls="source-drawer"]') as HTMLButtonElement);
+    const drawer = document.getElementById('source-drawer') as HTMLElement;
+    expect(drawer.style.overscrollBehavior).toBe('contain');
+  });
+
   it('splits each sourceNotes entry on " · " into one <li> per piece', () => {
     render(
       <>

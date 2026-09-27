@@ -14,6 +14,7 @@ const panelStyle: CSSProperties = {
   insetInlineEnd: 0,
   width: 'min(320px, 86vw)',
   overflowY: 'auto',
+  overscrollBehavior: 'contain',
   zIndex: 50,
   background: 'var(--bg)',
   color: 'var(--fg)',
