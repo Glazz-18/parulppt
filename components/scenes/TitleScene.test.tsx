@@ -206,6 +206,30 @@ describe('TitleScene', () => {
       expect(noPreferenceBlock).toContain('visibility: hidden');
     });
 
+    // Minor 1 (re-raised Task 40): previously the CSS failsafe was cancelled (`animation: none`)
+    // before the timeline was built, so a throw partway through setup left the words permanently
+    // hidden with no failsafe left to show them. It's now cancelled only after the last tl.* call,
+    // inside a try/catch that bails without touching the CSS the instant gsap.timeline() (or any
+    // tween built from it) throws.
+    it('leaves both CSS failsafes armed if gsap.timeline throws during setup (Minor 1)', () => {
+      const timelineSpy = vi.spyOn(gsap, 'timeline').mockImplementation(() => {
+        throw new Error('setup boom');
+      });
+
+      const { container } = render(<TitleScene scene={scene1} />);
+
+      const words = Array.from(container.querySelectorAll('[data-word]')) as HTMLElement[];
+      words.forEach((word) => expect(word.style.animation).not.toBe('none'));
+      const boot = container.querySelector('[data-boot]') as HTMLElement;
+      expect(boot.style.animation).not.toBe('none');
+      // The static markup itself is unaffected: the h1 words are still in the DOM (their CSS
+      // opacity: 0 only ever applies under no-preference and is what the 3s keyframe failsafe,
+      // still armed, will resolve).
+      expect(words).toHaveLength(4);
+
+      timelineSpy.mockRestore();
+    });
+
     it('a keydown ends the intro immediately: words go opaque, boot hides, and listeners are removed', () => {
       const addSpy = vi.spyOn(window, 'addEventListener');
       const removeSpy = vi.spyOn(window, 'removeEventListener');

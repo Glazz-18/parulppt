@@ -87,59 +87,70 @@ export function TitleScene({ scene }: SceneProps) {
       if (typeof window.matchMedia !== 'function') return;
       gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
         const words = wordRefs.current.filter((el): el is HTMLSpanElement => !!el);
-        // Cancel both 3s CSS failsafes (words-in, boot-out) the instant the real intro starts:
-        // an inline `animation: none` beats the stylesheet's `animation` property (cascade), so
-        // the keyframes only ever fire if this callback never runs at all (matchMedia missing,
-        // or GSAP setup throwing before this line) — CONTRACTS §11's "GSAP throws → static
-        // markup stands" fallback, covering the boot overlay the same way it already covers the
-        // words.
+
+        // Minor 1: the timeline is built fully (every tl.* call below) BEFORE either 3s CSS
+        // failsafe is cancelled. If gsap.timeline() or any tween setup throws partway through —
+        // a ref oddity, a future refactor — the catch bails without ever setting `animation:
+        // none`, so the stylesheet's own keyframes stay armed and the words/boot still resolve
+        // after 3s (CONTRACTS §11: "if GSAP setup throws, the scene keeps its static markup").
+        // Previously the cancellation ran first, so a throw after it left the words at
+        // `opacity: 0` for good with no failsafe left to save them.
+        let tl: gsap.core.Timeline;
+        try {
+          const alreadyBooted = hasBooted;
+          hasBooted = true;
+          const bootEnd = alreadyBooted ? 0 : BOOT_END;
+
+          tl = gsap.timeline({ onComplete: () => setBootVisible(false) });
+
+          if (!alreadyBooted) {
+            if (bootHeadingRef.current) {
+              tl.fromTo(bootHeadingRef.current, { opacity: 0 }, { opacity: 1, duration: BOOT_HEADING_DUR }, 0);
+            }
+            bootLineRefs.current.forEach((el, i) => {
+              if (!el) return;
+              tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: BOOT_LINE_DUR }, (i + 1) * BOOT_STEP);
+            });
+            if (bootStatusRef.current) {
+              tl.fromTo(bootStatusRef.current, { opacity: 0 }, { opacity: 1, duration: BOOT_LINE_DUR }, BOOT_STATUS_POS);
+            }
+            if (bootRef.current) {
+              tl.to(bootRef.current, { opacity: 0, duration: BOOT_FADE_DUR }, BOOT_FADE_START);
+            }
+          } else if (bootRef.current) {
+            tl.set(bootRef.current, { opacity: 0 }, 0);
+          }
+
+          if (eyebrowRef.current) {
+            tl.fromTo(eyebrowRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 }, bootEnd);
+          }
+          if (words.length) {
+            tl.set(words, { opacity: 0, y: 16 }, bootEnd);
+            tl.to(
+              words,
+              { opacity: 1, y: 0, duration: 0.3, stagger: WORD_STAGGER, ease: 'power2.out' },
+              bootEnd + WORD_START_DELAY,
+            );
+          }
+          if (speakerRef.current) {
+            tl.fromTo(speakerRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.2 }, bootEnd + SPEAKER_DELAY);
+          }
+          if (roleRef.current) {
+            tl.fromTo(roleRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.2 }, bootEnd + ROLE_DELAY);
+          }
+        } catch {
+          return undefined; // static markup stands; both CSS failsafes remain armed
+        }
+
+        // Cancel both 3s CSS failsafes (words-in, boot-out) only now that the timeline is fully
+        // built: an inline `animation: none` beats the stylesheet's `animation` property
+        // (cascade), so the keyframes only ever fire if this callback never runs at all
+        // (matchMedia missing) or the try above threw.
         words.forEach((el) => {
           el.style.animation = 'none';
         });
         if (bootRef.current) {
           bootRef.current.style.animation = 'none';
-        }
-
-        const alreadyBooted = hasBooted;
-        hasBooted = true;
-        const bootEnd = alreadyBooted ? 0 : BOOT_END;
-
-        const tl = gsap.timeline({ onComplete: () => setBootVisible(false) });
-
-        if (!alreadyBooted) {
-          if (bootHeadingRef.current) {
-            tl.fromTo(bootHeadingRef.current, { opacity: 0 }, { opacity: 1, duration: BOOT_HEADING_DUR }, 0);
-          }
-          bootLineRefs.current.forEach((el, i) => {
-            if (!el) return;
-            tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: BOOT_LINE_DUR }, (i + 1) * BOOT_STEP);
-          });
-          if (bootStatusRef.current) {
-            tl.fromTo(bootStatusRef.current, { opacity: 0 }, { opacity: 1, duration: BOOT_LINE_DUR }, BOOT_STATUS_POS);
-          }
-          if (bootRef.current) {
-            tl.to(bootRef.current, { opacity: 0, duration: BOOT_FADE_DUR }, BOOT_FADE_START);
-          }
-        } else if (bootRef.current) {
-          tl.set(bootRef.current, { opacity: 0 }, 0);
-        }
-
-        if (eyebrowRef.current) {
-          tl.fromTo(eyebrowRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 }, bootEnd);
-        }
-        if (words.length) {
-          tl.set(words, { opacity: 0, y: 16 }, bootEnd);
-          tl.to(
-            words,
-            { opacity: 1, y: 0, duration: 0.3, stagger: WORD_STAGGER, ease: 'power2.out' },
-            bootEnd + WORD_START_DELAY,
-          );
-        }
-        if (speakerRef.current) {
-          tl.fromTo(speakerRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.2 }, bootEnd + SPEAKER_DELAY);
-        }
-        if (roleRef.current) {
-          tl.fromTo(roleRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.2 }, bootEnd + ROLE_DELAY);
         }
 
         // Any scroll, key or pointer input ends the intro at once and shows the resting title
