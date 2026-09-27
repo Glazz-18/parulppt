@@ -13,10 +13,13 @@ import { useProgressRef } from './ContentScene';
 // MemeInterstitial (W1, not edited here) renders eyebrow/h2/lines/box as flat siblings inside
 // one wrapper div, so typography and layout are applied here via descendant selectors on that
 // wrapper (CONTRACTS/design instruction) rather than per-element refs or new props.
-const wrapperClassName = [
-  'relative flex flex-1 max-w-[880px] flex-col justify-center gap-6',
-  // MemeInterstitial's own root div: lay its children out with breathing room.
-  '[&>div]:flex [&>div]:flex-col [&>div]:gap-5',
+const BASE_WRAPPER_CLASSES = [
+  'relative flex flex-1 flex-col justify-center gap-6',
+  // MemeInterstitial's own root div: lay its children out with breathing room, AND cap its own
+  // width here (fix round 2, finding 1 -- moved off the outer wrapper below, which must now span
+  // the full content column so the hand-off field's vw-based bleed margins reach the section's
+  // true edges instead of an 880px-narrower box's edges).
+  '[&>div]:flex [&>div]:flex-col [&>div]:gap-5 [&>div]:max-w-[880px]',
   // Zero default margins; the flex gap above owns all spacing.
   '[&_h2]:m-0 [&_p]:m-0',
   // Eyebrow (MonoLabel as="p", carries data-tone) and the fallback's title label share the mono
@@ -28,7 +31,20 @@ const wrapperClassName = [
   // The meme box is the root div's last child (image or fallback); cap its width so the
   // punchline + box fit a 1440x900 viewport without a second scroll.
   '[&>div>*:last-child]:w-full [&>div>*:last-child]:max-w-[420px]',
-].join(' ');
+];
+
+// Fix round 2 (finding 2): scoped to slide 22 only. With the hand-off field below as a second
+// in-flow child, its own `mt-auto` would otherwise be the only auto margin on this flex column,
+// which pushes the interstitial to the very top (an auto margin beats `justify-content` once any
+// sibling has one). Giving the interstitial `my-auto` too keeps it vertically centred in the
+// space above the field. For every other meme slide (no field, interstitial is the sole child)
+// this would be a no-op even if applied unconditionally -- `my-auto` on a lone flex item centers
+// it exactly like `justify-center` already does -- but it's scoped here anyway so the change is
+// explicit and never touches those slides.
+function wrapperClassName(hasHandoff: boolean): string {
+  const classes = hasHandoff ? [...BASE_WRAPPER_CLASSES, '[&>div]:my-auto'] : BASE_WRAPPER_CLASSES;
+  return classes.join(' ');
+}
 
 // Task 37 hand-off (design §8, A9, 22->23): slide 22 only -- "orange field cuts abruptly into a
 // dark technical scene" -- so the dark field the SocDemo scene continues is already present here.
@@ -48,6 +64,7 @@ export function MemeScene({ scene }: SceneProps) {
   // (rules of hooks) while staying type-safe for the Scene union (TitleScene's same pattern).
   const content = scene.kind === 'meme' ? scene.content : { memeId: -1, lines: [] as string[] };
   const meme = memes.find((m) => m.id === content.memeId);
+  const hasHandoff = HANDOFF_SLIDES.has(scene.slide);
 
   useGSAP(
     () => {
@@ -85,19 +102,25 @@ export function MemeScene({ scene }: SceneProps) {
   }, [progress]);
 
   return (
-    <div ref={containerRef} className={wrapperClassName}>
+    <div ref={containerRef} className={wrapperClassName(hasHandoff)}>
       <MemeInterstitial meme={meme} eyebrow={scene.eyebrow} lines={content.lines} />
-      {HANDOFF_SLIDES.has(scene.slide) ? (
+      {hasHandoff ? (
         <div
           data-part="handoff-field"
           aria-hidden="true"
-          // Fix round 1 (finding 2): in-flow (mt-auto, last child) so it reserves its own height
-          // and never overlays the meme content above it; shrink-0 keeps that height at short
-          // viewports. The negative margins bleed it past this element's own max-w-[880px]
-          // ancestor to the section's true edges -- they exactly cancel SceneShell.tsx's
-          // `.scene-viewport` padding (paddingInline 'calc(var(--rail-w) + 5vw) 5vw', paddingBlock
-          // 'max(7vh, 72px)', not edited here), and work regardless of that narrower ancestor's own
-          // width because vw-based lengths are absolute, not relative to the nearest box.
+          // Fix round 1 (finding 2), corrected fix round 2 (finding 1): in-flow (mt-auto, last
+          // child) so it reserves its own height and never overlays the meme content above it;
+          // shrink-0 keeps that height at short viewports. The negative margins bleed it past
+          // THIS OUTER wrapper -- which, as of fix round 2, carries no width cap of its own (the
+          // 880px cap now lives on the interstitial's inner root div instead, above) -- to the
+          // section's true edges. They exactly cancel SceneShell.tsx's `.scene-viewport` padding
+          // (paddingInline 'calc(var(--rail-w) + 5vw) 5vw', paddingBlock 'max(7vh, 72px)', not
+          // edited here). vw-based lengths are absolute, not relative to any ancestor's own
+          // width -- but that only reaches the section's true edge when THIS element's own
+          // containing block (the outer wrapper) already spans the full content column; the
+          // pre-fix-round-2 version put the 880px cap on this same outer wrapper, so the margin
+          // reached only 5vw past an 880px-wide box, well short of the section edge at wider
+          // viewports.
           className="pointer-events-none mt-auto h-[12vh] shrink-0"
           style={{
             background: 'var(--bg-dark)',

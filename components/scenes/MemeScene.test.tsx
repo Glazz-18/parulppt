@@ -129,6 +129,31 @@ describe('MemeScene', () => {
     expect(container.querySelector('[data-part="handoff-field"]')).toBeTruthy();
   });
 
+  // Fix round 2 (finding 1): the 880px cap must live on the interstitial's own root div, never on
+  // the outer wrapper -- otherwise the hand-off field's vw-based bleed margins reach only 5vw past
+  // an 880px-wide box, not the section's true edge, on any viewport wider than ~1038px.
+  it('the outer wrapper applies no max-w- utility to itself; it only targets the interstitial child via a descendant selector', () => {
+    const { container } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    const root = container.firstElementChild as HTMLElement;
+    // No class token on the wrapper's OWN className directly applies max-w- to itself (only the
+    // `[&>div]:max-w-[880px]` descendant-variant selector below, which targets its child instead,
+    // may mention "max-w-").
+    const ownClasses = root.className.split(/\s+/);
+    expect(ownClasses.some((c) => c.startsWith('max-w-'))).toBe(false);
+    expect(root.className).toContain('[&>div]:max-w-[880px]');
+  });
+
+  // Fix round 2 (finding 2): only slide 22 (which has the field, a second in-flow sibling) needs
+  // `my-auto` on the interstitial to stay vertically centred; every other meme slide is unaffected.
+  it('scopes the interstitial’s my-auto centring fix to the hand-off slide only', () => {
+    const { container: c22 } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    expect((c22.firstElementChild as HTMLElement).className).toMatch(/\[&>div\]:my-auto/);
+    cleanup();
+
+    const { container: c7 } = render(<MemeScene scene={baseScene({ slide: 7 })} />);
+    expect((c7.firstElementChild as HTMLElement).className).not.toMatch(/my-auto/);
+  });
+
   // Finding 4 (Task 22b, fix round 1): scrubbing now goes through the shared `useProgressRef`
   // (`./ContentScene`) instead of a local ref — this confirms the refactor still wires
   // `tl.progress(progressRef.current)` correctly (no provider wraps this render, so

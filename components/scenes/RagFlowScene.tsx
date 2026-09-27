@@ -198,9 +198,10 @@ export function RagFlowScene({ scene }: SceneProps) {
                     <span
                       data-part="handoff-frame"
                       aria-hidden="true"
-                      // Square corners, flush with the card's own box (fix round 1 finding 5): stays
-                      // inside the li's own p-4 padding instead of straddling its border.
-                      className="pointer-events-none absolute inset-0"
+                      // Square corners (fix round 1 finding 5); a little breathing room off the
+                      // glyphs (fix round 2 finding 3: -inset-2, was flush at inset-0) while still
+                      // staying inside the li's own p-4 (16px) padding, not straddling its border.
+                      className="pointer-events-none absolute -inset-2"
                       style={{ border: '1px solid var(--rule)' }}
                     />
                     {stageText}
