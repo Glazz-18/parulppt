@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { UI_COPY } from '@/lib/constants';
+import { PROGRESS_EPSILON } from '@/lib/sceneNavigation';
 import { ApprovalGate } from './ApprovalGate';
 
 afterEach(cleanup);
@@ -158,6 +159,14 @@ describe('ApprovalGate scroll mode', () => {
     const { container } = render(<ApprovalGate mode="scroll" heading="SOC lit" progress={1} />);
     const root = container.firstElementChild;
 
+    expect(root?.getAttribute('data-lit')).toBe('true');
+  });
+
+  it('Minor 4: lights within PROGRESS_EPSILON of 1, so a fractional scroll offset (0.999) still lights the gate', () => {
+    const { container } = render(<ApprovalGate mode="scroll" heading="SOC lit" progress={0.999} />);
+    const root = container.firstElementChild;
+
+    expect(0.999).toBeGreaterThanOrEqual(1 - PROGRESS_EPSILON);
     expect(root?.getAttribute('data-lit')).toBe('true');
   });
 

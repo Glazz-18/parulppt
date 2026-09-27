@@ -138,6 +138,14 @@ describe('AiFixesBugScene', () => {
     expect(gateRoot().getAttribute('data-lit')).toBe('true');
   });
 
+  it('Minor 4: a fractional scroll offset (progress 0.999) still lights the gate', () => {
+    const { container } = renderScene();
+    const gateRoot = () => container.querySelector('[data-part="gate"] > div') as HTMLElement;
+
+    act(() => setSceneProgress(26, 0.999));
+    expect(gateRoot().getAttribute('data-lit')).toBe('true');
+  });
+
   // Task 37 hand-off (design §8, A9, 26->27; fix round 1 finding 6): a green accent-line extends
   // FROM the gate (scaleX, origin-right -- the gate is the flow row's last/rightmost child)
   // across the bottom of the viewport exactly when the gate lights (progress >= 1), anticipating
@@ -201,7 +209,9 @@ describe('AiFixesBugScene', () => {
       expect(el.style.opacity || '1').toBe('1');
     });
     nodes.forEach((el) => expect(gsap.getProperty(el, 'scale')).toBe(1));
-    expect(gsap.getProperty(gateWrapper, 'y')).toBe(0);
+    // The gate wrapper is itself one of the stagger's targets ('[data-part="node"], [data-part="gate"]'),
+    // so it settles to scale 1 too — nothing here ever tweens 'y' on it (that assertion was vacuous).
+    expect(gsap.getProperty(gateWrapper, 'scale')).toBe(1);
     expect(tl.duration()).toBe(1);
   });
 });

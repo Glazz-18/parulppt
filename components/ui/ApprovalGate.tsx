@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { UI_COPY } from '@/lib/constants';
+import { PROGRESS_EPSILON } from '@/lib/sceneNavigation';
 import { StatusPill } from './StatusPill';
 
 export type ApprovalGateProps =
@@ -44,7 +45,9 @@ function ScrollIcon({ lit }: { lit: boolean }) {
 export function ApprovalGate(props: ApprovalGateProps) {
   if (props.mode === 'scroll') {
     const { heading, progress } = props;
-    const lit = progress >= 1;
+    // Minor 4: fractional scroll offsets on high-DPR laptops can measure 0.9999 at the sticky
+    // range's true end, so the gate must light within PROGRESS_EPSILON of 1, not only at exactly 1.
+    const lit = progress >= 1 - PROGRESS_EPSILON;
     const rootStyle: CSSProperties = { border: `1px solid ${lit ? 'var(--green)' : 'var(--rule)'}` };
 
     return (

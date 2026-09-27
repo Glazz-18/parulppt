@@ -8,6 +8,7 @@ import type { SceneProps } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { ApprovalGate } from '@/components/ui/ApprovalGate';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
+import { PROGRESS_EPSILON } from '@/lib/sceneNavigation';
 import { titleStyle, eyebrowStyle, revealHead, headArrival, revealStagger, useProgressRef } from './ContentScene';
 import { Blocks } from './Blocks';
 
@@ -147,7 +148,7 @@ export function AiFixesBugScene({ scene }: SceneProps) {
   // under reduced motion too, where useSceneProgress() reads 1), a green accent line extends
   // across the bottom of the viewport, matching scene 27's own 1px rule weight (Blocks.tsx
   // `layers`' border-t), so the approval "becomes" that scene's accent line.
-  const gateLit = progress >= 1;
+  const gateLit = progress >= 1 - PROGRESS_EPSILON;
 
   return (
     // h-full (with the parent .scene-viewport's own height:100vh while pinned, CONTRACTS §7/§8):
