@@ -638,7 +638,9 @@ export const scenes: Scene[] = [
           type: 'bars',
           series: ['Alone in the queue', 'AI copilot + human approval'],
           note: 'Illustrative proportions',
-          ratios: [1, 0.12],
+          // Deck shape order (MTTD alone, MTTD copilot, MTTR alone, MTTR copilot), normalised to
+          // the longest bar = 1 (manager ruling, Task 32 fix round 1): two rows of `series.length`.
+          ratios: [1, 0.14, 0.86, 0.08],
         },
       ],
     },
@@ -753,7 +755,9 @@ export const scenes: Scene[] = [
           type: 'bars',
           series: ['Built in', 'Deferred'],
           note: 'Cost to fix · illustrative shape',
-          ratios: [0.28, 1],
+          // Deck shape order, per phase (Built in, Deferred) x4 phases, normalised to the longest
+          // bar = 1 (manager ruling, Task 32 fix round 1): four rows of `series.length`.
+          ratios: [0.14, 0.1, 0.2, 0.26, 0.24, 0.55, 0.28, 1],
         },
       ],
     },

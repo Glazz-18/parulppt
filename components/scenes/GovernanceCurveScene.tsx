@@ -68,20 +68,17 @@ export function GovernanceCurveScene({ scene }: SceneProps) {
   const note = barsBlock?.note;
   const ratios = barsBlock?.ratios ?? [];
 
-  // Manager brief (Task 32): 'Built in' (ratios[0]) stays flat/low across every phase; 'Deferred'
-  // (ratios[1]) rises steeply at the later phases (enterprise deal, diligence/incident) -- these
-  // two series positions are the deck's own (source/slides.json slide 34), not a generic mapping.
-  const builtInRatio = ratios[0] ?? 1;
-  const deferredRatio = ratios[1] ?? 1;
-
-  const builtInPoints = phases.map((_, i) => ({ x: xForPhase(i, phases.length), y: yForRatio(builtInRatio) }));
-  const deferredPoints = phases.map((_, i) => {
-    const t = phases.length > 1 ? i / (phases.length - 1) : 1;
-    // Quadratic ease-in: level with 'Built in' at the first phase (debt starts silent, per the
-    // deck's speaker notes), then accelerates so the last two phases carry most of the rise.
-    const ratio = builtInRatio + (deferredRatio - builtInRatio) * t * t;
-    return { x: xForPhase(i, phases.length), y: yForRatio(ratio) };
-  });
+  // Manager ruling (Task 32 fix round 1): `ratios` carries every measured bar in deck shape
+  // order -- one (Built in, Deferred) pair per phase, not one endpoint per series -- so each
+  // phase plots its OWN measured pair directly: `ratios[2*i]` is that phase's 'Built in' height,
+  // `ratios[2*i + 1]` is its 'Deferred' height (both series positions are the deck's own,
+  // source/slides.json slide 34, not a generic mapping). No interpolation: the deck's own shape
+  // IS the curve (MASTER_PROMPT §19 scene 34 "governance debt curve rises across growth phases").
+  const builtInPoints = phases.map((_, i) => ({ x: xForPhase(i, phases.length), y: yForRatio(ratios[2 * i] ?? 1) }));
+  const deferredPoints = phases.map((_, i) => ({
+    x: xForPhase(i, phases.length),
+    y: yForRatio(ratios[2 * i + 1] ?? 1),
+  }));
 
   const headEnd = headArrival(scene);
   const supportingSpan = Math.max(1 - headEnd, 0);

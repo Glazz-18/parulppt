@@ -346,15 +346,20 @@ describe('scenes manifest', () => {
     });
   });
 
-  it('every bars block (slides 28, 34) carries measured ratios: length 2, each in (0, 1], max 1', () => {
-    const barsSlides = [28, 34];
-    barsSlides.forEach((slide) => {
+  // Manager ruling (Task 32 fix round 1): bars.ratios carry EVERY measured bar in deck shape
+  // order, normalised to the longest bar = 1; slide 28 has 2 rows of 2 series (MTTD, MTTR) = 4;
+  // slide 34 has 4 rows of 2 series (one per phase) = 8.
+  it('every bars block (slides 28, 34) carries measured ratios for every bar, in (0, 1], max 1', () => {
+    const expectedLengths: Record<number, number> = { 28: 4, 34: 8 };
+    Object.entries(expectedLengths).forEach(([slideStr, length]) => {
+      const slide = Number(slideStr);
       const scene = scenes[slide - 1];
-      const content = scene.content as { blocks: Array<{ type: string; ratios?: number[] }> };
+      const content = scene.content as { blocks: Array<{ type: string; series?: string[]; ratios?: number[] }> };
       const barsBlock = content.blocks.find((b) => b.type === 'bars');
       expect(barsBlock).toBeTruthy();
       const ratios = barsBlock!.ratios;
-      expect(ratios).toHaveLength(2);
+      expect(ratios).toHaveLength(length);
+      expect(length % barsBlock!.series!.length).toBe(0);
       ratios!.forEach((r) => {
         expect(r).toBeGreaterThan(0);
         expect(r).toBeLessThanOrEqual(1);

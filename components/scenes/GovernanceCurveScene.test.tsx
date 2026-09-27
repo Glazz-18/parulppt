@@ -23,7 +23,9 @@ const baseScene = (overrides: Partial<Scene> = {}): Scene =>
     content: {
       blocks: [
         { type: 'flow', items: PHASES },
-        { type: 'bars', series: SERIES, note: NOTE, ratios: [0.28, 1] },
+        // Manager ruling (Task 32 fix round 1): one (Built in, Deferred) pair per phase, in deck
+        // shape order, normalised to the longest bar = 1 -- the real slide 34 measurement.
+        { type: 'bars', series: SERIES, note: NOTE, ratios: [0.14, 0.1, 0.2, 0.26, 0.24, 0.55, 0.28, 1] },
       ],
     },
     ...overrides,
@@ -103,6 +105,31 @@ describe('GovernanceCurveScene', () => {
     svgs.forEach((svg) => expect(svg.getAttribute('aria-hidden')).toBe('true'));
     expect(container.querySelectorAll('[data-series="built-in"] [data-part="segment"]').length).toBeGreaterThan(0);
     expect(container.querySelectorAll('[data-series="deferred"] [data-part="segment"]').length).toBeGreaterThan(0);
+  });
+
+  // Path endpoint coordinates: `segmentPath` emits `M x0 y0 C mx y0 mx y1 x1 y1`, so token index 2
+  // is the segment's start y and index 9 is its end y (smaller SVG y = higher on the plot).
+  function segEndY(d: string) {
+    const t = d.trim().split(/\s+/);
+    return { startY: Number(t[2]), endY: Number(t[9]) };
+  }
+
+  it('plots each phase’s own measured (Built in, Deferred) pair -- Deferred ends highest, Built in varies by phase', () => {
+    const { container } = render(<GovernanceCurveScene scene={baseScene()} />);
+    const builtInSegs = Array.from(container.querySelectorAll('[data-series="built-in"] [data-part="segment"]'));
+    const deferredSegs = Array.from(container.querySelectorAll('[data-series="deferred"] [data-part="segment"]'));
+    expect(builtInSegs).toHaveLength(PHASES.length - 1);
+    expect(deferredSegs).toHaveLength(PHASES.length - 1);
+
+    const builtInFirst = segEndY(builtInSegs[0]!.getAttribute('d')!).startY; // phase 0, ratio 0.14
+    const builtInLast = segEndY(builtInSegs[builtInSegs.length - 1]!.getAttribute('d')!).endY; // phase 3, ratio 0.28
+    expect(builtInFirst).not.toBe(builtInLast); // Built in is NOT flat -- it varies phase to phase
+
+    const deferredLast = segEndY(deferredSegs[deferredSegs.length - 1]!.getAttribute('d')!).endY; // phase 3, ratio 1
+    // Deferred's own end (ratio 1, the longest measured bar) is the highest point of either curve:
+    // smallest y beats every other endpoint, including Built in's own last phase (ratio 0.28).
+    expect(deferredLast).toBeLessThan(builtInLast);
+    expect(deferredLast).toBeLessThan(builtInFirst);
   });
 
   it('under reduced motion, all text is present and no GSAP timeline is created', () => {
