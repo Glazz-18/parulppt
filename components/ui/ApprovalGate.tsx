@@ -60,7 +60,7 @@ export function ApprovalGate(props: ApprovalGateProps) {
   return (
     <div data-outcome={outcome}>
       <h3>{heading}</h3>
-      <p>{proposal}</p>
+      <p>{outcome === 'rejected' ? <s>{proposal}</s> : proposal}</p>
       <button type="button" onClick={onApprove}>
         {approveLabel}
       </button>
@@ -85,7 +85,7 @@ export function ApprovalGate(props: ApprovalGateProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <StatusPill label={UI_COPY.soc.rejected} tone="alert" />
+            <StatusPill label={UI_COPY.soc.rejected} tone="neutral" />
           </motion.div>
         ) : null}
       </AnimatePresence>

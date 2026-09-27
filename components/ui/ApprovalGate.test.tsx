@@ -99,7 +99,7 @@ describe('ApprovalGate click mode', () => {
     buttons.forEach((btn) => expect(btn.disabled).toBe(false));
   });
 
-  it('shows Rejected with an svg icon when outcome is rejected', () => {
+  it('shows Rejected with an svg icon when outcome is rejected, neutral tone (never green/orange), proposal struck through', () => {
     const { container } = render(
       <ApprovalGate
         mode="click"
@@ -116,6 +116,30 @@ describe('ApprovalGate click mode', () => {
     expect(container.textContent).toContain(UI_COPY.soc.rejected);
     expect(container.querySelector('svg')).not.toBeNull();
     expect(container.firstElementChild?.getAttribute('data-outcome')).toBe('rejected');
+    expect(container.querySelector('[data-tone="neutral"]')).not.toBeNull();
+    expect(container.querySelector('[data-tone="safe"]')).toBeNull();
+    expect(container.querySelector('[data-tone="alert"]')).toBeNull();
+    const struck = container.querySelector('s');
+    expect(struck?.textContent).toBe('Do it');
+  });
+
+  it('approved keeps the safe tone and does not strike the proposal', () => {
+    const { container } = render(
+      <ApprovalGate
+        mode="click"
+        heading="Escalate"
+        proposal="Do it"
+        approveLabel="Approve"
+        rejectLabel="Reject"
+        outcome="approved"
+        onApprove={() => {}}
+        onReject={() => {}}
+      />
+    );
+
+    expect(container.querySelector('[data-tone="safe"]')).not.toBeNull();
+    expect(container.querySelector('s')).toBeNull();
+    expect(container.textContent).toContain('Do it');
   });
 });
 
