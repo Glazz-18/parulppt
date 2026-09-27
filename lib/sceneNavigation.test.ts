@@ -388,6 +388,25 @@ describe('keyToAction key table', () => {
     expect(press({ key: 'Escape' })).toBeNull();
   });
 
+  it.each([
+    ['ArrowDown', false],
+    ['ArrowUp', false],
+    ['PageDown', false],
+    ['PageUp', false],
+    ['Home', false],
+    ['End', false],
+    [SPACE, false],
+    [SPACE, true],
+  ])('while the index overlay is open, %j (shift %s) is inert (the dialog is modal)', (key, shiftKey) => {
+    expect(press({ key, shiftKey }, { ...base, indexOpen: true })).toBeNull();
+  });
+
+  it('while the index overlay is open, Escape still closes it, ahead of the drawer and demo escape', () => {
+    expect(press({ key: 'Escape' }, { ...base, indexOpen: true, drawerOpen: true, demoEscape: true })).toEqual({
+      type: 'closeIndex',
+    });
+  });
+
   it.each(['a', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'])('%j is not a navigation key', (key) => {
     expect(press({ key })).toBeNull();
   });

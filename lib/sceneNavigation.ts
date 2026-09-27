@@ -341,6 +341,9 @@ export function keyToAction(event: KeyboardEvent, ctx: KeyContext): NavAction | 
     if (ctx.drawerOpen) return { type: 'closeDrawer' };
     return ctx.demoEscape ? { type: 'demoEscape' } : null;
   }
+  // The dialog is modal (aria-modal="true"): every other key is inert while it's open, so the
+  // presentation underneath never scrolls/navigates behind it.
+  if (ctx.indexOpen) return null;
 
   const el = event.target instanceof Element ? event.target : null;
   if (el?.closest(KEY_IGNORE_SELECTOR)) return null;
