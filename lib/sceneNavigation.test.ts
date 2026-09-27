@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
+import { act, cleanup, renderHook } from '@testing-library/react';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import * as analytics from '@/lib/analytics';
@@ -12,6 +12,9 @@ import {
   computeIdleScene,
   endNavigation,
   getCurrentScene,
+  getDemoEscape,
+  getDrawerSlide,
+  getDrawerTrigger,
   getNavigationTarget,
   goToScene,
   isNavigationInFlight,
@@ -21,6 +24,8 @@ import {
   startNavigationEngine,
   subscribeCurrentScene,
   useCurrentScene,
+  useDemoEscape,
+  useSourceDrawer,
   type NavAction,
 } from './sceneNavigation';
 
@@ -54,9 +59,15 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // Unmounts every renderHook/render from this test (e.g. useDemoEscape, useSourceDrawer), so a
+  // registration doesn't leak into the next test — this file has no global RTL auto-cleanup.
+  cleanup();
   vi.restoreAllMocks();
   document.body.innerHTML = '';
   endNavigation();
+  // Force at least one real current-scene transition so the drawer's auto-close subscriber
+  // always fires, regardless of what a test left `current` and the drawer at (module singletons).
+  setCurrentScene(2);
   setCurrentScene(1);
 });
 
@@ -159,6 +170,93 @@ describe('current-scene store', () => {
       return createElement('output', null, useCurrentScene());
     }
     expect(renderToString(createElement(Probe))).toBe('<output>1</output>');
+  });
+});
+
+describe('useSourceDrawer (source drawer store)', () => {
+  it('starts closed; open sets slide, records the trigger and tracks source_open; close reopens to null', () => {
+    const trackSpy = vi.spyOn(analytics, 'track');
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.focus();
+
+    const { result } = renderHook(() => useSourceDrawer());
+    expect(result.current.slide).toBeNull();
+    expect(getDrawerSlide()).toBeNull();
+
+    act(() => result.current.open(9));
+    expect(result.current.slide).toBe(9);
+    expect(getDrawerSlide()).toBe(9);
+    expect(getDrawerTrigger()).toBe(button);
+    expect(trackSpy).toHaveBeenCalledWith('source_open', { slide: 9 });
+
+    act(() => result.current.close());
+    expect(result.current.slide).toBeNull();
+  });
+
+  it('opening for another slide while already open switches in place (still one drawer)', () => {
+    const trackSpy = vi.spyOn(analytics, 'track');
+    const { result } = renderHook(() => useSourceDrawer());
+
+    act(() => result.current.open(3));
+    expect(result.current.slide).toBe(3);
+    act(() => result.current.open(5));
+    expect(result.current.slide).toBe(5);
+    expect(trackSpy.mock.calls.filter(([event]) => event === 'source_open')).toEqual([
+      ['source_open', { slide: 3 }],
+      ['source_open', { slide: 5 }],
+    ]);
+  });
+
+  it('a current-scene change closes the drawer, whatever the cause', () => {
+    const { result } = renderHook(() => useSourceDrawer());
+    act(() => result.current.open(5));
+    expect(getDrawerSlide()).toBe(5);
+    act(() => setCurrentScene(6));
+    expect(getDrawerSlide()).toBeNull();
+    expect(result.current.slide).toBeNull();
+  });
+});
+
+describe('useDemoEscape', () => {
+  afterEach(() => {
+    // Belt-and-braces: clear any handler a failed assertion left registered for slide 23.
+    expect(getDemoEscape(23)).toBeUndefined();
+  });
+
+  it('registers only while onEscape is non-null, always calling the latest function, keyed by slide', () => {
+    const fn1 = vi.fn();
+    const fn2 = vi.fn();
+    const { rerender, unmount } = renderHook(
+      ({ onEscape }: { onEscape: (() => void) | null }) => useDemoEscape(23, onEscape),
+      { initialProps: { onEscape: fn1 as (() => void) | null } },
+    );
+
+    expect(getDemoEscape(23)).toBeDefined();
+    getDemoEscape(23)?.();
+    expect(fn1).toHaveBeenCalledTimes(1);
+    expect(fn2).not.toHaveBeenCalled();
+
+    // A fresh closure with the same non-null-ness must not require re-registration to take effect.
+    rerender({ onEscape: fn2 });
+    getDemoEscape(23)?.();
+    expect(fn2).toHaveBeenCalledTimes(1);
+    expect(fn1).toHaveBeenCalledTimes(1);
+
+    rerender({ onEscape: null });
+    expect(getDemoEscape(23)).toBeUndefined();
+
+    rerender({ onEscape: fn2 });
+    expect(getDemoEscape(23)).toBeDefined();
+
+    unmount();
+    expect(getDemoEscape(23)).toBeUndefined();
+  });
+
+  it('unmounting while onEscape is null is a no-op unregister (nothing to clean up)', () => {
+    const { unmount } = renderHook(() => useDemoEscape(23, null));
+    expect(getDemoEscape(23)).toBeUndefined();
+    expect(() => unmount()).not.toThrow();
   });
 });
 
@@ -769,6 +867,46 @@ describe('navigation engine', () => {
       key({ key: 'ArrowDown' });
       expect(scrollTo).toHaveBeenLastCalledWith({ top: TOPS[5], behavior: 'smooth' });
       expect(getCurrentScene()).toBe(6);
+    });
+  });
+
+  describe('Escape precedence: drawer close, then demo escape, then nothing (Task 13)', () => {
+    it('closes an open drawer via the real engine listener; the demo handler is not called', () => {
+      start();
+      const demoEscape = vi.fn();
+      renderHook(() => useDemoEscape(1, demoEscape)); // current scene starts at 1
+      const drawer = renderHook(() => useSourceDrawer());
+      act(() => drawer.result.current.open(1));
+
+      let event!: KeyboardEvent;
+      act(() => {
+        event = key({ key: 'Escape' });
+      });
+      expect(event.defaultPrevented).toBe(true);
+      expect(drawer.result.current.slide).toBeNull();
+      expect(demoEscape).not.toHaveBeenCalled();
+    });
+
+    it('with the drawer closed, calls the current slide\'s registered demo escape', () => {
+      start();
+      const demoEscape = vi.fn();
+      renderHook(() => useDemoEscape(1, demoEscape));
+
+      let event!: KeyboardEvent;
+      act(() => {
+        event = key({ key: 'Escape' });
+      });
+      expect(event.defaultPrevented).toBe(true);
+      expect(demoEscape).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing (no preventDefault) with the drawer closed and no demo escape registered', () => {
+      start();
+      let event!: KeyboardEvent;
+      act(() => {
+        event = key({ key: 'Escape' });
+      });
+      expect(event.defaultPrevented).toBe(false);
     });
   });
 

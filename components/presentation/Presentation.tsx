@@ -11,6 +11,7 @@ import { SceneRenderer } from './SceneRenderer';
 import { resetSceneProgress, setSceneProgress } from './SceneProgress';
 import { SideNav } from './SideNav';
 import { SceneControls } from './SceneControls';
+import { SourceDrawer } from '@/components/ui/SourceDrawer';
 
 // Binds useGSAP to this gsap instance so its context owns the matchMedia and triggers below.
 gsap.registerPlugin(useGSAP);
@@ -54,6 +55,7 @@ export function Presentation() {
           <SceneRenderer key={scene.id} scene={scene} />
         ))}
       </main>
+      <SourceDrawer />
       <SideNav />
       <SceneControls />
     </MotionConfig>

@@ -82,11 +82,10 @@ describe('SceneRenderer', () => {
     vi.unstubAllEnvs();
   });
 
-  it('renders the SOURCE button only when sourceNotes is non-empty, wired to onSource', () => {
+  it('renders the SOURCE button only when sourceNotes is non-empty; click opens its slide, toggles aria-expanded', () => {
     const withNotes: Scene = { ...baseScene, sourceNotes: ['Slide 9 · citation text'] };
-    const onSource = vi.fn();
 
-    const { container, rerender } = render(<SceneRenderer scene={withNotes} onSource={onSource} />);
+    const { container, rerender } = render(<SceneRenderer scene={withNotes} />);
     const button = container.querySelector('button[aria-controls="source-drawer"]');
 
     expect(button).not.toBeNull();
@@ -95,17 +94,12 @@ describe('SceneRenderer', () => {
     expect(button?.textContent).toBe(UI_COPY.source);
 
     fireEvent.click(button!);
-    expect(onSource).toHaveBeenCalledWith(9);
+    expect(button?.getAttribute('aria-expanded')).toBe('true');
 
-    rerender(<SceneRenderer scene={baseScene} onSource={onSource} />);
+    fireEvent.click(button!); // same slide already open: toggles closed
+    expect(button?.getAttribute('aria-expanded')).toBe('false');
+
+    rerender(<SceneRenderer scene={baseScene} />);
     expect(container.querySelector('button[aria-controls="source-drawer"]')).toBeNull();
-  });
-
-  it('does not throw when onSource is omitted and the SOURCE button is clicked', () => {
-    const withNotes: Scene = { ...baseScene, sourceNotes: ['Slide 9 · citation text'] };
-    const { container } = render(<SceneRenderer scene={withNotes} />);
-    const button = container.querySelector('button[aria-controls="source-drawer"]');
-
-    expect(() => fireEvent.click(button!)).not.toThrow();
   });
 });

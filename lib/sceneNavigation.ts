@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { getSceneProgress } from '@/components/presentation/SceneProgress';
 import { track } from '@/lib/analytics';
 import { scenes } from '@/lib/scenes';
@@ -31,6 +31,78 @@ export function subscribeCurrentScene(listener: () => void): () => void {
 
 export function useCurrentScene(): number {
   return useSyncExternalStore(subscribeCurrentScene, getCurrentScene, () => FIRST);
+}
+
+// ---- source drawer store (CONTRACTS §8, non-modal; closes on scene change) ----
+let drawerSlide: number | null = null;
+let drawerTrigger: Element | null = null;
+const drawerListeners = new Set<() => void>();
+
+export function getDrawerSlide(): number | null {
+  return drawerSlide;
+}
+
+/** The element that had focus when the drawer opened (for focus return on close). */
+export function getDrawerTrigger(): Element | null {
+  return drawerTrigger;
+}
+
+function setDrawerSlide(slide: number | null): void {
+  if (slide === drawerSlide) return;
+  drawerSlide = slide;
+  drawerListeners.forEach((listener) => listener());
+}
+
+function openDrawer(slide: number): void {
+  drawerTrigger = document.activeElement;
+  track('source_open', { slide });
+  setDrawerSlide(slide);
+}
+
+function closeDrawer(): void {
+  setDrawerSlide(null);
+}
+
+export function useSourceDrawer(): { slide: number | null; open: (slide: number) => void; close: () => void } {
+  const slide = useSyncExternalStore(
+    (listener) => {
+      drawerListeners.add(listener);
+      return () => drawerListeners.delete(listener);
+    },
+    getDrawerSlide,
+    () => null,
+  );
+  return { slide, open: openDrawer, close: closeDrawer };
+}
+
+// A scene change (any cause) closes the drawer; it never shows stale notes for a scene you left.
+subscribeCurrentScene(() => setDrawerSlide(null));
+
+// ---- demo escape registry (CONTRACTS §8: SocDemo etc. register their transient-UI Escape handler) ----
+const demoEscapeHandlers = new Map<number, () => void>();
+
+export function getDemoEscape(slide: number): (() => void) | undefined {
+  return demoEscapeHandlers.get(slide);
+}
+
+export function useDemoEscape(slide: number, onEscape: (() => void) | null): void {
+  const latest = useRef(onEscape);
+  useEffect(() => {
+    latest.current = onEscape;
+  });
+
+  useEffect(() => {
+    if (!onEscape) return undefined;
+    const handler = () => latest.current?.();
+    demoEscapeHandlers.set(slide, handler);
+    return () => {
+      // A newer effect (different slide, or re-registered) may have already replaced this handler.
+      if (demoEscapeHandlers.get(slide) === handler) demoEscapeHandlers.delete(slide);
+    };
+    // latest.current always reads the current onEscape; re-running only on slide or null<->fn transitions
+    // avoids churn from a caller passing a fresh closure identity every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slide, Boolean(onEscape)]);
 }
 
 // ---- DOM helpers (event time only, never during render) ----
@@ -179,8 +251,8 @@ export function startNavigationEngine(): () => void {
       scrollLength: scene.scrollLength,
       // In flight: act from the pending destination, not the mid-animation measurement.
       progress: target ? target.progress : getSceneProgress(slide),
-      drawerOpen: false, // Task 13: SourceDrawer state
-      demoEscape: false, // Task 13: useDemoEscape registration for `slide`
+      drawerOpen: getDrawerSlide() !== null,
+      demoEscape: getDemoEscape(slide) !== undefined,
     });
     if (!action) return; // ruling 14: keys never arm snapping
     event.preventDefault();
@@ -189,7 +261,10 @@ export function startNavigationEngine(): () => void {
         return goToScene(action.slide);
       case 'scrollBy':
         return scrollInScene(slide, action.direction);
-      // Task 13: 'closeDrawer' and 'demoEscape'.
+      case 'closeDrawer':
+        return closeDrawer();
+      case 'demoEscape':
+        return getDemoEscape(slide)?.();
     }
   };
 
