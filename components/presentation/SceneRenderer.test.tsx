@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import type { Scene } from '@/lib/types';
 import { UI_COPY } from '@/lib/constants';
+import { campusBotCopy, ragCopy, socCopy } from '@/lib/demoState';
 import { SceneRenderer } from './SceneRenderer';
 import { Presentation } from './Presentation';
 import { registry } from '@/components/scenes';
@@ -78,13 +79,24 @@ describe('Presentation', () => {
     });
 
     try {
-      const { container, findByText } = render(<Presentation />);
+      const { container } = render(<Presentation />);
 
-      // The 3 demos are next/dynamic (SSR on); wait for each one's lazy import to resolve before
-      // asserting, by finding text only that demo's fixture copy renders.
-      await findByText('Talk the assistant out of its secret');
-      await findByText('Poison the policy folder');
-      await findByText('10,000 alerts, one story');
+      // The 3 demos are next/dynamic (SSR on); waiting on scene.title text would not discriminate
+      // a mounted demo from SceneRenderer's fallback, which renders that identical
+      // <h2>{scene.title}</h2> when the registry lookup fails — so instead wait, per demo section,
+      // for DemoShell-only markup the fallback never renders: its Reset button, plus one
+      // demo-interior fixture string from lib/demoState.ts that only the demo's own body renders.
+      const campusBotSection = container.querySelector('section[data-scene="scene-04"]') as HTMLElement;
+      await within(campusBotSection).findByRole('button', { name: UI_COPY.reset });
+      within(campusBotSection).getByText(campusBotCopy.question);
+
+      const ragSection = container.querySelector('section[data-scene="scene-06"]') as HTMLElement;
+      await within(ragSection).findByRole('button', { name: UI_COPY.reset });
+      within(ragSection).getByText(ragCopy.index);
+
+      const socSection = container.querySelector('section[data-scene="scene-23"]') as HTMLElement;
+      await within(socSection).findByRole('button', { name: UI_COPY.reset });
+      within(socSection).getByText(socCopy.queue);
 
       const sections = Array.from(container.querySelectorAll('main#presentation > section[data-scene]'));
       expect(sections).toHaveLength(46);
