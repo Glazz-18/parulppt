@@ -8,14 +8,16 @@ import { MonoLabel } from '@/components/ui/MonoLabel';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
 import { Blocks } from './Blocks';
 
-const titleStyle = {
+// Exported for reuse by one-off scene components (e.g. RolePathScene) that share the same
+// eyebrow/title look but draw their own supporting content instead of <Blocks>.
+export const titleStyle = {
   fontFamily: 'var(--font-sans)',
   fontSize: 'clamp(40px, 4.4vw, 64px)',
   lineHeight: 1.05,
   margin: 0,
 };
 
-const eyebrowStyle = { fontSize: 'clamp(12px, 1vw, 16px)' };
+export const eyebrowStyle = { fontSize: 'clamp(12px, 1vw, 16px)' };
 
 type BlockAnim = { selector: string; from: gsap.TweenVars; to: gsap.TweenVars };
 
@@ -42,7 +44,9 @@ const BLOCK_ANIM: Partial<Record<string, BlockAnim>> = {
   },
 };
 
-function revealStagger(
+// Exported for reuse by one-off scene components (e.g. RolePathScene) that build their own
+// paused timeline but want the same "stagger a group of elements across [start, end)" beat.
+export function revealStagger(
   tl: gsap.core.Timeline,
   els: NodeListOf<Element> | Element[],
   start: number,

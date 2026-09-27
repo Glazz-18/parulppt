@@ -48,9 +48,17 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 1 · THE WORLD CHANGED',
+    title: 'AI is bigger than ChatGPT',
+    content: {
+      blocks: [
+        {
+          type: 'flow',
+          marker: 'You are here',
+          items: ['User', 'Power user', 'Builder', 'Founder', 'System designer'],
+        },
+      ],
+    },
   },
   {
     id: 'scene-04',

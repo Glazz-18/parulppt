@@ -126,9 +126,9 @@ describe('scenes manifest', () => {
     });
   });
 
-  // Task 20 fills slides 1, 2, 8, 15; Task 21 (part A) fills slide 7; Task 21 (part B) fills slides 10, 12, 21, 22, 30, 33, 40, 42, 45.
-  // Every other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
-  const filledSlides = new Set([1, 2, 7, 8, 10, 12, 15, 21, 22, 30, 33, 40, 42, 45]);
+  // Task 20 fills slides 1, 2, 8, 15; Task 21 (part A) fills slide 7; Task 21 (part B) fills slides 10, 12, 21, 22, 30, 33, 40, 42, 45;
+  // Task 22 fills slide 3. Every other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
+  const filledSlides = new Set([1, 2, 3, 7, 8, 10, 12, 15, 21, 22, 30, 33, 40, 42, 45]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
     scenes.forEach((scene) => {
@@ -157,6 +157,17 @@ describe('scenes manifest', () => {
     expect(content.blocks).toHaveLength(1);
     expect(content.blocks[0].type).toBe('steps');
     expect(content.blocks[0].items).toHaveLength(3);
+  });
+
+  it('slide 3 (diagram) has a flow block with the "You are here" marker and five roles in deck order', () => {
+    const scene = scenes[2];
+    expect(scene.eyebrow).toBe('ACT 1 · THE WORLD CHANGED');
+    expect(scene.title).toBe('AI is bigger than ChatGPT');
+    const content = scene.content as { blocks: { type: string; marker?: string; items?: string[] }[] };
+    expect(content.blocks).toHaveLength(1);
+    expect(content.blocks[0].type).toBe('flow');
+    expect(content.blocks[0].marker).toBe('You are here');
+    expect(content.blocks[0].items).toEqual(['User', 'Power user', 'Builder', 'Founder', 'System designer']);
   });
 
   it('slide 7 (meme) has its eyebrow and memeId 4 content.lines, and no title field', () => {
