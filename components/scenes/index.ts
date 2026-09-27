@@ -4,6 +4,7 @@ import { TitleScene } from './TitleScene';
 import { ContentScene } from './ContentScene';
 import { MemeScene } from './MemeScene';
 import { NetworkScene } from './NetworkScene';
+import { FinalScene } from './FinalScene';
 import { RolePathScene } from './RolePathScene';
 import { TimelineScene } from './TimelineScene';
 import { RagFlowScene } from './RagFlowScene';
@@ -20,6 +21,7 @@ export const registry: Partial<Record<SceneComponentName, ComponentType<ScenePro
   ContentScene,
   MemeScene,
   NetworkScene,
+  FinalScene,
   RolePathScene,
   TimelineScene,
   RagFlowScene,

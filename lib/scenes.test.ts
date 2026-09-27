@@ -130,10 +130,10 @@ describe('scenes manifest', () => {
   // Task 22 fills slide 3; Task 23 fills slides 19, 20; Task 24 fills slides 9, 13, 16, 17, 18, 24, 27, 28.
   // Task 25 fills slides 31, 32, 35, 36, 37, 39, 41, 44. Task 26 fills slide 5. Task 27 fills slide 11.
   // Task 28 fills slide 14. Task 29 fills slide 25. Task 30 fills slide 26. Task 31 fills slide 29.
-  // Task 32 fills slide 34. Task 34 fills slide 43. Every other slide is still the W2 skeleton
-  // (empty strings) until its own manifest task lands.
+  // Task 32 fills slide 34. Task 34 fills slide 43. Task 35 fills slide 46. Every other slide is
+  // still the W2 skeleton (empty strings) until its own manifest task lands.
   const filledSlides = new Set([
-    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+    1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
   ]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
@@ -283,6 +283,19 @@ describe('scenes manifest', () => {
       ['Prompt injection', '→', 'AI red-teaming platforms'],
       ['Alert fatigue', '→', 'SOC automation for SMEs'],
     ]);
+  });
+
+  it('slide 46 (cta) has no eyebrow and no title field (§3.1 recipe rules 1, 3) and the closing content', () => {
+    const scene = scenes[45];
+    expect(scene.eyebrow).toBeUndefined();
+    expect(scene.title).toBeUndefined();
+    expect(scene.kind).toBe('cta');
+    const content = scene.content as { lines: string[]; closing: string; speaker: string; role: string; linkedin: string };
+    expect(content.lines).toEqual(['Build something.', 'Break something.', 'Secure something.', 'Scale something.']);
+    expect(content.closing).toBe('And find the people who will build it with you.');
+    expect(content.speaker).toBe('Atharv Tiwari');
+    expect(content.role).toBe('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(content.linkedin).toBe('linkedin.com/in/atharvtiwari');
   });
 
   it('every scene has appropriate content shape', () => {

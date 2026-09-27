@@ -1007,8 +1007,12 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'cta',
-    eyebrow: '',
-    title: '',
-    content: { lines: [], closing: '', speaker: '', role: '', linkedin: '' },
+    content: {
+      lines: ['Build something.', 'Break something.', 'Secure something.', 'Scale something.'],
+      closing: 'And find the people who will build it with you.',
+      speaker: 'Atharv Tiwari',
+      role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
+      linkedin: 'linkedin.com/in/atharvtiwari',
+    },
   },
 ];
