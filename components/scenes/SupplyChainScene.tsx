@@ -70,15 +70,17 @@ export function SupplyChainScene({ scene }: SceneProps) {
   const compromisedItem = items[3];
 
   // Arrival pose (CONTRACTS §6/§11, A9): pinned, scrollLength 3 -> headEnd = 1/3; the remaining
-  // [headEnd, 1] window carries, in order (manager brief): root + first three dependencies, the
-  // graph expanding into many dependencies (with the compromised litellm node), the incident
-  // line, then the 48% metric landing value-first.
+  // [headEnd, handoffStart] window carries, in order (manager brief): root + first three
+  // dependencies, the graph expanding into many dependencies (with the compromised litellm node),
+  // the incident line, then the 48% metric landing value-first -- all scaled into that compressed
+  // span (fix round 1: previously scaled into [headEnd, 1], squeezing the metric's own reveal into
+  // a ~1.7% sliver of the full timeline) so every beat is comfortably paced before the hand-off.
   const headEnd = headArrival(scene);
-  const supportingSpan = Math.max(1 - headEnd, 0);
+  const handoffStart = 1 - HANDOFF_SPAN;
+  const supportingSpan = Math.max(handoffStart - headEnd, 0);
   const initialEnd = headEnd + supportingSpan * 0.15;
   const expandEnd = initialEnd + supportingSpan * 0.45;
   const incidentEnd = expandEnd + supportingSpan * 0.15;
-  const handoffStart = 1 - HANDOFF_SPAN;
 
   useGSAP(
     () => {
@@ -123,15 +125,19 @@ export function SupplyChainScene({ scene }: SceneProps) {
           revealMetrics(tl, [metricEl], incidentEnd, handoffStart);
         }
 
-        // Task 37 hand-off (design §8, A9, 14->15): once landed, the metric (our own wrapper, not
-        // BigNumber's own value span the settle test above already pins to scale 1 -- a different
-        // element, CONTRACTS §11) collapses/shifts left into scene 15's first metric's position.
+        // Task 37 hand-off (design §8, A9, 14->15; fix round 1 ruling): once landed, the metric
+        // (our own wrapper, not BigNumber's own value span the settle test above already pins to
+        // scale 1 -- a different element, CONTRACTS §11) settles INTO its natural layout -- scale
+        // 1, on the shared left edge -- which is exactly scene 15's first-metric class already
+        // (same BigNumber). The tween runs from a slightly larger, right-shifted state down to
+        // that resting pose, anchored on the left edge (transformOrigin '0% 50%', matching the
+        // static default below) so it never drifts off the shared left alignment.
         const handoffEl = containerRef.current?.querySelector<HTMLElement>('[data-part="metric-handoff"]');
         if (handoffEl) {
           tl.fromTo(
             handoffEl,
-            { x: 0, scale: 1 },
-            { x: -8, scale: 0.94, duration: HANDOFF_SPAN, ease: 'power2.out' },
+            { x: 8, scale: 1.06, transformOrigin: '0% 50%' },
+            { x: 0, scale: 1, duration: HANDOFF_SPAN, ease: 'power2.out' },
             handoffStart,
           );
         }
@@ -234,9 +240,11 @@ export function SupplyChainScene({ scene }: SceneProps) {
       {linesBlock ? <Blocks blocks={[linesBlock]} /> : null}
       {metricsBlock ? (
         // Task 37 hand-off wrapper (design §8, A9): a wrapper we own, not Blocks'/BigNumber's own
-        // markup (never edited here), so its resting style can carry the settled hand-off pose for
-        // the reduced-motion static render while GSAP owns the same transform when animated.
-        <div data-part="metric-handoff" style={{ transform: 'translateX(-8px) scale(0.94)' }}>
+        // markup (never edited here). Its resting style (fix round 1 ruling) IS scene 15's own
+        // metric class -- natural layout, scale 1, no offset -- for the reduced-motion static
+        // render; GSAP owns the same transform (from a larger/offset state into this one) when
+        // animated. transformOrigin '0% 50%' matches the GSAP tween's own origin either way.
+        <div data-part="metric-handoff" style={{ transformOrigin: '0% 50%' }}>
           <Blocks blocks={[metricsBlock]} />
         </div>
       ) : null}

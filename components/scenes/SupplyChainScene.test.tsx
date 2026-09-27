@@ -66,11 +66,13 @@ afterEach(() => {
 
 // Matches the component's own beat math (headEnd = 1/3, then 0.15 / 0.45 / 0.15 / 0.25 of the
 // remaining span) so tests can pick progress values inside a specific beat without duplicating
-// the production formula's *meaning*, only its shape (as AgentLoopScene.test.tsx does).
+// the production formula's *meaning*, only its shape (as AgentLoopScene.test.tsx does). Fix round
+// 1 (finding 3): the content span is [headEnd, HANDOFF_START], not [headEnd, 1] -- the final 15%
+// of the full timeline is reserved for the Task 37 hand-off.
 const HEAD_END = 1 / 3;
-const SUPPORTING = 1 - HEAD_END;
-const INITIAL_END = HEAD_END + SUPPORTING * 0.15;
 const HANDOFF_START = 0.85;
+const SUPPORTING = HANDOFF_START - HEAD_END;
+const INITIAL_END = HEAD_END + SUPPORTING * 0.15;
 
 describe('SupplyChainScene', () => {
   it('renders the eyebrow and h2 title, no scene chrome of its own', () => {
@@ -195,29 +197,37 @@ describe('SupplyChainScene', () => {
     expect(tl.duration()).toBe(1);
   });
 
-  // Task 37 hand-off (design §8, A9, 14->15): the 48% metric collapses/shifts left into scene
-  // 15's first-metric role only in the final 15% of the timeline, after it has already landed.
-  it('the metric hand-off pose is not yet applied just before HANDOFF_START, and is fully applied by tl.progress(1)', () => {
+  // Task 37 hand-off (design §8, A9, 14->15; fix round 1 ruling): the 48% metric is already
+  // landed by HANDOFF_START (compressed content span, fix round 1 finding 3), sitting at a
+  // slightly larger, right-shifted pre-collapse state; only in the final 15% of the timeline does
+  // it settle INTO its natural layout -- scale 1, left-anchored -- which is exactly scene 15's
+  // first-metric class already (same BigNumber, same left alignment).
+  it('the metric hand-off pose sits at its pre-collapse state before HANDOFF_START, and settles to scale 1 / left anchor by tl.progress(1)', () => {
     const timelineSpy = vi.spyOn(gsap, 'timeline');
     const { container } = render(<SupplyChainScene scene={baseScene()} />);
     const tl = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
     const handoff = container.querySelector('[data-part="metric-handoff"]') as HTMLElement;
     expect(handoff).toBeTruthy();
 
+    // The metric's own value/label reveal (revealMetrics) is already complete here -- only the
+    // hand-off wrapper's own collapse is still pending.
     tl.progress(HANDOFF_START - 0.02);
-    expect(gsap.getProperty(handoff, 'x')).toBe(0);
-    expect(gsap.getProperty(handoff, 'scale')).toBe(1);
+    const metricValueBefore = container.querySelector('[data-part="value"]') as HTMLElement;
+    expect(gsap.getProperty(metricValueBefore, 'scale')).toBe(1);
+    expect(gsap.getProperty(handoff, 'x')).toBe(8);
+    expect(gsap.getProperty(handoff, 'scale')).toBeCloseTo(1.06, 5);
 
     tl.progress(1);
-    expect(gsap.getProperty(handoff, 'x')).toBe(-8);
-    expect(gsap.getProperty(handoff, 'scale')).toBe(0.94);
+    expect(gsap.getProperty(handoff, 'x')).toBe(0);
+    expect(gsap.getProperty(handoff, 'scale')).toBe(1);
+    expect(gsap.getProperty(handoff, 'transformOrigin')).toBe('0% 50% 0px');
   });
 
-  it('under reduced motion, the metric hand-off wrapper renders its settled pose statically', () => {
+  it('under reduced motion, the metric hand-off wrapper renders scene 15’s natural metric class (no offset, left-anchored)', () => {
     reduced = true;
     const { container } = render(<SupplyChainScene scene={baseScene()} />);
     const handoff = container.querySelector('[data-part="metric-handoff"]') as HTMLElement;
-    expect(handoff.style.transform).toContain('translateX(-8px)');
-    expect(handoff.style.transform).toContain('scale(0.94)');
+    expect(handoff.style.transformOrigin).toBe('0% 50%');
+    expect(handoff.style.transform || 'none').toBe('none');
   });
 });

@@ -106,17 +106,27 @@ describe('MemeScene', () => {
 
   // Task 37 hand-off (design §8, A9, 22->23): slide 22 only gets the dark field; every other
   // meme slide is unaffected (scoped by data, not by kind).
-  it('slide 22 renders the dark hand-off field (aria-hidden, --bg-dark/--text-dark tokens); other meme slides do not', () => {
+  it('slide 22 renders the dark hand-off field as its last, in-flow, aria-hidden child (--bg-dark/--text-dark tokens); other meme slides do not', () => {
     const { container: c22 } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    const root = c22.firstElementChild as HTMLElement;
     const field = c22.querySelector('[data-part="handoff-field"]') as HTMLElement;
     expect(field).toBeTruthy();
+    expect(root.lastElementChild).toBe(field);
     expect(field.getAttribute('aria-hidden')).toBe('true');
     expect(field.style.background).toBe('var(--bg-dark)');
     expect(field.style.borderTop).toContain('var(--text-dark)');
+    // In-flow (fix round 1, finding 2), not absolutely positioned over the content above it.
+    expect(field.style.position).not.toBe('absolute');
     cleanup();
 
     const { container: c7 } = render(<MemeScene scene={baseScene({ slide: 7 })} />);
     expect(c7.querySelector('[data-part="handoff-field"]')).toBeNull();
+  });
+
+  it('slide 22 renders the hand-off field under reduced motion too (it is not GSAP-driven)', () => {
+    reduced = true;
+    const { container } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    expect(container.querySelector('[data-part="handoff-field"]')).toBeTruthy();
   });
 
   // Finding 4 (Task 22b, fix round 1): scrubbing now goes through the shared `useProgressRef`

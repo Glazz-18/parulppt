@@ -190,8 +190,12 @@ export function AiFixesBugScene({ scene }: SceneProps) {
       <div
         data-part="accent-line"
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
-        style={{ background: 'var(--green)', opacity: gateLit ? 1 : 0 }}
+        // Fix round 1 (finding 6): extends FROM the gate (the flow row's last, rightmost child)
+        // via scaleX anchored on that side (origin-right), rather than a full-width opacity fade
+        // at a threshold -- still gated on `gateLit` so progress 1 / reduced motion render the
+        // full line, same as before.
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-right transition-transform duration-300 motion-reduce:transition-none"
+        style={{ background: 'var(--green)', transform: gateLit ? 'scaleX(1)' : 'scaleX(0)' }}
       />
     </div>
   );

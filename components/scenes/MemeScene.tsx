@@ -91,8 +91,21 @@ export function MemeScene({ scene }: SceneProps) {
         <div
           data-part="handoff-field"
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[14%]"
-          style={{ background: 'var(--bg-dark)', borderTop: '2px solid var(--text-dark)' }}
+          // Fix round 1 (finding 2): in-flow (mt-auto, last child) so it reserves its own height
+          // and never overlays the meme content above it; shrink-0 keeps that height at short
+          // viewports. The negative margins bleed it past this element's own max-w-[880px]
+          // ancestor to the section's true edges -- they exactly cancel SceneShell.tsx's
+          // `.scene-viewport` padding (paddingInline 'calc(var(--rail-w) + 5vw) 5vw', paddingBlock
+          // 'max(7vh, 72px)', not edited here), and work regardless of that narrower ancestor's own
+          // width because vw-based lengths are absolute, not relative to the nearest box.
+          className="pointer-events-none mt-auto h-[12vh] shrink-0"
+          style={{
+            background: 'var(--bg-dark)',
+            borderTop: '2px solid var(--text-dark)',
+            marginInlineStart: 'calc(-1 * (var(--rail-w) + 5vw))',
+            marginInlineEnd: '-5vw',
+            marginBottom: 'calc(-1 * max(7vh, 72px))',
+          }}
         />
       ) : null}
     </div>

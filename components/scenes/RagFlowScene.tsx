@@ -98,17 +98,21 @@ export function RagFlowScene({ scene }: SceneProps) {
           );
         });
 
-        // Task 37 hand-off (design §8, A9, 5->6): once every stage has landed, the Answer card
-        // lifts/scales into a settled "source card" pose that anticipates scene 6's source row;
-        // the mono n/term treatment it already carries (no new words) reads as that card's label,
-        // and this frame (rule border, aria-hidden) is the only new visual element. Transform/
-        // opacity only (CONTRACTS §11); a different element from the one below (the per-card
-        // `isActive` scale) so the two never fight over the same node's `transform`.
-        const answerEl = containerRef.current?.querySelector<HTMLElement>('[data-part="answer"]');
+        // Task 37 hand-off (design §8, A9, 5->6; fix round 1 findings 4/5): once every stage has
+        // landed, the Answer card lifts/scales into a settled "source card" pose that anticipates
+        // scene 6's source row. This lives on its own inner wrapper (`handoff-inner`), NOT the
+        // outer `answer` card -- that outer card keeps its pre-existing `isActive` scale bump +
+        // CSS `transition-transform` (the Answer stage's own non-colour active cue) untouched, so
+        // a CSS transition never fights GSAP's own per-frame scrub of a DIFFERENT element (fix
+        // round 1 finding 4a: the earlier version put both on the SAME node, and the CSS
+        // transition lagged/fought GSAP's direct writes). The frame (rule border, aria-hidden) is
+        // the only new visual element -- no new label text, per the brief: the mono n/term this
+        // card already carries reads as its label.
+        const handoffInnerEl = containerRef.current?.querySelector<HTMLElement>('[data-part="handoff-inner"]');
         const frameEl = containerRef.current?.querySelector<HTMLElement>('[data-part="handoff-frame"]');
-        if (answerEl) {
+        if (handoffInnerEl) {
           tl.fromTo(
-            answerEl,
+            handoffInnerEl,
             { y: 0, scale: 1 },
             { y: -6, scale: 1.05, duration: HANDOFF_SPAN, ease: 'power2.out' },
             handoffStart,
@@ -160,26 +164,10 @@ export function RagFlowScene({ scene }: SceneProps) {
           {stages.map((stage, i) => {
             const isLast = i === stages.length - 1;
             const isActive = i === activeIndex;
-            const card = (
-              <div
-                data-part={isLast ? 'answer' : undefined}
-                className={
-                  'flex flex-col gap-2 transition-transform duration-300 motion-reduce:transition-none' +
-                  (isLast ? ' relative' : '')
-                }
-                // The last card's transform is owned entirely by the hand-off tween above (its
-                // resting value here is that pose's settled end-state, matching progress 1 / the
-                // reduced-motion static render, A9); every other card keeps its own `isActive` bump.
-                style={isLast ? { transform: 'translateY(-6px) scale(1.05)' } : { transform: isActive ? 'scale(1.04)' : 'scale(1)' }}
-              >
-                {isLast ? (
-                  <span
-                    data-part="handoff-frame"
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -inset-3 rounded"
-                    style={{ border: '1px solid var(--rule)' }}
-                  />
-                ) : null}
+            // n/term/text: shared between both branches below so the card's own `isActive` scale
+            // + CSS transition (unchanged, fix round 1 finding 4b) is never split from its content.
+            const stageText = (
+              <>
                 <span data-part="n" style={numberStyle}>
                   {stage.n}
                 </span>
@@ -189,6 +177,37 @@ export function RagFlowScene({ scene }: SceneProps) {
                 <span data-part="text" style={textStyle}>
                   {stage.text}
                 </span>
+              </>
+            );
+            const card = (
+              <div
+                data-part={isLast ? 'answer' : undefined}
+                className="flex flex-col gap-2 transition-transform duration-300 motion-reduce:transition-none"
+                style={{ transform: isActive ? 'scale(1.04)' : 'scale(1)' }}
+              >
+                {isLast ? (
+                  <div
+                    data-part="handoff-inner"
+                    className="relative flex flex-col gap-2"
+                    // Settled pose (fix round 1 finding 4a): NO CSS transition class on this
+                    // element -- GSAP owns its transform exclusively once mounted (fromTo above);
+                    // this static value is only what the reduced-motion render (and the very first
+                    // paint) show.
+                    style={{ transform: 'translateY(-6px) scale(1.05)' }}
+                  >
+                    <span
+                      data-part="handoff-frame"
+                      aria-hidden="true"
+                      // Square corners, flush with the card's own box (fix round 1 finding 5): stays
+                      // inside the li's own p-4 padding instead of straddling its border.
+                      className="pointer-events-none absolute inset-0"
+                      style={{ border: '1px solid var(--rule)' }}
+                    />
+                    {stageText}
+                  </div>
+                ) : (
+                  stageText
+                )}
               </div>
             );
             return (

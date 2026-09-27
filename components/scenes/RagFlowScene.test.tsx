@@ -108,14 +108,19 @@ describe('RagFlowScene', () => {
     expect(answer).toBeTruthy();
     expect(answer?.textContent).toContain('Sounds confident either way');
 
-    // Review round 1 (Task 26): the answer element must be the actual card box Task 37 will pose
-    // (transforms/getBoundingClientRect), not a `display: contents` wrapper around it, which has
-    // no box of its own. It carries the card's own inline transform and its n/term/text children
-    // directly, with no intermediate wrapper element.
+    // Review round 1 (Task 26): the answer element must be the actual card box (transforms/
+    // getBoundingClientRect), not a `display: contents` wrapper around it, which has no box of
+    // its own. Fix round 1 (Task 37, finding 4a): its own transform (the `isActive` scale bump,
+    // unchanged from every other card) is now deliberately kept separate from the GSAP-scrubbed
+    // hand-off pose, which lives one level down on `handoff-inner` -- n/term still live inside
+    // `answer` (not detached elsewhere), just via that one wrapper.
     expect(answer?.className ?? '').not.toMatch(/\bcontents\b/);
     expect(answer?.style.transform).toBeTruthy();
-    expect(answer?.querySelector('[data-part="n"]')?.parentElement).toBe(answer);
-    expect(answer?.querySelector('[data-part="term"]')?.parentElement).toBe(answer);
+    const nEl = answer?.querySelector('[data-part="n"]');
+    const termEl = answer?.querySelector('[data-part="term"]');
+    expect(answer?.contains(nEl ?? null)).toBe(true);
+    expect(answer?.contains(termEl ?? null)).toBe(true);
+    expect(nEl?.parentElement?.className ?? '').not.toMatch(/\bcontents\b/);
   });
 
   it('under reduced motion, all text is present and no GSAP timeline is created', () => {
@@ -185,36 +190,52 @@ describe('RagFlowScene', () => {
     stages.forEach((el) => expect(gsap.getProperty(el, 'y')).toBe(0));
   });
 
-  // Task 37 hand-off (design §8, A9, 5->6): the Answer card settles into a "source card" pose
-  // (lift/scale + a rule frame) only after every stage has landed, in the final 15% of the
-  // timeline (HANDOFF_START = 0.85 here).
+  // Task 37 hand-off (design §8, A9, 5->6): the Answer card's inner wrapper settles into a
+  // "source card" pose (lift/scale + a rule frame) only after every stage has landed, in the
+  // final 15% of the timeline (HANDOFF_START = 0.85 here). Fix round 1 (finding 4a): this pose
+  // lives on `handoff-inner`, a different element from `answer` itself, so it never fights the
+  // outer card's own CSS-transitioned `isActive` scale.
   it('the Answer card hand-off pose is not yet applied just before HANDOFF_START, and is fully applied by tl.progress(1)', () => {
     const timelineSpy = vi.spyOn(gsap, 'timeline');
     const { container } = render(<RagFlowScene scene={baseScene()} />);
     const tl = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
-    const answer = container.querySelector('[data-part="answer"]') as HTMLElement;
+    const inner = container.querySelector('[data-part="handoff-inner"]') as HTMLElement;
     const frame = container.querySelector('[data-part="handoff-frame"]') as HTMLElement;
+    expect(inner).toBeTruthy();
     expect(frame).toBeTruthy();
     expect(frame.getAttribute('aria-hidden')).toBe('true');
+    // Fix round 1 (finding 4a): no CSS transition class competes with GSAP's own scrub here.
+    expect(inner.className).not.toMatch(/transition/);
 
     tl.progress(HANDOFF_START - 0.02);
-    expect(gsap.getProperty(answer, 'y')).toBe(0);
-    expect(gsap.getProperty(answer, 'scale')).toBe(1);
+    expect(gsap.getProperty(inner, 'y')).toBe(0);
+    expect(gsap.getProperty(inner, 'scale')).toBe(1);
     expect(Number(frame.style.opacity)).toBe(0);
 
     tl.progress(1);
-    expect(gsap.getProperty(answer, 'y')).toBe(-6);
-    expect(gsap.getProperty(answer, 'scale')).toBe(1.05);
+    expect(gsap.getProperty(inner, 'y')).toBe(-6);
+    expect(gsap.getProperty(inner, 'scale')).toBe(1.05);
     expect(frame.style.opacity || '1').toBe('1');
+  });
+
+  // Fix round 1 (finding 4b): the outer `answer` card keeps its pre-existing `isActive` scale
+  // bump -- the Answer stage's own non-colour active cue -- unchanged, on a different element
+  // from the GSAP-scrubbed hand-off pose (this file has no SceneProgressProvider, so the real
+  // `progress` `useSceneProgress()` reads defaults to 1, CONTRACTS §6 -- the last stage is
+  // "active" by default here, same as every other `isActive`-driven assertion in this file).
+  it('the Answer stage still carries its non-colour active-scale cue, on the outer card (not the hand-off inner)', () => {
+    const { container } = render(<RagFlowScene scene={baseScene()} />);
+    const answer = container.querySelector('[data-part="answer"]') as HTMLElement;
+    expect(answer.style.transform).toBe('scale(1.04)');
   });
 
   it('under reduced motion, the Answer card renders its settled hand-off pose (lift/scale, rule frame) statically', () => {
     reduced = true;
     const { container } = render(<RagFlowScene scene={baseScene()} />);
-    const answer = container.querySelector('[data-part="answer"]') as HTMLElement;
+    const inner = container.querySelector('[data-part="handoff-inner"]') as HTMLElement;
     const frame = container.querySelector('[data-part="handoff-frame"]') as HTMLElement;
-    expect(answer.style.transform).toContain('scale(1.05)');
-    expect(answer.style.transform).toContain('translateY(-6px)');
+    expect(inner.style.transform).toContain('scale(1.05)');
+    expect(inner.style.transform).toContain('translateY(-6px)');
     expect(frame).toBeTruthy();
     expect(frame.style.border).toContain('var(--rule)');
   });
