@@ -25,6 +25,7 @@ export function RolePathScene({ scene }: SceneProps) {
   const eyebrowRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const pathRef = useRef<HTMLDivElement>(null);
+  const pointerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
 
@@ -78,6 +79,22 @@ export function RolePathScene({ scene }: SceneProps) {
           : [];
         revealStagger(tl, roleEls, headEnd, 1, { opacity: 0, y: 16 }, { opacity: 1, y: 0 });
 
+        // Review round 1 (Task 22): a decorative pointer (not the "You are here" marker, which
+        // stays fixed on User) travels the length of the path as it draws, landing at the path's
+        // END (System designer) exactly at progress 1. Its natural/static layout position IS the
+        // path end (`right-0` on the inner dot), so progress-1 equals the static markup (CONTRACTS
+        // §11): the tween only ever offsets it backward (x: -100% of its own/the path's width,
+        // via the "full-width wrapper" trick — same width as `path`, so a -100% translateX moves
+        // it exactly one path-length to the left) toward its resting x: 0.
+        if (pointerRef.current) {
+          tl.fromTo(
+            pointerRef.current,
+            { x: '-100%' },
+            { x: '0%', duration: Math.max(1 - headEnd, 0), ease: 'power1.inOut' },
+            headEnd,
+          );
+        }
+
         if (markerRef.current) {
           tl.fromTo(
             markerRef.current,
@@ -125,6 +142,12 @@ export function RolePathScene({ scene }: SceneProps) {
           className="absolute inset-x-0 top-2 h-px origin-left"
           style={{ background: 'var(--rule)' }}
         />
+        {/* Decorative path-head pointer (not the "You are here" marker): same width as `path`, so
+            translating it by its own -100%/0% moves it exactly one path-length. Its natural,
+            untransformed position (the inner dot at `right-0`) is the path's end. */}
+        <div ref={pointerRef} data-part="pointer" aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-2 h-0">
+          <span className="absolute right-0 top-1/2 block h-2 w-2 -translate-y-1/2 rounded-full" style={{ background: 'var(--label)' }} />
+        </div>
         <ol data-part="roles" className="relative flex items-start justify-between gap-2">
           {roles.map((role, i) => (
             <li

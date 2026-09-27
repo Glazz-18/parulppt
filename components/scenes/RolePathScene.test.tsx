@@ -67,7 +67,6 @@ describe('RolePathScene', () => {
     const ol = container.querySelector('ol');
     expect(ol).toBeTruthy();
     const items = Array.from(ol!.querySelectorAll('[data-part="role"]'));
-    expect(items.map((el) => el.textContent?.includes(ROLES[items.indexOf(el)]))).not.toContain(false);
     expect(ROLES.every((role, i) => items[i]?.textContent?.includes(role))).toBe(true);
 
     // RolePathScene renders no SceneShell/<section> of its own (A12).
@@ -103,7 +102,7 @@ describe('RolePathScene', () => {
     expect(created.duration()).toBe(1);
   });
 
-  it('at tl.progress(1), the eyebrow, title, path, every role and the marker are fully settled (no leftover transform/opacity)', () => {
+  it('at tl.progress(1), the eyebrow, title, path, pointer, every role and the marker are fully settled (no leftover transform/opacity)', () => {
     const timelineSpy = vi.spyOn(gsap, 'timeline');
     const { container } = render(<RolePathScene scene={baseScene()} />);
     const tl = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
@@ -112,6 +111,7 @@ describe('RolePathScene', () => {
     const eyebrowEl = screen.getByText('ACT 1 · THE WORLD CHANGED').parentElement as HTMLElement;
     const h2 = container.querySelector('h2') as HTMLElement;
     const path = container.querySelector('[data-part="path"]') as HTMLElement;
+    const pointer = container.querySelector('[data-part="pointer"]') as HTMLElement;
     const roles = Array.from(container.querySelectorAll('[data-part="role"]')) as HTMLElement[];
     const marker = container.querySelector('[data-part="marker"]') as HTMLElement;
 
@@ -121,5 +121,19 @@ describe('RolePathScene', () => {
     roles.forEach((el) => expect(gsap.getProperty(el, 'y')).toBe(0));
     expect(gsap.getProperty(marker, 'x')).toBe(0);
     expect(gsap.getProperty(path, 'scaleX')).toBe(1);
+    expect(gsap.getProperty(pointer, 'x')).toBe(0);
+  });
+
+  // Manager ruling (Task 22 review round 1): the pointer is a decorative path-head that travels
+  // from the path start toward its resting position at the path end (System designer), landing
+  // exactly at progress 1 — so mid-scroll it must still be short of that resting spot.
+  it('at an intermediate progress, the pointer has not yet reached its resting position', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+    const { container } = render(<RolePathScene scene={baseScene()} />);
+    const tl = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
+    tl.progress(0.5);
+
+    const pointer = container.querySelector('[data-part="pointer"]') as HTMLElement;
+    expect(gsap.getProperty(pointer, 'x')).toBeLessThan(0);
   });
 });
