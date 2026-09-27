@@ -126,9 +126,9 @@ describe('scenes manifest', () => {
     });
   });
 
-  // Task 20 fills slides 1, 2, 8, 15; Task 21 (part A) fills slide 7 (CONTRACTS §3.1). Every
-  // other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
-  const filledSlides = new Set([1, 2, 7, 8, 15]);
+  // Task 20 fills slides 1, 2, 8, 15; Task 21 (part A) fills slide 7; Task 21 (part B) fills slides 10, 12, 21, 22, 30, 33, 40, 42, 45.
+  // Every other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
+  const filledSlides = new Set([1, 2, 7, 8, 10, 12, 15, 21, 22, 30, 33, 40, 42, 45]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
     scenes.forEach((scene) => {
