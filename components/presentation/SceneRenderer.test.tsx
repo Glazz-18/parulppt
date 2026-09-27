@@ -4,6 +4,7 @@ import type { Scene } from '@/lib/types';
 import { UI_COPY } from '@/lib/constants';
 import { SceneRenderer } from './SceneRenderer';
 import { Presentation } from './Presentation';
+import { registry } from '@/components/scenes';
 
 // This file's fallback tests must stay true regardless of which scene components the registry
 // gains over time (Task 20 added TitleScene/ContentScene; Task 23 adds TimelineScene, etc.), so
@@ -50,6 +51,52 @@ describe('Presentation', () => {
     sections.forEach((section, index) => {
       expect(section.getAttribute('data-slide')).toBe(String(index + 1).padStart(2, '0'));
     });
+  });
+
+  it('every section has non-empty text through the real registry, incl. the 3 dynamic demos (TRD §16)', async () => {
+    // This file's registry mock is empty (see above) so the fallback tests above stay meaningful;
+    // for this one test only, temporarily fill that same (shared) mocked object with the real
+    // registry — including the next/dynamic-wrapped demos — then empty it again in `finally` so
+    // every later test keeps seeing the empty registry it expects.
+    const actual = await vi.importActual<typeof import('@/components/scenes')>('@/components/scenes');
+    Object.assign(registry, actual.registry);
+    // Reduced motion: no scene builds a GSAP timeline (CONTRACTS §11), so every scene's
+    // progress-1 static markup renders immediately with no ScrollTrigger/matchMedia setup needed.
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: (query: string) => ({
+        matches: query.includes('reduce'),
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+
+    try {
+      const { container, findByText } = render(<Presentation />);
+
+      // The 3 demos are next/dynamic (SSR on); wait for each one's lazy import to resolve before
+      // asserting, by finding text only that demo's fixture copy renders.
+      await findByText('Talk the assistant out of its secret');
+      await findByText('Poison the policy folder');
+      await findByText('10,000 alerts, one story');
+
+      const sections = Array.from(container.querySelectorAll('main#presentation > section[data-scene]'));
+      expect(sections).toHaveLength(46);
+      sections.forEach((section) => {
+        expect(section.textContent?.trim()).not.toBe('');
+      });
+    } finally {
+      Object.keys(registry).forEach((key) => {
+        delete (registry as Record<string, unknown>)[key];
+      });
+      delete (window as { matchMedia?: unknown }).matchMedia;
+    }
   });
 });
 
