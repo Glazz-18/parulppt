@@ -1,5 +1,5 @@
 # CONTRACTS — interface authority
-v1 · 2026-09-27 · Phase 0 · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
+v1.3 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
 
 ## 1. Rulings
 | # | Conflict | Ruling | Why |
@@ -16,7 +16,7 @@ Additional rulings found while reading the sources:
 | # | Topic | Ruling | Why |
 |---|---|---|---|
 | A1 | Scene 43 prompts | Five prompts (deck 01–05, incl. `One problem you care about`), not MASTER_PROMPT §20's four | §8 source precedence |
-| A2 | `sourceNotes` origin | Speaker notes hold only the slide number on all 46 slides; `sourceNotes` = the slide's citation paragraph (§3.1 rule 4) | Notes carry no text |
+| A2 | `sourceNotes` origin | Every slide carries full speaker notes with timing brackets (e.g. slide 1: `[0:00–0:30 · 30s] WHAT TO SAY: …`); `sourceNotes` = the slide's citation paragraph (§3.1 rule 4); speaker notes are worker reference for intent and timing, never on-screen copy | Notes are the presenter's script, not deck-visible text (AGENT_HIERARCHY §8) |
 | A3 | Demo copy home | Demo strings live in `lib/demoState.ts` (W3), not `lib/scenes.ts` | `lib/scenes.ts` has one writer (W4) and W3 runs in Phase 1 |
 | A4 | Pinning mechanism | CSS `position: sticky` inside a `scrollLength × 100vh` section; ScrollTrigger only measures progress and never uses `pin` | Server layout equals final layout: no pin-spacer, no reflow after hydration, stable mid-page refresh (requirement H) |
 | A5 | TRD files not created | `ChallengeScene.tsx` (44 renders with `TimelineScene`), `SceneViewport.tsx` (sticky lives in `SceneShell` CSS), `Tooltip.tsx`, `public/icons/`, `public/textures/` | No documented consumer; 44 is timeline data (AGENT_HIERARCHY §4) |
@@ -24,6 +24,21 @@ Additional rulings found while reading the sources:
 | A7 | Light-theme label colour | Add `--orange-ink: #AF4000` | It is the deck's own label colour on light slides; `#F47F46` on `#F4F1EA` is 2.3:1 |
 | A8 | Eyebrow accent on dark | `accent: 'orange'` on 4, 5, 6, 8, 19, 39; other dark scenes use green | Deck eyebrow colours (19 attacker orange, 20 defender green) |
 | A9 | Scene handoffs (design §8) | Built only in the outgoing scene; its hand-off pose is its progress-1 state | Keeps "progress 1 = static markup" true (§11) |
+| A10 | Missing meme rasters | `source/memes.json` ids 4 and 17 have `file: null` plus a `missing` note; `public/memes/` holds 26 PNGs; their `src` is `''` (§7, §10) | Their `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27) |
+| A11 | First progress measurement | The engine stores `self.progress` in `onRefresh` as well as `onUpdate` (§6) | `onUpdate` fires only on change, so a scene whose true progress is 0 would keep the pre-measure 1 |
+| A12 | Who renders `SceneShell` | Only `SceneRenderer`; registry components, including `DemoShell`, render inside `.scene-viewport` and never render `SceneShell` or a `<section>` | A second shell nests `section[data-scene]` and breaks the 46-section count (§5.1, TRD §16) |
+| A13 | `<main>` and chrome placement | `Presentation` renders `<main id="presentation">` holding only the 46 sections; `SideNav`, `SceneControls` and `SourceDrawer` are its siblings; `app/page.tsx` returns `<Presentation />` only; `MotionConfig` wraps them inside `Presentation` | Keeps the nav landmark out of `<main>` and the section list pure; §2 already puts `MotionConfig` in the engine |
+| A14 | CampusBot baseline chip | Chip text = `campusBotCopy.labels.roleplay` (`role-play`); pressing it adds the Student `roleplay` message (§9.1) | v1 "chip labelled `roleplay`" could mean the long prompt, which would then print twice |
+| A15 | Demo subtitle vs caption | `DemoShell` renders `content.subtitle` once; `caption` is `UI_COPY.fictional` on scene 4 only; scenes 6 and 23 have no separate caption (§9) | v1 made the RAG and SOC caption the deck subtitle, printing the same string twice |
+| A16 | Ownership exceptions (Fable ledger rulings) | `lib/memes.ts`, `public/memes/` and `scripts/build-memes.mjs`: W1 Task 6; `lib/scenes.ts` skeleton and empty `components/scenes/index.ts`: W2 Task 7, then W4 sole writer; `scripts/verify-copy.mjs`: W4 Task 19; `package.json` script lines they add are applied by their manager | Records Fable's rulings so §2 no longer contradicts the plan |
+| A17 | `IndexOverlay` (§5.5) | W2 file `components/presentation/IndexOverlay.tsx`: `INDEX` trigger top-left, modal scene index grouped by act, `goToScene` + close | User-approved feature from the reference site |
+| A18 | `PresenterPen` (§5.6) | W2 file `components/presentation/PresenterPen.tsx`: `PEN` / `UNDO` / two-step `CLEAR` toolbar bottom-left + canvas overlay, strokes in state only | User-approved feature from the reference site |
+| A19 | Scene 1 boot sequence (§11) | `TitleScene` (W4) types `UI_COPY.boot` before the four words; motion-only, any input ends it, no SKIP control | User-approved feature from the reference site |
+| A20 | New chrome copy (§5.4) | `index`, `pen`, `undo`, `clear`, `clearConfirm`, `boot` join `UI_COPY` (A6) | User-approved feature from the reference site; boot words are user-approved invented copy |
+| A21 | Escape precedence (§8) | IndexOverlay → SourceDrawer → pen mode → demo escape → nothing; still one engine listener | User-approved feature from the reference site; topmost layer closes first |
+| A22 | PresenterPen placement (§5.6) | Toolbar sits above the current-Act label at the same inline inset (stacked), not beside it | Act 5's label is too long for an inline row at 1280px; stacked placement ruled by Fable in Task 39; Act label gets nowrap/ellipsis (SceneControls). |
+| A23 | Snap inside tall sections (§8) | No snap while `scrollY` is strictly inside any section taller than the viewport (pinned or not); snap targets remain section tops | Whole-branch review I5: snapping pulled the reader back to the top of tall unpinned sections; fixed in lib/sceneNavigation.ts (fix wave, be9c5f1). |
+| A24 | ApprovalGate after a decision (§9.3) | In `approved` and `rejected`, ApprovalGate's Approve and Reject are rendered `disabled` | Whole-branch review dispute accepted by Fable; §9.3 lists no controls after a decision |
 
 ## 2. Repo layout
 ```text
@@ -38,6 +53,8 @@ components/
     SceneProgress.tsx        useSceneProgress(), beatProgress() (§6)
     SideNav.tsx
     SceneControls.tsx
+    IndexOverlay.tsx         scene index dialog (§5.5, A17, Task 38)
+    PresenterPen.tsx         pen toolbar + canvas (§5.6, A18, Task 39)
   scenes/                    W4, except the four W3 files
     index.ts                 registry: SceneComponentName → component (W4 single writer)
     Blocks.tsx               shared Block renderer (§3)
@@ -56,7 +73,7 @@ lib/
   demoState.ts               W3 (§9)
   scenes.ts                  W4: export const scenes: Scene[] (46 entries)
   memes.ts                   W0: generated (§10)
-public/memes/                W0: 28 vendored PNGs
+public/memes/                W0: 26 vendored PNGs (ids 4 and 17 have none, A10)
 source/                      W0: slides.json, memes.json, memes/*.png (pptx-raw/ is gitignored scratch)
 scripts/                     W0: extraction, meme vendoring, copy verification
 docs/                        read-only; this file: Opus only
@@ -65,6 +82,7 @@ docs/                        read-only; this file: Opus only
 - W1 also owns root config: `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `postcss.config.mjs`, `eslint.config.mjs`, `vitest.config.ts`; other workstreams request script or dependency changes through their manager.
 - `lib/scenes.ts` and `components/scenes/index.ts` have one writer at a time (W4 manager serialises; W4 registers W3's demos).
 - Everything under `components/` is a client component and `app/layout.tsx`, `app/page.tsx` stay server components; the registry imports `CampusBotDemo`, `RagDemo`, `SocDemo` with `next/dynamic` (SSR on), all other scenes statically (PRD §15).
+- Tasks 38–39 (`IndexOverlay`, `PresenterPen`) are W2-owned follow-ups dispatched after the W2 merge; Task 40 (boot sequence in `TitleScene`) is W4.
 - W2 needs the manifest skeleton (Appendix A transcribed; content may be empty arrays and empty strings) before it starts.
 - Runtime dependencies: `next`, `react`, `react-dom`, `gsap`, `@gsap/react`, `framer-motion`; dev: `typescript`, `tailwindcss` 4, `@tailwindcss/postcss`, `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/dom`, plus create-next-app's own ESLint and `@types/*` packages.
 - Scripts: `dev`, `build`, `start`, `lint`, `test` (= `vitest run`); `vitest.config.ts`: `environment: 'jsdom'`, `esbuild: { jsx: 'automatic' }`, `resolve.alias: { '@': <repo root> }`, no Vite plugins.
@@ -242,7 +260,7 @@ export const ACTS = [
   <div class="scene-viewport">…scene component…</div>
 </section>
 ```
-- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the direct children of `<main id="presentation">`, in slide order.
+- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the only children of `<main id="presentation">`, in slide order (A13); the IndexOverlay trigger and dialog and the PresenterPen toolbar and canvas are siblings of `<main>`, like SideNav, SceneControls and SourceDrawer.
 - `data-pin="true"`: section `height: calc(var(--scroll-length) * 100vh)` and `.scene-viewport { position: sticky; top: 0; height: 100vh }`; `data-pin="false"`: section `min-height: 100vh`, no sticky.
 - `prefers-reduced-motion: reduce`: every section is `min-height: 100vh; height: auto` and `.scene-viewport` is `position: static` (CSS only).
 - `section[data-scene]:focus { outline: none }`; every control shows a high-contrast `:focus-visible` ring (technical §17).
@@ -275,9 +293,25 @@ export const UI_COPY = {
   relevance: 'Retrieval relevance', authorization: 'Authorization', // technical §11
   soc: { queue: 'Queue', investigating: 'Investigating', correlated: 'Correlated',
          'pending-approval': 'Pending approval', approved: 'Approved', rejected: 'Rejected' }, // TRD §6
+  index: 'INDEX',                                               // IndexOverlay trigger (A17)
+  pen: 'PEN', undo: 'UNDO', clear: 'CLEAR', clearConfirm: 'CLEAR?', // PresenterPen (A18)
+  boot: { heading: 'INITIALIZING KEYNOTE…',                     // scene 1 boot (A19), user-approved
+          lines: ['> loading 46 scenes', '> loading 3 live demos', '> checking guardrails'],
+          status: 'SYSTEM STATUS', ready: 'READY' },
 } as const;
 export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisional, Needs user N1
 ```
+
+### 5.5 IndexOverlay (`components/presentation/IndexOverlay.tsx`, W2, A17)
+- Trigger: mono `<button type="button" aria-expanded="true|false" aria-controls="scene-index">` labelled `UI_COPY.index`, fixed top-left of the viewport (HUD corner); SideNav's rail is unchanged.
+- Dialog: `<div id="scene-index" role="dialog" aria-modal="true" aria-labelledby="scene-index-title">` covering the viewport; scene 1 first, then the 8 ACTS in order, each headed `Act ${n} — ${label}`, with one `<button type="button">` per scene whose accessible name is `Go to scene NN: ${title ?? eyebrow}` (`Go to scene NN` when both are absent).
+- Click → `goToScene(slide)` + close. Focus is trapped; opening focuses the first scene button; closing returns focus to the trigger; closes on Escape, backdrop click or its `UI_COPY.close` button. Framer Motion `AnimatePresence`; no storage.
+
+### 5.6 PresenterPen (`components/presentation/PresenterPen.tsx`, W2, A18)
+- Toolbar fixed bottom-left, stacked above the current-Act label at the same inline inset (A22): three mono `<button type="button">`s: `UI_COPY.pen` (`aria-pressed` = pen mode), `UI_COPY.undo` (removes the last stroke), `UI_COPY.clear`.
+- CLEAR is two-step and state-driven: the first click sets `confirming` and relabels to `UI_COPY.clearConfirm`; a second click within 4000 ms clears all strokes; 4000 ms without one reverts to `UI_COPY.clear` (timer set in an effect keyed on `confirming` and cleared on cleanup, so no race).
+- `<canvas aria-hidden="true">` covers the viewport with `pointer-events: none` unless pen mode is on; pointer events draw strokes in `--orange`, 3px, round caps and joins; strokes live in component state as point arrays, are redrawn on resize, and are all cleared when the current scene changes.
+- The canvas never takes focus or keys, so keyboard navigation works in pen mode; no storage, no network; reduced motion changes nothing (drawing is user-driven).
 
 ## 6. Progress API
 ```ts
@@ -285,7 +319,7 @@ export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisio
 export function useSceneProgress(): number; // enclosing scene's progress, clamped 0..1
 export function beatProgress(p: number, beat: SceneBeat): number; // clamp((p - beat.start) / (beat.end - beat.start), 0, 1)
 ```
-- Only the engine writes progress: one ScrollTrigger per scene, `trigger` = its section, `start: 'top bottom'`, `end: pin ? 'bottom bottom' : 'top top'`, no `pin`, no attached animation; `onUpdate` stores `self.progress`.
+- Only the engine writes progress: one ScrollTrigger per scene, `trigger` = its section, `start: 'top bottom'`, `end: pin ? 'bottom bottom' : 'top top'`, no `pin`, no attached animation; `onRefresh` and `onUpdate` store `self.progress` (A11).
 - Equivalently `progress = clamp((scrollY − (sectionTop − innerHeight)) / (pin ? sectionHeight : innerHeight), 0, 1)` (technical §7).
 - Arrival pose (section top at viewport top, where `goToScene` lands) is `progress = 1 / scrollLength`: 1 for unpinned scenes; pinned scenes scrub from `1 / scrollLength` to 1 while sticky; eyebrow and title are complete by `1 / scrollLength` and pinned beats live in `[1 / scrollLength, 1]`.
 - `useSceneProgress()` returns 1 during SSR, until the engine's first measurement, and always under `prefers-reduced-motion: reduce`; subscription is per scene, so a progress change re-renders only that scene.
@@ -300,11 +334,11 @@ Array<{ slide: number; title: string | null; texts: string[]; notes: string[]; l
 
 // source/memes.json
 Array<{ id: number; slug: string; title: string; template: string; captionLines: string[];
-        sourceUrl: string; file: string; suggestedScenes: number[] }>
-// file looks like 'source/memes/01-prompt-injection.png'
+        sourceUrl: string; file: string | null; missing?: string; suggestedScenes: number[] }>
+// file looks like 'source/memes/01-prompt-injection.png'; null for ids 4 and 17 (A10)
 ```
 - Copy precedence (AGENT_HIERARCHY §8): PDF visible wording > PPTX text > content-map; the content-map "Core content" column is a summary and is never used as copy.
-- Observed in the PPTX: every slide's notes contain only its slide number, and no slide has a hyperlink, so `links` is `[]` for all 46; `slides.json` `title` is advisory and the manifest follows §3.1.
+- Observed in the PPTX: every slide carries full speaker notes with timing brackets (e.g. slide 1: `[0:00–0:30 · 30s] WHAT TO SAY: …`), which are worker reference for intent and timing and never on-screen copy (A2); no slide has a hyperlink, so `links` is `[]` for all 46; `slides.json` `title` is advisory and the manifest follows §3.1.
 - Verification (W0 script): every string value in `lib/scenes.ts` except identifier fields (`id`, `act`, `theme`, `accent`, `kind`, `component`, `type`) occurs verbatim inside a `texts` entry of the same slide.
 - Line-break artifacts are fixed against the PDF by Sonnet workers and logged one line each in the deviations ledger.
 
@@ -325,7 +359,7 @@ export function useDemoEscape(slide: number, onEscape: (() => void) | null): voi
 
 - Idle current scene = the last section whose top ≤ `scrollY + innerHeight / 2`.
 - SideNav links and SceneControls `Previous` / `Next` call `goToScene`; `Previous` is disabled on 1 and `Next` on 46.
-- Snap targets are section tops only; no snap while `scrollY` is strictly inside a pinned scene's sticky range; snapping waits for input to stop, yields to any new input, and is off under reduced motion.
+- Snap targets are section tops only; no snap while `scrollY` is strictly inside any section taller than the viewport, pinned or not (A23); snapping waits for input to stop, yields to any new input, and is off under reduced motion.
 - FinalScene: `UI_COPY.challengeCta` button → `goToScene(44)` + `track('cta_click', { target: 'scene-44' })`; LinkedIn is `<a href={LINKEDIN_HREF} target="_blank" rel="noopener noreferrer">` labelled `content.linkedin` + `track('cta_click', { target: 'linkedin' })`.
 
 | Key (technical §9) | Action |
@@ -333,7 +367,7 @@ export function useDemoEscape(slide: number, onEscape: (() => void) | null): voi
 | `ArrowDown`, `PageDown`, `Space` | Current scene pinned and progress < 1: scroll +1 viewport, clamped to its sticky range end; else `goToScene(current + 1)` |
 | `ArrowUp`, `PageUp`, `Shift+Space` | Current scene pinned and scrolled past its top: scroll −1 viewport, clamped to its top; else `goToScene(current − 1)` |
 | `Home` / `End` | `goToScene(1)` / `goToScene(46)` |
-| `Escape` | SourceDrawer open → close it; else the current scene's registered demo escape → call it; else nothing |
+| `Escape` | IndexOverlay open → close it; else SourceDrawer open → close it; else pen mode on → turn it off; else the current scene's registered demo escape → call it; else nothing (A21) |
 - One `keydown` listener on `window`, owned by the engine; a handled key calls `preventDefault()`.
 - Navigation keys never fire when `event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="slider"], [role="spinbutton"], [role="listbox"], [role="radiogroup"], [role="tablist"], [role="menu"], [role="grid"]')` matches, or when `altKey`, `ctrlKey` or `metaKey` is set.
 - `Space` also never fires on `button, summary, [role="button"], [role="checkbox"], [role="switch"]`; `Escape` is exempt from both filters because no control used here has a native Escape action.
@@ -378,7 +412,7 @@ export const campusBotCopy = { // slide 4
 
 | State | Workspace (cumulative) | Controls | Tone | Detail |
 |---|---|---|---|---|
-| baseline | SYSTEM card (muted mono: `systemLabel` + `system`); Student `question`; CampusBot `refusal` | chip labelled `roleplay` → ROLEPLAY | neutral | `refusal` |
+| baseline | SYSTEM card (muted mono: `systemLabel` + `system`); Student `question`; CampusBot `refusal` | chip labelled `labels.roleplay` → ROLEPLAY (A14) | neutral | `refusal` |
 | roleplay | + Student `roleplay` | `No guardrail` → GUARDRAIL_OFF, `Guardrail on` → GUARDRAIL_ON, both `aria-pressed="false"` | neutral | `roleplay` |
 | guardrail-off | + CampusBot `leak` (orange emphasis + warning icon) | same pair; `No guardrail` pressed | alert | `leak` |
 | guardrail-on | + `blocked` status (green + shield icon) | same pair; `Guardrail on` pressed | safe | `blocked` |
@@ -423,7 +457,7 @@ export const ragRanking: Record<RagState, string[]> = { // relevance order (retr
 | before | 3 approved docs in `ragRanking.before` order | `answers.before` | `After the plant` → PLANT | neutral | `answers.before` |
 | poisoned | + `policy_update_oct.docx` at rank 1 with `hidden` shown | `answers.poisoned`; `link` as plain text + untrusted marker | `Fixed` → FIX | alert | `answers.poisoned` |
 | fixed | `policy_update_oct.docx` keeps rank 1 but shows excluded (strike + `unapproved` badge) | `answers.fixed` | none | safe | `answers.fixed` |
-- Label = `ragCopy.labels[state]`; caption = the deck subtitle.
+- Label = `ragCopy.labels[state]`; no caption beyond the deck subtitle (A15).
 - Each index row shows two separate indicators: rank under `UI_COPY.relevance` and trust badge (`approved` / `unapproved`, text + icon) under `UI_COPY.authorization`.
 - The three labels form a stepper of buttons in deck order; the current one has `aria-current="step"`; only the next one is enabled.
 - `link` is never an `<a>` and is never fetched.
@@ -473,9 +507,9 @@ export const SOC_PROPOSE_DELAY_MS = 1200; // 0 under reduced motion
 | investigating | row i highlighted and split into time, source, detail (parsed from its string) | other rows → INSPECT(j); Escape → CLOSE; `copilot` → CORRELATE | neutral | `linkedEvents[i]` |
 | correlated | noise collapses into `unrelated`; the 4 events join in order as one chain; summary panel: `copilot`, `summary`, `evidence`, `suggested` | none; the component dispatches PROPOSE after `SOC_PROPOSE_DELAY_MS` | neutral | `evidence` |
 | pending-approval | + ApprovalGate click mode: heading `gate`, proposal `suggested`, buttons `approve` / `reject` | APPROVE, REJECT | alert | `gate` |
-| approved | gate outcome `UI_COPY.soc.approved` (green + check); `suggested` marked committed | – | safe | – |
-| rejected | gate outcome `UI_COPY.soc.rejected` (`--muted`, never green); `suggested` struck through | – | neutral | – |
-- Label = `UI_COPY.soc[state]`; caption = the deck subtitle (`Synthetic logs · aarav-startup.example`).
+| approved | gate outcome `UI_COPY.soc.approved` (green + check); `suggested` marked committed; Approve and Reject rendered `disabled` (A24) | – | safe | – |
+| rejected | gate outcome `UI_COPY.soc.rejected` (`--muted`, never green); `suggested` struck through; Approve and Reject rendered `disabled` (A24) | – | neutral | – |
+- Label = `UI_COPY.soc[state]`; no caption beyond the deck subtitle (`Synthetic logs · aarav-startup.example`, A15).
 - Never render 10,412 or 10,408 DOM rows; counts appear only as the deck strings.
 - MTTD/MTTR improvement is shown only by the collapse and the chain; no invented timings or metrics.
 
@@ -486,7 +520,7 @@ export type MemeAsset = {
   slug: string;              // 'prompt-injection'
   title: string;             // 'Prompt injection' (HTML heading after 'NN — ')
   template: string;          // Memegen template id, e.g. 'drake'
-  src: string;               // '/memes/' + basename(file), served from public/memes/
+  src: string;               // '/memes/' + basename(file), served from public/memes/; '' when file is null (A10)
   alt: string;               // `${title}: ${caption.join(' / ')}`
   caption: string[];         // = captionLines, verbatim
   sourceUrl: string;         // original https://api.memegen.link/… URL; metadata only
@@ -496,17 +530,19 @@ export const memes: MemeAsset[]; // 28 entries sorted by id
 ```
 - Runtime code never requests `sourceUrl`; the only meme URL rendered is `src`, via native `<img src alt loading="lazy" decoding="async">` inside a fixed-aspect box.
 - MemeScene passes `memes.find((m) => m.id === scene.content.memeId)` (possibly `undefined`) to MemeInterstitial.
-- Fallback (MASTER_PROMPT §24, technical §15): on `onError`, or when the meme is `undefined`, the same box renders a styled block with `title` as a mono label and each `caption` line as text; the scene's eyebrow and lines stay visible either way.
+- `src` is `''` for ids 4 and 17: their `source/memes.json` entry has `file: null` because the `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27). When `src === ''`, `MemeInterstitial` renders the fallback immediately and issues no request (no `<img>`).
+- Fallback (MASTER_PROMPT §24, technical §15): on `onError`, when `src === ''`, or when the meme is `undefined`, the same box renders a styled block with `title` as a mono label and each `caption` line as text; the scene's eyebrow and lines stay visible either way.
 
 ## 11. Motion contract
 - GSAP (`gsap` + `useGSAP`) owns scroll-scrubbed scene timelines, SVG path draws, counters and scene 1's one-shot intro; only the engine imports `ScrollTrigger` and calls `gsap.registerPlugin`.
-- Framer Motion owns SourceDrawer, SideNav / SceneControls micro-motion, hover and focus, and every transition in the demos (4, 6, 23) and interactions (38, 43); these never use GSAP.
+- Framer Motion owns SourceDrawer, IndexOverlay and PresenterPen toolbar transitions, SideNav / SceneControls micro-motion, hover and focus, and every transition in the demos (4, 6, 23) and interactions (38, 43); these never use GSAP.
 - No element's `transform` or `opacity` is driven by both libraries (technical §6); nest a wrapper when both are needed.
 - Markup is visible by default: no server HTML or base CSS hides meaningful content (`opacity: 0`, `visibility: hidden`, off-screen transform); from-states are applied only inside `useGSAP`, after mount; if GSAP setup throws, the scene keeps its static markup and navigation keeps working (technical §15).
 - Scene timelines exist only inside `gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', …)`; under `reduce` there is no timeline and the markup stands (requirement H).
 - A timeline's progress-1 state equals the static markup (`from` / `fromTo` tweens ending at natural layout); a hand-off pose (A9) is part of that markup and keeps all content readable.
 - `<MotionConfig reducedMotion="user">` wraps the app; anything present at first render uses `initial={false}`; `AnimatePresence` is only for elements mounted by user action.
 - Scene 1 exception: its four words may start at `opacity: 0` only under `prefers-reduced-motion: no-preference`, with a CSS keyframe failsafe that shows them after 3s if the GSAP intro never runs; the intro never blocks scroll or input.
+- Scene 1 boot (A19) is part of that GSAP one-shot intro: a mono block types `UI_COPY.boot.heading`, then each of `lines` ~350 ms apart, then `status` + `ready`, then fades and the word intro runs; `BUILD.` appears ≤ 2.5 s after start. Once per page load, only under `no-preference`; under `reduce` the block is not rendered and the title is static. Any scroll, key or pointer input kills it at once and shows the resting title; no SKIP control. The block is `aria-hidden` and never the `<h1>`.
 - Animate `transform` and `opacity` only; no `box-shadow` or filter animation per scroll tick; no `repeat: -1`; no free-running `requestAnimationFrame`; scene 43's `setInterval(1000)` runs only while its countdown runs (requirement K).
 - Render is deterministic: no `Date`, `Math.random`, `toLocaleString`, `window` or `matchMedia` reads during render (requirement K, no hydration mismatch).
 - Grammar per kind (MASTER_PROMPT §10): `editorial`, `title`, `network`, `cta`: metadata → title → supporting; `diagram`, `timeline`, `challenge`: causality in sequence; `data`: label → number (small emphasis) → context; `meme`: hard cut, minimal UI, short punchy motion; `demo`: only meaningful state changes.
@@ -584,6 +620,6 @@ export function track(event: AnalyticsEvent, payload: Record<string, string | nu
 ## 14. Needs user
 | # | Item | Facts (not decided here) |
 |---|---|---|
-| N1 | Scene 46 LinkedIn destination | The deck shows `linkedin.com/in/atharvtiwari` as visible text only (slide 46, paragraph [7]); the PPTX has no hyperlink (no `hlinkClick`, no hyperlink relationship) and the PDF has no `/URI` annotation. `LINKEDIN_HREF` is `https://` + that text provisionally, logged as a deviation until the user confirms or replaces it. |
-| N2 | "Previous project's system" (README; MASTER_PROMPT §2, §25.1–2) | Not in this folder, which holds only `docs/`, the PPTX, the PDF and the meme HTML. These contracts derive from `docs/` alone; the user supplies it or waives it. |
+| N1 | Scene 46 LinkedIn destination | The deck shows `linkedin.com/in/atharvtiwari` as visible text only (slide 46, paragraph [7]); the PPTX has no hyperlink (no `hlinkClick`, no hyperlink relationship) and the PDF has no `/URI` annotation. `LINKEDIN_HREF` is `https://` + that text provisionally, logged as a deviation until the user confirms or replaces it. The user has said they will supply the final LinkedIn URL later; until then `LINKEDIN_HREF` stays provisional. |
+| N2 | "Previous project's system" (README; MASTER_PROMPT §2, §25.1–2) | Not in this folder, which holds only `docs/`, the PPTX, the PDF and the meme HTML. These contracts derive from `docs/` alone. **WAIVED** by user direction (2026-09-27): exploration and build are scoped to this folder only. |
 - No other AGENT_HIERARCHY §12 item arose: no scene is removed, merged or reordered, and no web font is added.

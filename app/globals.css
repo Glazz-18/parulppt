@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+:root {
+  --bg-dark: #0F1217;
+  --bg-light: #F4F1EA;
+  --orange: #F47F46;
+  --green: #12C281;
+  --text-light: #F4F1EA;
+  --text-dark: #15171B;
+  --muted-dark: #A7ADB5;
+  --muted-light: #77736B;
+  --border-dark: #2B3038;
+  --border-light: #D9D4C8;
+  --orange-ink: #AF4000;
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+  --rail-w: 56px;
+}
+
+[data-theme="dark"] {
+  --bg: var(--bg-dark);
+  --fg: var(--text-light);
+  --muted: var(--muted-dark);
+  --rule: var(--border-dark);
+  --label: var(--green);
+}
+
+[data-theme="dark"][data-accent="orange"] {
+  --label: var(--orange);
+}
+
+[data-theme="light"] {
+  --bg: var(--bg-light);
+  --fg: var(--text-dark);
+  --muted: var(--muted-light);
+  --rule: var(--border-light);
+  --label: var(--orange-ink);
+}
+
+[data-theme="orange"] {
+  --bg: var(--orange);
+  --fg: var(--text-dark);
+  --muted: var(--text-dark);
+  --rule: var(--text-dark);
+  --label: var(--text-dark);
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-light);
+  font-family: var(--font-sans);
+}
+
+[data-pin="true"] {
+  height: calc(var(--scroll-length) * 100vh);
+}
+
+[data-pin="true"] .scene-viewport {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+[data-pin="false"] {
+  min-height: 100vh;
+}
+
+[data-pin="false"] .scene-viewport {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  section[data-scene] {
+    min-height: 100vh;
+    height: auto;
+  }
+
+  /* I1: must be at least as specific as [data-pin="true"] .scene-viewport (0,2,0), which this
+     beats at (0,2,1), so a pinned viewport never stays sticky at 100vh under reduced motion. */
+  section[data-scene] .scene-viewport {
+    position: static;
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
+section[data-scene]:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+[data-theme="light"] :focus-visible {
+  outline-color: var(--orange-ink);
+}
+
+[data-theme="orange"] :focus-visible {
+  outline-color: var(--text-dark);
+}
+
+/* I2: shared demo control style (design §11 "one or two obvious actions"). State is never colour
+   alone: pressed/current also gain weight + a filled background, disabled also gains a dashed
+   border, on top of the colour change. */
+.demo-btn {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1vw, 14px);
+  letter-spacing: 0.02em;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--fg);
+  padding: 0.6em 1.1em;
+  cursor: pointer;
+}
+
+.demo-btn[aria-pressed='true'],
+.demo-btn[aria-current='step'] {
+  border-width: 2px;
+  font-weight: 700;
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.demo-btn:disabled {
+  opacity: 0.45;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* RagDemo's current step is both aria-current="step" and disabled (it's the active step, not a
+   future one) — without this, :disabled's dashed/faded look (same specificity, later in source)
+   wins over the current-step highlight, making the active step read as the faintest control.
+   (0,3,0) beats both (0,2,0) rules above regardless of source order, so the current step always
+   stays fully filled/solid; only its cursor and opacity differ from a live current-step button. */
+.demo-btn[aria-current='step']:disabled {
+  opacity: 1;
+  border-style: solid;
+  cursor: default;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

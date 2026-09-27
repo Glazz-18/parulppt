@@ -42,15 +42,15 @@
 **Model:** Sonnet
 **Files:**
 - Create (via create-next-app): `package.json`, `tsconfig.json`, `next.config.ts`, `postcss.config.mjs`, `eslint.config.mjs`, `app/layout.tsx`, `app/page.tsx`, `app/globals.css`
-- Create: `vitest.config.ts`, `vitest.setup.ts`, `lib/analytics.ts`, `lib/analytics.test.ts`
+- Create: `vitest.config.ts`, `lib/analytics.ts`, `lib/analytics.test.ts`
 - Modify: `.gitignore` (keep existing entries; merge create-next-app's)
 
 **Interfaces:**
 - Produces: `npm run dev|build|start|lint|test`; `track(event, payload)` per CONTRACTS §12; `@/` alias to repo root.
 
 - [ ] **Step 1:** Run `npx create-next-app@latest . --ts --tailwind --app --eslint --no-src-dir --import-alias "@/*" --use-npm --yes` in the worktree root (it must be otherwise empty of app files; `docs/`, `source/`, `scripts/` may exist). If the CLI refuses a non-empty dir, scaffold into `.scaffold/` and move the generated files up, then delete `.scaffold/`.
-- [ ] **Step 2:** `npm i gsap @gsap/react framer-motion` and `npm i -D vitest jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom`. Confirm `next` is 16.x, `tailwindcss` 4.x.
-- [ ] **Step 3:** Write `vitest.config.ts`: `environment: 'jsdom'`, `esbuild: { jsx: 'automatic' }`, `resolve.alias: { '@': __dirname }`, `setupFiles: ['./vitest.setup.ts']` (imports `@testing-library/jest-dom/vitest`), `include: ['**/*.test.{ts,tsx}']`, `exclude: ['node_modules', '.next']`. Add `"test": "vitest run"` to scripts.
+- [ ] **Step 2:** `npm i gsap @gsap/react framer-motion` and `npm i -D vitest jsdom @testing-library/react @testing-library/dom`. Confirm `next` is 16.x, `tailwindcss` 4.x. No other packages (CONTRACTS §2 list is exhaustive; tests use plain DOM assertions, no jest-dom).
+- [ ] **Step 3:** Write `vitest.config.ts`: `environment: 'jsdom'`, `esbuild: { jsx: 'automatic' }`, `resolve.alias: { '@': __dirname }`, `include: ['**/*.test.{ts,tsx}']`, `exclude: ['node_modules', '.next']`, no Vite plugins. Add `"test": "vitest run"` to scripts.
 - [ ] **Step 4:** Write the failing test `lib/analytics.test.ts`: `track('scene_enter', { slide: 1 })` returns `undefined`, does not throw, and `track` accepts every `AnalyticsEvent` literal (type-level via a `satisfies AnalyticsEvent[]` array of the five names). Run `npm test`; expected FAIL (module missing).
 - [ ] **Step 5:** Implement `lib/analytics.ts` exactly as CONTRACTS §12 (type + no-op). Run `npm test`; expected PASS.
 - [ ] **Step 6:** Replace the generated `app/page.tsx` body with `<main id="presentation" />` and strip create-next-app demo markup/assets (`public/*.svg`). `npm run lint && npm run build` exit 0.
@@ -61,7 +61,7 @@
 **Model:** Haiku (transcription from CONTRACTS §3, §4, §5.3, §5.4, TRD §10)
 **Files:**
 - Create: `lib/types.ts`, `lib/constants.ts`, `lib/constants.test.ts`
-- Modify: `app/globals.css`
+- Modify: `app/globals.css`, `app/layout.tsx` (metadata: title, description, Open Graph, speaker attribution per TRD §13; `<html lang="en">`; body only — no MotionConfig here, see A13)
 
 **Interfaces:**
 - Produces: every type in CONTRACTS §3 verbatim (`Scene`, `Block`, `Step`, `Mark`, `Metric`, `SceneBeat`, `SceneProps`, `SceneComponentName`, …); `ACTS`, `KIND_COMPONENT`, `UI_COPY`, `LINKEDIN_HREF`; CSS custom properties `--bg-dark … --border-light`, `--orange-ink`, `--font-sans`, `--font-mono`, `--rail-w`; theme vars `--bg --fg --muted --rule --label` keyed on `[data-theme]` and `[data-accent="orange"]` per §5.3; `[data-pin]` and `.scene-viewport` rules and the reduced-motion override per §5.1.
@@ -102,11 +102,12 @@
 ### Task 5: MemeInterstitial and ApprovalGate
 
 **Model:** Sonnet
+**Order:** run **after Task 6** (imports `MemeAsset` from `lib/memes.ts`; the type lives only there).
 **Files:**
 - Create: `components/ui/MemeInterstitial.tsx` (+ `.test.tsx`), `components/ui/ApprovalGate.tsx` (+ `.test.tsx`)
 
 **Interfaces:**
-- Consumes: `MemeAsset` type (import from `lib/memes.ts` once Task 6 lands; until then declare the type in `lib/types.ts` re-exported by `lib/memes.ts` — Task 6 must keep the name `MemeAsset`), `ApprovalGateProps` (§3.2), `UI_COPY.soc`.
+- Consumes: `MemeAsset` type from `lib/memes.ts` (Task 6), `ApprovalGateProps` (§3.2), `UI_COPY.soc`.
 - Produces: `MemeInterstitial({ meme, eyebrow, lines })`: fixed-aspect box; when `meme?.src` is a non-empty string render `<img src alt loading="lazy" decoding="async">` and on `onError` swap to the fallback; when `meme` is `undefined` or `src === ''` render the fallback immediately (mono `title` label + each `caption` line) with **no `<img>`**; `eyebrow` and `lines` always rendered. `ApprovalGate` click mode: heading, proposal, two buttons, outcome text `UI_COPY.soc.approved|rejected` with icon; scroll mode: heading + a `data-lit` attribute true when `progress >= 1`.
 
 - [ ] **Step 1:** Failing tests covering: image render with alt; `onError` → fallback and no `<img>`; `undefined` meme → fallback, no `<img>`; `src: ''` → fallback, no `<img>` (Review Focus 4); click-mode buttons call handlers; outcome text for approved/rejected; scroll mode `data-lit`.
@@ -125,7 +126,7 @@
 
 - [ ] **Step 1:** Failing test `lib/memes.test.ts`: 28 entries sorted by id; every `src` is `''` or starts with `/memes/` and the file exists under `public/memes/`; ids 4 and 17 have `src === ''`; `alt === \`${title}: ${caption.join(' / ')}\``; `suggestedScenes` non-empty.
 - [ ] **Step 2:** Write `scripts/build-memes.mjs` (plain Node): copy each non-null `file` to `public/memes/<basename>`, emit `lib/memes.ts` with a header comment `// generated by scripts/build-memes.mjs — do not edit`. Add `"build:memes": "node scripts/build-memes.mjs"` to package.json scripts. Run it; run test; PASS.
-- [ ] **Step 3:** `grep -r "api.memegen.link" lib components app` returns only `sourceUrl` values inside `lib/memes.ts`. Lint. Commit `feat(w1): vendored meme assets and lib/memes.ts`.
+- [ ] **Step 3:** Add to `lib/memes.test.ts`: scanning every `.ts`/`.tsx` file under `lib/`, `components/`, `app/` (Node `fs`), the string `api.memegen.link` occurs only in `lib/memes.ts` inside `sourceUrl` values. Lint. Commit `feat(w1): vendored meme assets and lib/memes.ts`.
 
 ---
 
@@ -141,7 +142,7 @@
 - Consumes: CONTRACTS Appendix A (all 46 rows), `Scene` union.
 - Produces: `export const scenes: Scene[]` with 46 entries in slide order; per row `id`, `slide`, `act`, `theme`, `accent` (4, 5, 6, 8, 19, 39), `pin`, `scrollLength`, `kind`, `component` (only rows marked `*`), `content` as the kind's empty shape (`{ blocks: [] }`, `{ words: [], speaker: '', role: '' }`, `{ subtitle: '' }`, `{ memeId: N, lines: [] }`, `{ lead: '', timer: '', seconds: 0, prompts: [] }`, `{ lines: [], closing: '', speaker: '', role: '', linkedin: '' }`), `eyebrow: ''`, `title: ''`. `components/scenes/index.ts`: `export const registry: Partial<Record<SceneComponentName, ComponentType<SceneProps>>> = {}`. After this task **W4 is the only writer** of both files.
 
-- [ ] **Step 1:** Failing test `lib/scenes.test.ts`: encode Appendix A as a 46-row array of `[slide, kind, theme, component|null, memeId|null, pin, scrollLength, act]` and assert every manifest entry matches; `id === 'scene-' + slide.padStart(2,'0')`; `accent === 'orange'` exactly on {4,5,6,8,19,39}; `scrollLength === 1` iff `pin === false`.
+- [ ] **Step 1:** Failing test `lib/scenes.test.ts`: encode Appendix A as a 46-row array of `[slide, kind, theme, component|null, memeId|null, pin, scrollLength, act]` and assert every manifest entry matches; `id === 'scene-' + String(slide).padStart(2,'0')`; `lib/scenes.ts` uses `import type` only (no runtime imports), so Node's type stripping can load it (Task 19); `accent === 'orange'` exactly on {4,5,6,8,19,39}; `scrollLength === 1` iff `pin === false`.
 - [ ] **Step 2:** Transcribe the manifest and the empty registry. Test PASS; lint; `tsc` clean.
 - [ ] **Step 3:** Commit `feat(w2): manifest skeleton from Appendix A; empty scene registry`.
 
@@ -150,7 +151,7 @@
 **Model:** Sonnet
 **Files:**
 - Create: `components/presentation/SceneRenderer.tsx` (+ `.test.tsx`), `components/presentation/Presentation.tsx`
-- Modify: `app/page.tsx` (render `<Presentation />` inside `<main id="presentation">`), `app/layout.tsx` (metadata: title, description, Open Graph, speaker attribution per TRD §13; `<html lang="en">`; `<MotionConfig reducedMotion="user">` in a small client wrapper)
+- Modify: `app/page.tsx` (returns only `<Presentation />`; `Presentation` renders `<MotionConfig reducedMotion="user">`, then `<main id="presentation">` holding only the 46 sections, with nav, controls and drawer as siblings of `<main>` per CONTRACTS A13)
 
 **Interfaces:**
 - Consumes: `scenes`, `registry`, `KIND_COMPONENT`, `SceneShell`, `UI_COPY.source`.
@@ -165,23 +166,23 @@
 **Model:** Opus (architect builds this)
 **Files:**
 - Create: `components/presentation/SceneProgress.tsx` (+ `.test.tsx`)
-- Modify: `components/presentation/Presentation.tsx` (register ScrollTrigger, create one trigger per section per CONTRACTS §6, provide progress context)
+- Modify: `components/presentation/Presentation.tsx` (register ScrollTrigger, create one trigger per section per CONTRACTS §6, store progress in `onUpdate` **and** `onRefresh` per A11), `components/presentation/SceneRenderer.tsx` (wrap each scene in the per-scene progress provider)
 
 **Interfaces:**
 - Produces: `useSceneProgress(): number`, `beatProgress(p, beat): number` exactly per CONTRACTS §6; per-scene subscription (a change re-renders only that scene); returns 1 during SSR, before first measurement, and under reduced motion; `track('scene_complete', { slide })` when progress reaches 1 from below; all triggers created inside `gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', …)` and killed on unmount (`gsap.context` / `useGSAP` cleanup).
 
-- [ ] **Step 1:** Failing tests: `beatProgress` math (below start → 0, above end → 1, midpoint → 0.5); with `matchMedia` mocked to `reduce`, mounting `Presentation` creates zero ScrollTriggers (spy `ScrollTrigger.create`) and `useSceneProgress()` returns 1; with `no-preference`, exactly 46 triggers are created with `start: 'top bottom'` and `end` per pin; unmount kills all 46; the initial value after the first `onRefresh/onUpdate` equals the trigger's `progress` (Review Focus 1).
+- [ ] **Step 1:** Failing tests: `beatProgress` math (below start → 0, above end → 1, midpoint → 0.5); with `matchMedia` mocked to `reduce`, mounting `Presentation` creates zero ScrollTriggers (spy `ScrollTrigger.create`) and `useSceneProgress()` returns 1; with `no-preference`, exactly 46 triggers are created with `start: 'top bottom'` and `end` per pin; unmount kills all 46 and a remount creates exactly 46 again (no duplicates); the initial value after the first `onRefresh/onUpdate` equals the trigger's `progress` (Review Focus 1).
 - [ ] **Step 2:** Implement with a `Map<slide, Set<listener>>` store and `useSyncExternalStore` per scene. Tests PASS; lint; build.
 - [ ] **Step 3:** Commit `feat(w2): scene progress engine (ScrollTrigger measurement only)`.
 
 ### Task 10: Navigation core and keyboard map
 
-**Model:** Sonnet
+**Model:** Opus (org chart gives `goToScene` to the architect)
 **Files:**
 - Create: `lib/sceneNavigation.ts`, `lib/sceneNavigation.test.ts`
 
 **Interfaces:**
-- Produces: `goToScene(slide)` (rules 1–5 in CONTRACTS §8), `useCurrentScene()`, a store `setCurrentScene(slide)` / `subscribeCurrentScene(fn)`, `computeIdleScene(sectionTops: number[], scrollY, innerHeight): number`, `keyToAction(event: KeyboardEvent, ctx: { current: number; pinned: boolean; progress: number; drawerOpen: boolean; demoEscape: boolean }): NavAction | null` implementing the §8 key table and both filter lists (`closest(...)` selector string exported as `KEY_IGNORE_SELECTOR`, plus `SPACE_IGNORE_SELECTOR`), and `isNavigationInFlight()`.
+- Produces: `goToScene(slide)` (rules 1–5 in CONTRACTS §8), `useCurrentScene()`, a store `setCurrentScene(slide)` / `subscribeCurrentScene(fn)`, `computeIdleScene(sectionTops: number[], scrollY, innerHeight): number`, `keyToAction(event: KeyboardEvent, ctx: { current: number; pinned: boolean; scrollLength: number; progress: number; drawerOpen: boolean; demoEscape: boolean }): NavAction | null` implementing the §8 key table and both filter lists (`closest(...)` selector string exported as `KEY_IGNORE_SELECTOR`, plus `SPACE_IGNORE_SELECTOR`), and `isNavigationInFlight()`.
 
 - [ ] **Step 1:** Failing tests: `goToScene(0)`, `goToScene(47)`, `goToScene(2.5)` do nothing; `goToScene(3)` calls `window.scrollTo` with the section's top and `behavior: 'smooth'` (or `'auto'` when reduced motion), sets current to 3 immediately, focuses the section with `preventScroll: true`; a second call replaces the first target (no queue); calling for the in-flight target is a no-op; `computeIdleScene` picks the last top ≤ `scrollY + innerHeight/2`; `keyToAction` returns `null` for every entry of the ignore lists (build a table: `input`, `textarea`, `[contenteditable]`, `[role="slider"]`, `button` with Space, `altKey`) and the right action for each row of the key table (Review Focus 3).
 - [ ] **Step 2:** Implement (pure functions + a tiny external store; no React in the pure parts). Tests PASS; lint.
@@ -191,12 +192,11 @@
 
 **Model:** Opus
 **Files:**
-- Modify: `components/presentation/Presentation.tsx`
-- Create: `components/presentation/snapping.ts` (+ `.test.ts`)
+- Modify: `components/presentation/Presentation.tsx`, `lib/sceneNavigation.ts` (+ its test; snapping lives here, no new file)
 
 **Interfaces:**
 - Consumes: Task 9 progress store, Task 10 navigation API.
-- Produces: one `window` `keydown` listener dispatching `keyToAction` results (`preventDefault` on handled keys); scroll listener updating current scene via `computeIdleScene` when no navigation is in flight; `track('scene_enter')` on change; snapping per §8: `nearestSnapTarget(scrollY, sections: {top, pinned, height}[], innerHeight): number | null` returns `null` inside a pinned scene's sticky range, otherwise the nearest section top; snap fires after `SNAP_IDLE_MS = 160` of no wheel/touch/key input, is cancelled by any input, uses smooth scroll, and is disabled under reduced motion.
+- Produces: the **single** `window` `keydown` listener for the whole app, dispatching `keyToAction` results (`preventDefault` on handled keys) — Task 13's Escape handling plugs into this listener, it adds none of its own; all listeners removed on unmount (test it); scroll listener updating current scene via `computeIdleScene` when no navigation is in flight; `track('scene_enter')` on change; snapping per §8: `nearestSnapTarget(scrollY, sections: {top, pinned, height}[], innerHeight): number | null` returns `null` inside a pinned scene's sticky range, otherwise the nearest section top; snap fires after `SNAP_IDLE_MS = 160` of no wheel/touch/key input, is cancelled by any input, uses smooth scroll, and is disabled under reduced motion.
 
 - [ ] **Step 1:** Failing tests for `nearestSnapTarget` (null inside pinned range; nearest top otherwise; exact boundary) and for the idle timer with fake timers (new input cancels; `goToScene` in flight suppresses snap; reduced motion → never snaps) (Review Focus 2).
 - [ ] **Step 2:** Implement and wire. Tests PASS; lint; build.
@@ -211,7 +211,7 @@
 
 **Interfaces:**
 - Consumes: `ACTS`, `scenes`, `useCurrentScene`, `goToScene`, `UI_COPY`.
-- Produces: `<nav aria-label="Scenes">` with scene 1 above Act 1, act headings `Act ${n} — ${label}`, one `<a href="#scene-NN">` per scene with `aria-current="step"` only on the current one; collapsed width `var(--rail-w)`, expands on hover/focus-within (Framer Motion, `initial={false}`); progress indicator (current/46) ; `SceneControls`: `Previous`/`Next` buttons (disabled at 1 / 46), scene number; clicks call `goToScene` and `preventDefault` on the anchors.
+- Produces: `<nav aria-label="Scenes">` with scene 1 above Act 1, act headings `Act ${n} — ${label}` (the current act's heading carries `data-current="true"`), one `<a href="#scene-NN">` per scene with `aria-current="step"` only on the current one; collapsed width `var(--rail-w)`, expands on hover/focus-within (Framer Motion, `initial={false}`); progress indicator (current/46); below 1024px wide the rail collapses to a compact top/bottom progress strip that never covers content (design §13, requirement J5); `SceneControls`: `Previous`/`Next` buttons (disabled at 1 / 46), scene number; clicks call `goToScene` and `preventDefault` on the anchors.
 
 - [ ] **Step 1:** Failing tests: 46 links, correct hrefs, exactly one `aria-current`, 8 act headings with exact labels, Previous disabled on 1, Next disabled on 46, click → `goToScene(n)`.
 - [ ] **Step 2:** Implement per design §13–14 (mono uppercase act labels, small numeric markers). Tests PASS; lint.
@@ -222,7 +222,7 @@
 **Model:** Sonnet
 **Files:**
 - Create: `components/ui/SourceDrawer.tsx` (+ `.test.tsx`)
-- Modify: `lib/sceneNavigation.ts` (add `useSourceDrawer`, `useDemoEscape` per CONTRACTS §8), `components/presentation/SceneRenderer.tsx` (SOURCE button → `open(slide)`), `components/presentation/Presentation.tsx` (mount drawer; Escape precedence: drawer → demo escape → nothing)
+- Modify: `lib/sceneNavigation.ts` (add `useSourceDrawer`, `useDemoEscape` per CONTRACTS §8), `components/presentation/SceneRenderer.tsx` (SOURCE button → `open(slide)`), `components/presentation/Presentation.tsx` (mount drawer beside `<main>`; Escape precedence drawer → demo escape → nothing is resolved inside the existing single keydown listener from Task 11 — no second listener)
 
 **Interfaces:**
 - Produces: `<aside id="source-drawer" role="dialog" aria-modal="false" aria-labelledby="source-drawer-title">` listing `sourceNotes` split on ` · ` as `<li>`; opens with focus on `Close`, closes on Escape / click outside / Close / current-scene change and returns focus to the trigger; trigger `aria-expanded` reflects state; `track('source_open', { slide })`; `useDemoEscape(slide, fn)` registers the current scene's escape handler.
@@ -244,7 +244,7 @@
 **Interfaces:**
 - Produces: everything in CONTRACTS §9.1–9.3 verbatim: `campusBotReducer`, `ragReducer`, `socReducer`, all fixture consts (`campusBot`, `campusBotCopy`, `ragDocs`, `ragCopy`, `ragRanking`, `linkedEvents`, `socCopy`, `SOC_TOTAL`, `SOC_UNRELATED`, `SOC_NOISE_ROWS`, `SOC_PROPOSE_DELAY_MS`), and the action/state types.
 
-- [ ] **Step 1:** Failing tests: every row of the three transition tables; every (state, action) pair **not** in a table returns the same reference; `RESET` from every state returns the initial state; `SOC_UNRELATED === SOC_TOTAL - linkedEvents.length`; every string in `campusBotCopy`, `ragCopy`, `socCopy`, `linkedEvents` occurs verbatim in `source/slides.json` `texts` of slide 4, 6 or 23 respectively **except** `ragCopy.labels.before` and the label strings listed in CONTRACTS §9 as deck-derived (assert the manager-approved exception list explicitly).
+- [ ] **Step 1:** Failing tests: every row of the three transition tables; every (state, action) pair **not** in a table returns the same reference; `RESET` from every state returns the initial state; `SOC_UNRELATED === SOC_TOTAL - linkedEvents.length`; every string in `campusBotCopy`, `ragCopy`, `socCopy`, `linkedEvents` occurs verbatim in `source/slides.json` `texts` of slide 4, 6 or 23 respectively (no exceptions: all 45 fixture strings are deck text).
 - [ ] **Step 2:** Transcribe and implement pure reducers. Tests PASS; lint.
 - [ ] **Step 3:** Commit `feat(w3): demo reducers and fixtures`.
 
@@ -255,10 +255,10 @@
 - Create: `components/scenes/DemoShell.tsx` (+ `.test.tsx`)
 
 **Interfaces:**
-- Consumes: `SceneShell`, `MonoLabel`, `StatusPill`, `UI_COPY.reset`, `track`.
-- Produces: `DemoShell({ scene, label, tone, detail, caption, actions, onReset, children })` laying out design §11 (eyebrow/title/subtitle from `scene`, narrative left, workspace `children`, StatusPill, actions, Reset, and the single `<p role="status" aria-live="polite" aria-atomic="true" class="sr-only">` that is empty on first render and set to `label · detail` (or `label`) only on transitions).
+- Consumes: `MonoLabel`, `StatusPill`, `UI_COPY.reset`, `track`. **Does not render `SceneShell`** (SceneRenderer already wraps every scene; A12).
+- Produces: `DemoShell({ scene, label, tone, detail, caption, actions, onReset, children })` laying out design §11 (eyebrow/title/subtitle from `scene` shown once, narrative left, workspace `children`, StatusPill, actions, Reset, and the single `<p role="status" aria-live="polite" aria-atomic="true" class="sr-only">` that is empty on first render and set to `label · detail` (or `label`) whenever `label` **or** `detail` changes). `caption` rendered only when provided (scene 4 passes `UI_COPY.fictional`; 6 and 23 pass nothing, A15).
 
-- [ ] **Step 1:** Failing tests: live region empty on mount; after a `label` prop change it reads `label · detail`; detail `'–'` drops the suffix; Reset button always enabled and calls `onReset`.
+- [ ] **Step 1:** Failing tests: live region empty on mount; after a `label` change it reads `label · detail`; after a `detail`-only change it updates too (SOC inspecting a second event); detail `'–'` drops the suffix; Reset button always enabled and calls `onReset`; no `<section>` rendered by DemoShell.
 - [ ] **Step 2:** Implement. Tests PASS; lint.
 - [ ] **Step 3:** Commit `feat(w3): DemoShell`.
 
@@ -270,7 +270,7 @@
 
 **Interfaces:**
 - Consumes: Task 14 reducer/fixtures, `DemoShell`, `UI_COPY.fictional`, `track`.
-- Produces: the state → workspace/controls/tone/detail table in CONTRACTS §9.1 exactly; `aria-pressed` on the guardrail pair; orange emphasis + warning icon on leak; green + shield on blocked; `track('demo_interaction', { slide: 4, demo: 'campusbot', action, from, to })`.
+- Produces: the state → workspace/controls/tone/detail table in CONTRACTS §9.1 exactly; the baseline chip's text is `campusBotCopy.labels.roleplay` (A14); `aria-pressed` on the guardrail pair; orange emphasis + warning icon on leak; green + shield on blocked; `track('demo_interaction', { slide: 4, demo: 'campusbot', action, from, to })`.
 
 - [ ] **Step 1:** Failing tests walking the table: baseline shows system/question/refusal and the `role-play` chip; ROLEPLAY adds the roleplay message and the two buttons with `aria-pressed="false"`; GUARDRAIL_OFF shows `leak` and `aria-pressed="true"` on `No guardrail`; GUARDRAIL_ON shows `blocked`; Reset returns to baseline; `track` called with the right payload; live region announcements match `label · detail`.
 - [ ] **Step 2:** Implement with Framer Motion for card presence (`AnimatePresence`). Tests PASS; lint.
@@ -293,6 +293,7 @@
 ### Task 18: SocDemo (scene 23)
 
 **Model:** Sonnet
+**Order:** after Task 13 (needs `useDemoEscape`).
 **Files:**
 - Create: `components/scenes/SocDemo.tsx` (+ `.test.tsx`)
 
@@ -316,24 +317,24 @@
 
 **Interfaces:**
 - Consumes: `lib/scenes.ts` (import it with Node's built-in TypeScript type stripping: `import('../lib/scenes.ts')`; `lib/scenes.ts` must use `import type` only), `source/slides.json`.
-- Produces: exit 0 when every string value in each manifest entry, except fields `id`, `act`, `theme`, `accent`, `kind`, `component`, `type`, `n`, `at` **when purely numeric/time**, occurs verbatim (after collapsing whitespace) inside some `texts` entry of the same slide; otherwise prints `slide NN: "<string>"` per miss and exits 1. Empty strings are ignored (skeleton state passes).
+- Produces: exit 0 when every string value in each manifest entry, except the identifier fields `id`, `act`, `theme`, `accent`, `kind`, `component`, `type` (all `n` and `at` values are deck text and are checked), occurs verbatim (after collapsing whitespace) inside some `texts` entry of the same slide; otherwise prints `slide NN: "<string>"` per miss and exits 1. Empty strings are ignored (skeleton state passes).
 
 - [ ] **Step 1:** Run against the skeleton: exit 0. Temporarily add a bogus string in a scratch copy to confirm exit 1 and the message format. Commit `feat(w4): copy verification script`.
 
-### Task 20: Blocks, ContentScene, TitleScene; copy for slides 1 and 2
+### Task 20: Blocks, ContentScene, TitleScene; copy for slides 1, 2, 8, 15
 
 **Model:** Sonnet
 **Files:**
 - Create: `components/scenes/Blocks.tsx` (+ `.test.tsx`), `components/scenes/ContentScene.tsx` (+ `.test.tsx`), `components/scenes/TitleScene.tsx` (+ `.test.tsx`)
-- Modify: `components/scenes/index.ts` (register `TitleScene`, `ContentScene`), `lib/scenes.ts` (slides 1, 2 per CONTRACTS §3.1 recipes)
+- Modify: `components/scenes/index.ts` (register `TitleScene`, `ContentScene`), `lib/scenes.ts` (slides 1, 2 editorial example, 8 diagram example, 15 data example, per CONTRACTS §3.1 recipes, with `sourceNotes` on 8 and 15)
 
 **Interfaces:**
 - Consumes: primitives (Tasks 3–5), `useSceneProgress`, `beatProgress`, `SceneBeat`.
-- Produces: `Blocks({ blocks })` rendering every `Block` type (`lines`, `steps`→StepList, `terms`, `layers`, `marks`→Timeline, `metrics`→BigNumber, `flow` with `→ + = ↺` as connector elements, `columns`, `bars` as CSS bars from `ratios`); `ContentScene` = eyebrow (MonoLabel) → `<h2>` title → Blocks, with a paused GSAP timeline (inside `useGSAP` + `gsap.matchMedia` no-preference) scrubbed by progress: metadata → title → supporting for `editorial`, sequential causality for `diagram`, label → number → context for `data`; `TitleScene` renders the `<h1>` with the four words (`BREAK.` orange, `SECURE.` green) and a one-shot restrained intro (design §16) with the 3 s CSS failsafe from CONTRACTS §11; `data-part` targets used by tweens.
+- Produces: `Blocks({ blocks })` rendering every `Block` type (`lines`, `steps`→StepList, `terms`, `layers`, `marks`→Timeline, `metrics`→BigNumber, `flow` with `→ + = ↺` as connector elements, `columns`, `bars` as CSS bars from `ratios`); `ContentScene` = eyebrow (MonoLabel) → `<h2>` title → Blocks, with a paused GSAP timeline (inside `useGSAP` + `gsap.matchMedia` no-preference) scrubbed by progress: metadata → title → supporting for `editorial`, sequential causality for `diagram`, label → number → context for `data`; within the supporting phase the choreography is **keyed by block type** so the MASTER_PROMPT §19 beats fall out of the data: `steps`/`terms` reveal one item at a time (2, 16, 18, 36, 37), `layers` stack in from the bottom (9, 13, 27, 41), `flow` items build left to right until the last lands (8), `metrics` land value-first (15, 24), `columns` separate spatially (32), `marks` sequence (17, 24), `bars` grow (28); `TitleScene` renders the `<h1>` with the four words (`BREAK.` orange, `SECURE.` green) and a one-shot restrained intro (design §16) with the 3 s CSS failsafe from CONTRACTS §11; `data-part` targets used by tweens.
 
 - [ ] **Step 1:** Failing tests: `Blocks` renders each type from a fixture with the right primitive and connector glyphs as separate elements; `ContentScene` renders eyebrow/h2/blocks with all text present under reduced motion (no timeline); `TitleScene` has exactly one `<h1>` and the six lines from slide 1.
-- [ ] **Step 2:** Fill slides 1 and 2 in the manifest from `source/slides.json` per §3.1; `npm run verify:copy` exit 0.
-- [ ] **Step 3:** Implement; tests PASS; lint; build. Browser check scenes 1–2 at 1440×900. Commit `feat(w4): Blocks, ContentScene, TitleScene; slides 1–2`.
+- [ ] **Step 2:** Fill slides 1, 2, 8, 15 in the manifest from `source/slides.json` per §3.1; `npm run verify:copy` exit 0.
+- [ ] **Step 3:** Implement; tests PASS; lint; build. Browser check scenes 1, 2, 8, 15 at 1440×900. Commit `feat(w4): Blocks, ContentScene, TitleScene; slides 1, 2, 8, 15`.
 
 ### Task 21: MemeScene and the ten meme rows
 
@@ -361,15 +362,15 @@
 
 **Model:** Sonnet
 **Files:**
-- Create: `components/scenes/TimelineScene.tsx` (+ `.test.tsx`); register; fill 19 (`marks` ×5) and 20 (`marks` ×4 + `lines`).
-- Behavior: horizontal scrub left→right with values locking in (design §9); 19 attacker (orange accent), 20 defender (green); `challenge` kind (44) later reuses it with week fills.
+- Create: `components/scenes/TimelineScene.tsx` (+ `.test.tsx`); register; fill 19 (`marks` ×5, `sourceNotes`) and 20 (`marks` ×4 + `lines`, `sourceNotes`).
+- Behavior: horizontal scrub left→right with values locking in (design §9); 19 attacker (orange accent), 20 defender (green); for `kind === 'challenge'` (slide 44) the same component renders the marks as week segments that fill progressively (MASTER_PROMPT §21) — build and test that branch here with a fixture, the slide 44 copy arrives in Task 25.
 
 - [ ] **Step 1:** Failing tests: marks in order with `at`/`text`; all text present under reduced motion. **Step 2:** Implement + copy; verify:copy; tests; commit `feat(w4): TimelineScene; slides 19–20`.
 
 ### Task 24: Manifest copy, Acts 1–4 ContentScene slides
 
 **Model:** Haiku (batch; Sonnet example exists)
-**Files:** Modify `lib/scenes.ts` for slides 8, 9, 13, 15, 16, 17, 18, 24, 27, 28 exactly per the CONTRACTS §3.1 recipe table, including `sourceNotes` on 8, 9, 15, 17, 18, 24, 27 (from the citation paragraph) and 24's `$8.80 / vs / $25` split. Leave `bars.ratios` for slide 28 to Task 32.
+**Files:** Modify `lib/scenes.ts` for slides 9, 13, 16, 17, 18, 24, 27, 28 exactly per the CONTRACTS §3.1 recipe table (8 and 15 were filled in Task 20), including `sourceNotes` on 9, 17, 18, 24, 27 (from the citation paragraph) and 24's `$8.80 / vs / $25` split. Leave `bars.ratios` for slide 28 to Task 32.
 
 - [ ] **Step 1:** Fill; `npm run verify:copy` exit 0; `npm test` (manifest test still passes); lint. Commit `feat(w4): copy for Acts 1–4 content scenes`.
 
@@ -399,22 +400,93 @@
 **Model:** Sonnet. Create `ProblemProductScene.tsx` (+ test); register; fill slide 29 (`flow` ×5, three items each). Problem → product mappings appear as transformations. Commit.
 
 ### Task 32: GovernanceCurveScene (slide 34) and bar ratios (slides 28, 34)
-**Model:** Sonnet. Create `GovernanceCurveScene.tsx` (+ test); register; fill slide 34 (`flow` 4 phases; `bars` series ×2 with `note`); measure `bars.ratios` for slides 28 and 34 from PPTX shape widths in `source/pptx-raw/ppt/slides/slide28.xml` / `slide34.xml` (`<a:ext cx=…>` of the bar shapes, normalised 0..1) and set them in the manifest (the only non-`texts` manifest values; log the two measurements in the report). Curve rises across growth phases with progress. Commit.
+**Model:** Sonnet. Create `GovernanceCurveScene.tsx` (+ test); register; fill slide 34 (`flow` 4 phases; `bars` series ×2 with `note`); measure `bars.ratios` for slides 28 and 34 from PPTX shape widths: first run `unzip -o -q Missing_design_files.pptx -d source/pptx-raw` (the folder is gitignored and absent in a fresh worktree), then read `source/pptx-raw/ppt/slides/slide28.xml` / `slide34.xml` (`<a:ext cx=…>` of the bar shapes, normalised 0..1) and set them in the manifest (the only non-`texts` manifest values; log the two measurements in the report). Curve rises across growth phases with progress. Commit.
 
 ### Task 33: ProgrammeScene (slide 38)
 **Model:** Sonnet. Create `ProgrammeScene.tsx` (+ test); register; fill slide 38 (`lines`; `lines` `Owner: ______` / `Reviewed: __ / __`; `steps` ×5). Lightweight checklist: five real `<button role="checkbox" aria-checked>` items, state in component memory only, all questions in markup before interaction, Escape not used. Commit.
 
 ### Task 34: NetworkScene (slide 43)
-**Model:** Sonnet. Create `NetworkScene.tsx` (+ test); register; fill slide 43 (`lead` ← [2], `timer` `60s`, `seconds: 60`, `prompts` ← five steps per ruling A1). Countdown from 60 with Start/Pause/Restart (`UI_COPY`), `setInterval(1000)` only while running, prompts revealed one per 15 s but all present in markup (visually staged only), no network/submission; test with fake timers: start → 59 after 1 s, pause holds, restart → 60. Commit.
+**Model:** Sonnet. Create `NetworkScene.tsx` (+ test); register; fill slide 43 (`lead` ← [2], `timer` `60s`, `seconds: 60`, `prompts` ← five steps per ruling A1). Countdown from 60 with Start/Pause/Restart (`UI_COPY`), `setInterval(1000)` only while running, prompts revealed one per 12 s (five prompts in 60 s) but all present in markup (visually staged only), no network/submission; test with fake timers: start → 59 after 1 s, pause holds, restart → 60. Commit.
 
 ### Task 35: FinalScene (slide 46)
 **Model:** Sonnet. Create `FinalScene.tsx` (+ test); register; fill slide 46 (`lines` ← [0–3], `closing`, `speaker`, `role`, `linkedin` ← [7]). LinkedIn `<a href={LINKEDIN_HREF} target="_blank" rel="noopener noreferrer">` labelled `content.linkedin` + `track('cta_click', { target: 'linkedin' })`; `UI_COPY.challengeCta` button → `goToScene(44)` + `track('cta_click', { target: 'scene-44' })`. Tests for both. Commit.
 
 ### Task 36: Register demos; demo manifest rows (slides 4, 6, 23)
-**Model:** Haiku (after W3 completes). Modify `components/scenes/index.ts`: `CampusBotDemo`, `RagDemo`, `SocDemo` via `next/dynamic` (SSR on); fill slides 4, 6, 23 (`eyebrow` ← [0], `content.subtitle` ← [1], `title` ← [2]). verify:copy; `SceneRenderer.test` now asserts every section has non-empty text; build. Commit `feat(w4): register demos; demo scene rows`.
+**Model:** Haiku (after W3 completes). Modify `components/scenes/index.ts`: `CampusBotDemo`, `RagDemo`, `SocDemo` via `next/dynamic` (SSR on); fill slides 4, 6, 23 (`eyebrow` ← [0], `content.subtitle` ← [1], `title` ← [2]). verify:copy; add to `components/presentation/SceneRenderer.test.tsx` (ownership of this test file passes from W2 to W4 for this task, ledgered) the assertion that every section has non-empty text; build. Commit `feat(w4): register demos; demo scene rows`.
 
 ### Task 37: Scene hand-offs and final manifest audit
-**Model:** Sonnet. Implement design §8 hand-off poses in the outgoing scenes only (A9) for at least: 5→6 (document card → source card), 22→23 (orange cut → dark SOC), 14 number → 15 metric, 26 green approval → 27 accent line; confirm `lib/scenes.test.ts` still matches Appendix A; run `npm run verify:copy`, `npm run lint`, `npm test`, `npm run build`. Browser pass at 1440×900, 1920×1080, 1280×720, 1024×768 through all 46 scenes, reduced-motion on and off; record findings. Commit `feat(w4): scene hand-offs; manifest audit`.
+**Model:** Sonnet. Implement design §8 hand-off poses in the outgoing scenes only (A9) for at least: 5→6 (document card → source card), 22→23 (orange cut → dark SOC), 14 number → 15 metric, 26 green approval → 27 accent line; confirm `lib/scenes.test.ts` still matches Appendix A; run `npm run verify:copy`, `npm run lint`, `npm test`, `npm run build`. Browser pass against `npm run build && npm run start` at 1440×900, 1920×1080, 1280×720, 1024×768 through all 46 scenes, reduced-motion on and off; record findings. Commit `feat(w4): scene hand-offs; manifest audit`.
+
+---
+
+## Additions approved by the user on 2026-09-27 (from the previous project's site) — CONTRACTS v1.2
+
+### Task 38: IndexOverlay
+
+**Model:** Sonnet (W2-owned follow-up, dispatched by Fable after the W2 merge; reviewer Sonnet)
+**Files:**
+- Create: `components/presentation/IndexOverlay.tsx` (+ `.test.tsx`)
+- Modify: `components/presentation/Presentation.tsx` (mount trigger + overlay beside `<main>`; add the overlay to the single keydown listener's Escape precedence per CONTRACTS §8 v1.2), `lib/constants.ts` only if `UI_COPY.index` / `close` are missing (they are specified in CONTRACTS §5.4 v1.2)
+
+**Interfaces:**
+- Consumes: `ACTS`, `scenes`, `goToScene`, `UI_COPY.index`, `UI_COPY.close`, `useCurrentScene`.
+- Produces: fixed top-left mono `<button aria-expanded aria-controls="scene-index">INDEX</button>`; `<div id="scene-index" role="dialog" aria-modal="true" aria-labelledby="scene-index-title">` listing scene 1 then the 8 Acts (`Act ${n} — ${label}`) each with `<button>`s named `Go to scene NN: ${title ?? eyebrow}`; click → `goToScene(slide)` and close; focus trap; focus to first scene button on open, back to trigger on close; closes on Escape, backdrop click, Close button. Framer Motion presence.
+
+- [ ] **Step 1:** Failing tests: trigger toggles `aria-expanded`; overlay lists 46 buttons with the exact accessible names and 8 act headings; clicking a scene button calls `goToScene(n)` and closes; Escape closes and returns focus to the trigger; backdrop click closes; the current scene's button has `aria-current="step"`.
+- [ ] **Step 2:** Implement; wire Escape precedence in the existing listener (index → drawer → pen → demo → nothing). Tests PASS; lint; build. Commit `feat(w2): IndexOverlay`.
+
+### Task 39: PresenterPen
+
+**Model:** Sonnet (W2-owned follow-up, dispatched by Fable after the W2 merge; reviewer Sonnet)
+**Files:**
+- Create: `components/presentation/PresenterPen.tsx` (+ `.test.tsx`)
+- Modify: `components/presentation/Presentation.tsx` (mount toolbar + canvas beside `<main>`; Escape turns pen mode off per precedence)
+
+**Interfaces:**
+- Consumes: `UI_COPY.pen|undo|clear|clearConfirm`, `useCurrentScene` (clear strokes on change), reduced-motion irrelevant.
+- Produces: fixed bottom-left toolbar of three mono buttons; `PEN` has `aria-pressed`; `UNDO` removes the last stroke; `CLEAR` is two-step: first click → label `CLEAR?` and a confirming state, second click within 4000 ms clears everything, otherwise it reverts to `CLEAR` (state + one timer, cancelled on confirm); full-viewport `<canvas aria-hidden="true">` with `pointer-events: none` unless pen mode; strokes (arrays of points) drawn in `--orange` 3px round joins with pointer events; redraw on resize; strokes cleared when the current scene changes; keyboard navigation keeps working in pen mode; no storage.
+
+- [ ] **Step 1:** Failing tests (jsdom, mock canvas `getContext`): PEN toggles `aria-pressed` and the canvas `pointer-events`; a pointerdown/move/up sequence adds one stroke; UNDO removes it; CLEAR → `CLEAR?` → CLEAR clears; `CLEAR?` reverts after 4000 ms with fake timers; strokes cleared when `useCurrentScene` changes; Escape in pen mode turns it off (via the engine listener).
+- [ ] **Step 2:** Implement. Tests PASS; lint; build; browser check: draw, undo, clear at 1440×900. Commit `feat(w2): PresenterPen`.
+
+### Task 40: Boot sequence in TitleScene
+
+**Model:** Sonnet (W4; run after Task 20)
+**Files:**
+- Modify: `components/scenes/TitleScene.tsx` (+ `.test.tsx`), `lib/constants.ts` only if `UI_COPY.boot` is missing
+
+**Interfaces:**
+- Consumes: `UI_COPY.boot` = `{ heading: 'INITIALIZING KEYNOTE…', lines: ['> loading 46 scenes', '> loading 3 live demos', '> checking guardrails'], status: 'SYSTEM STATUS', ready: 'READY' }`.
+- Produces: under `prefers-reduced-motion: no-preference` only, a typed mono block rendered before the four title words: heading, then the three lines one per ~350 ms, then status + `READY`, then the block fades and the existing word intro runs; ≤ 2.5 s before `BUILD.` appears; runs once per page load; never blocks scroll or input; any scroll/key/pointer input ends it at once and shows the resting title; the 3 s CSS failsafe on the words stays. Under `reduce`: the boot block is not rendered; title static.
+
+- [ ] **Step 1:** Failing tests: with `matchMedia` → `reduce`, no boot text is in the DOM and all six title lines are visible; with `no-preference`, the boot heading is rendered first and the words exist in the DOM (visibility handled by GSAP); a `keydown` during boot removes the boot block.
+- [ ] **Step 2:** Implement inside the existing `useGSAP` one-shot intro (GSAP owns it). Tests PASS; lint; browser check at 1440×900. Commit `feat(w4): boot sequence before the title`.
+
+### Task 41: SceneShell frame fixes (Phase 1 gate conditions I1, I2)
+
+**Model:** Sonnet (W1-owned follow-up, dispatched by Fable on build/site; reviewer Sonnet)
+**Files:**
+- Modify: `components/ui/SceneShell.tsx` (+ `.test.tsx`), `app/globals.css`
+
+**Interfaces:**
+- Produces: SceneShell padding `paddingInline: 'calc(var(--rail-w) + 5vw) 5vw'` and `paddingBlock: 'max(7vh, 72px)'` so the fixed HUD (INDEX top-left; Act label + pen toolbar bottom-left, ~67px tall) never overlaps scene content at 1280×720 or 1440×900; `[data-pin="false"] .scene-viewport { min-height: 100vh; display: flex; flex-direction: column }` so unpinned scene roots can use `flex-1` to fill the viewport (TitleScene speaker line at the bottom per design §16, MemeScene centred); pinned behaviour unchanged (`[data-pin="true"] .scene-viewport` stays sticky, `height: 100vh`); reduced-motion override unchanged.
+
+- [ ] **Step 1:** Failing tests in `SceneShell.test.tsx`: the root's inline style (or computed class) carries the two padding values; a `pin: false` scene's `.scene-viewport` is a flex column with `min-height: 100vh` (assert via the CSS text of `app/globals.css` read with Node `fs`, since jsdom does not compute stylesheet rules); a `pin: true` scene keeps `position: sticky` in the same CSS.
+- [ ] **Step 2:** Implement; `npm run lint && npm test && npm run build`; commit `fix(w1): scene frame padding floor and unpinned viewport height`.
+
+### Task 42: Theme-aware HUD chrome
+
+**Model:** Sonnet (W2-owned follow-up, dispatched by Fable on build/site; reviewer Sonnet)
+**Files:**
+- Modify: `components/presentation/Presentation.tsx` (or a small wrapper it renders) so the fixed chrome — `SideNav`, `SceneControls` (Previous/Next, counter, Act label), the `IndexOverlay` trigger and the `PresenterPen` toolbar — sits inside one element carrying `data-theme={scenes[currentScene - 1].theme}` (and `data-accent` when set) derived from `useCurrentScene()`; tests beside the touched files.
+- Modify only if needed: `components/presentation/SideNav.tsx`, `SceneControls.tsx`, `IndexOverlay.tsx`, `PresenterPen.tsx` to take their colours from `var(--fg)` / `var(--muted)` / `var(--label)` / `var(--rule)` (the §5.3 theme variables) instead of `--text-light` or any fixed token.
+
+**Interfaces:**
+- Consumes: `useCurrentScene`, `scenes`, the §5.3 theme variables already defined per `[data-theme]` in `app/globals.css`.
+- Produces: HUD text and rules readable on every scene theme — verified on scene 3 (light) the buttons compute to `--text-dark`, on scene 7 (orange) to `--text-dark`, on scene 1 (dark) to `--text-light`; no HUD element uses a literal token colour.
+
+- [ ] **Step 1:** Failing test: render `Presentation` with a mocked current scene of 3 → the chrome wrapper has `data-theme="light"`; with 7 → `"orange"`; with 1 → `"dark"`; and a CSS text assertion (Node `fs`) that the HUD components contain no `--text-light`/`--text-dark` literals.
+- [ ] **Step 2:** Implement; `npm run lint && npm test && npm run build`; commit `fix(w2): HUD chrome follows the current scene theme`.
 
 ---
 

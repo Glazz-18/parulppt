@@ -12,3 +12,17 @@ source/pptx-raw/
 .DS_Store
 Thumbs.db
 npm-debug.log*
+
+# create-next-app
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+*.pem
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.vercel
