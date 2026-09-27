@@ -41,14 +41,29 @@ function draw(canvas: HTMLCanvasElement, points: Array<[number, number]>) {
   fireEvent.pointerUp(canvas, { pointerId: 1, clientX: lastX, clientY: lastY });
 }
 
+const ORIGINAL_VIEWPORT = {
+  width: window.innerWidth,
+  height: window.innerHeight,
+  dpr: window.devicePixelRatio,
+};
+
+function setViewport(width: number, height: number, dpr: number) {
+  Object.defineProperty(window, 'innerWidth', { value: width, configurable: true });
+  Object.defineProperty(window, 'innerHeight', { value: height, configurable: true });
+  Object.defineProperty(window, 'devicePixelRatio', { value: dpr, configurable: true });
+}
+
+let ctx: ReturnType<typeof installCanvasMock>;
+
 beforeEach(() => {
-  installCanvasMock();
+  ctx = installCanvasMock();
   act(() => setCurrentScene(1));
 });
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  setViewport(ORIGINAL_VIEWPORT.width, ORIGINAL_VIEWPORT.height, ORIGINAL_VIEWPORT.dpr);
   act(() => setCurrentScene(2));
   act(() => setCurrentScene(1));
 });
@@ -122,6 +137,30 @@ describe('PresenterPen', () => {
     // Undoing with nothing left is a no-op, not an error.
     fireEvent.click(undo);
     expect(canvas.dataset.strokes).toBe('0');
+  });
+
+  it('redraws sized to the new devicePixelRatio on resize, without losing the existing stroke', () => {
+    setViewport(1024, 768, 1);
+    render(<PresenterPen />);
+    const { pen, canvas } = getToolbar();
+    fireEvent.click(pen);
+    draw(canvas, [
+      [0, 0],
+      [5, 5],
+    ]);
+    expect(canvas.dataset.strokes).toBe('1');
+
+    const strokeCallsBeforeResize = ctx.stroke.mock.calls.length;
+    setViewport(1440, 900, 2);
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    expect(canvas.width).toBe(1440 * 2);
+    expect(canvas.height).toBe(900 * 2);
+    expect(ctx.setTransform).toHaveBeenLastCalledWith(2, 0, 0, 2, 0, 0);
+    expect(ctx.stroke.mock.calls.length).toBeGreaterThan(strokeCallsBeforeResize); // redrawn
+    expect(canvas.dataset.strokes).toBe('1'); // the stroke itself survives the resize
   });
 
   describe('CLEAR (two-step, 4000 ms revert)', () => {

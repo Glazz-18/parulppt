@@ -70,6 +70,16 @@ describe('SceneControls', () => {
     expect(container.querySelector('[data-act-label]')?.textContent).toBe('Act 3 — Guardrails');
   });
 
+  it('clips a long act label instead of wrapping, so it never collides with PresenterPen\'s toolbar stacked above it', () => {
+    act(() => setCurrentScene(29)); // act-5: the longest label
+    const { container } = render(<SceneControls />);
+    const label = container.querySelector('[data-act-label]') as HTMLElement;
+    expect(label.style.whiteSpace).toBe('nowrap');
+    expect(label.style.overflow).toBe('hidden');
+    expect(label.style.textOverflow).toBe('ellipsis');
+    expect(label.style.maxWidth).toBe('40vw');
+  });
+
   it('never shows the abbreviation PREV or the word INDEX (UI_COPY.previous/next are full words)', () => {
     const { container } = render(<SceneControls />);
     expect(container.textContent).not.toMatch(/\bPREV\b/i);

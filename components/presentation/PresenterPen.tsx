@@ -55,6 +55,7 @@ export function PresenterPen() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokesRef = useRef<Point[][]>(strokes);
   const drawingRef = useRef(false);
+  const orangeRef = useRef(FALLBACK_ORANGE);
 
   // CONTRACTS §5.6: all strokes are cleared when the current scene changes. Compared during
   // render (React's "adjusting state when a prop changes" pattern) rather than in an effect, so
@@ -69,8 +70,7 @@ export function PresenterPen() {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    const orange = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim();
-    ctx.strokeStyle = orange || FALLBACK_ORANGE;
+    ctx.strokeStyle = orangeRef.current;
     ctx.lineWidth = STROKE_WIDTH;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -95,6 +95,9 @@ export function PresenterPen() {
 
   // Sizes once on mount and again on every resize; each resize redraws whatever strokesRef holds.
   useEffect(() => {
+    // Read once (mount only): CONTRACTS §5.6 asks for the computed --orange, not a per-draw read.
+    orangeRef.current =
+      getComputedStyle(document.documentElement).getPropertyValue('--orange').trim() || FALLBACK_ORANGE;
     sizeCanvas();
     window.addEventListener('resize', sizeCanvas);
     return () => window.removeEventListener('resize', sizeCanvas);

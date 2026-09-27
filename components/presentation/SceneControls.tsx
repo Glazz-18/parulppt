@@ -62,6 +62,12 @@ export function SceneControls() {
             fontSize: '0.7rem',
             letterSpacing: '0.08em',
             color: 'var(--muted)',
+            // The longest act label (Act 5) must never wrap under, or collide with, PresenterPen's
+            // toolbar stacked directly above this corner (CONTRACTS §5.6, Task 39 fix round 1).
+            maxWidth: '40vw',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
           {`Act ${act.n} — ${act.label}`}
