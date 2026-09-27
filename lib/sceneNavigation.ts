@@ -185,11 +185,17 @@ export const SNAP_IDLE_MS = 160;
 
 export type SnapSection = { top: number; pinned: boolean; height: number };
 
-/** Nearest section top (ties → earlier); null in a pinned scene's range past its top, end included (ruling 15). */
+/**
+ * Nearest section top (ties → earlier); null inside any section's overflow range (past its top,
+ * end included — ruling 15), pinned or not (I5: an unpinned section taller than the viewport must
+ * not trap the reader either — CONTRACTS §8 amendment). For a normal section (height ≤
+ * innerHeight) `top + height - innerHeight <= top`, so the range is empty and nothing else
+ * changes.
+ */
 export function nearestSnapTarget(scrollY: number, sections: SnapSection[], innerHeight: number): number | null {
   let best: number | null = null;
-  for (const { top, pinned, height } of sections) {
-    if (pinned && scrollY > top && scrollY <= top + height - innerHeight) return null;
+  for (const { top, height } of sections) {
+    if (scrollY > top && scrollY <= top + height - innerHeight) return null;
     if (best === null || Math.abs(top - scrollY) < Math.abs(best - scrollY)) best = top;
   }
   return best;

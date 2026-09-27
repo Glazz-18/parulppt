@@ -541,6 +541,31 @@ describe('nearestSnapTarget', () => {
     expect(nearestSnapTarget(800, two, vh)).toBeNull();
   });
 
+  it('I5: a tall UNPINNED section also suppresses snapping inside its overflow range, not just pinned ones', () => {
+    const tallUnpinned = [
+      { top: 0, pinned: false, height: 800 },
+      { top: 800, pinned: false, height: 2400 }, // 3 viewports, unpinned but taller than the viewport
+      { top: 3200, pinned: false, height: 800 },
+    ];
+    // Strictly inside the overflow range, including the exact end: null (no trap-free zone).
+    expect(nearestSnapTarget(800.5, tallUnpinned, vh)).toBeNull();
+    expect(nearestSnapTarget(1600, tallUnpinned, vh)).toBeNull();
+    expect(nearestSnapTarget(2400, tallUnpinned, vh)).toBeNull();
+    // Its own top, and past the range end, still snap normally.
+    expect(nearestSnapTarget(800, tallUnpinned, vh)).toBe(800);
+    expect(nearestSnapTarget(2400.5, tallUnpinned, vh)).toBe(3200);
+  });
+
+  it('a normal unpinned section (height <= viewport) never suppresses snapping', () => {
+    const normal = [
+      { top: 0, pinned: false, height: 800 },
+      { top: 800, pinned: false, height: 400 }, // shorter than the viewport: empty range
+      { top: 1200, pinned: false, height: 800 },
+    ];
+    expect(nearestSnapTarget(900, normal, vh)).toBe(800);
+    expect(nearestSnapTarget(1100, normal, vh)).toBe(1200);
+  });
+
   it('a tie goes to the earlier top', () => {
     expect(nearestSnapTarget(400, sections, vh)).toBe(0);
     expect(nearestSnapTarget(2800, sections, vh)).toBe(3200); // not a tie: 800 is 2000 away
