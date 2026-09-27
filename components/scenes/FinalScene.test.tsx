@@ -55,7 +55,13 @@ describe('FinalScene', () => {
       'Secure something.',
       'Scale something.',
     ]);
-    expect(container.querySelector('[data-eyebrow]')).toBeNull();
+    // CONTRACTS §5.1: slide 46 has no eyebrow, no title beyond its four-line h2 — nothing (no <p>,
+    // no MonoLabel) precedes the h2 in the scene root. `[data-eyebrow]` was never rendered by
+    // anything in the codebase, so asserting its absence was vacuous; this checks the actual
+    // layout instead — the h2 is the very first element in the scene, with no <p> or MonoLabel
+    // ahead of it.
+    const root = container.firstElementChild;
+    expect(root?.firstElementChild).toBe(h2);
   });
 
   it('renders closing, speaker and role', () => {
@@ -88,7 +94,16 @@ describe('FinalScene', () => {
     expect(goToSceneMock).toHaveBeenCalledWith(44);
   });
 
-  it('under reduced motion, all text still renders (no timeline)', () => {
+  // FinalScene builds no GSAP timeline at all (design §17/brief: "or none") — its markup is
+  // static from first paint. Asserting "text renders under reduced motion" was tautological
+  // (there is no motion to disable); this instead checks the actual claim, that the scene reads
+  // window.matchMedia nowhere, by rendering the same markup with and without a
+  // prefers-reduced-motion match and requiring the output be byte-identical.
+  it('renders identical static markup regardless of prefers-reduced-motion (no timeline exists to disable)', () => {
+    const noPreference = render(<FinalScene scene={makeScene()} />);
+    const noPreferenceHtml = noPreference.container.innerHTML;
+    noPreference.unmount();
+
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
@@ -100,6 +115,8 @@ describe('FinalScene', () => {
       }),
     });
     const { container } = render(<FinalScene scene={makeScene()} />);
+
+    expect(container.innerHTML).toBe(noPreferenceHtml);
     expect(container.querySelector('h2')?.textContent).toBe(
       'Build something.Break something.Secure something.Scale something.',
     );
