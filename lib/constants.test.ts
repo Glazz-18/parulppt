@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ACTS, KIND_COMPONENT, UI_COPY, LINKEDIN_HREF } from './constants';
+import { SceneKind } from '@/lib/types';
 
 describe('constants', () => {
   it('(a) ACTS ranges are contiguous and cover 2..46 exactly once', () => {
@@ -26,7 +27,7 @@ describe('constants', () => {
   });
 
   it('(b) Object.keys(KIND_COMPONENT) equals the ten SceneKind values', () => {
-    const sceneKinds: string[] = [
+    const sceneKinds: SceneKind[] = [
       'title',
       'editorial',
       'diagram',

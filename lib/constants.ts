@@ -25,27 +25,14 @@ export const KIND_COMPONENT: Record<SceneKind, SceneComponentName | null> = {
 };
 
 export const UI_COPY = {
-  nav: 'Scenes',
-  source: 'SOURCE',
-  close: 'Close',
-  previous: 'Previous',
-  next: 'Next',
-  reset: 'Reset',
-  challengeCta: 'Start the 30-day challenge',
-  fictional: 'Fictional demonstration',
-  start: 'Start',
-  pause: 'Pause',
-  restart: 'Restart',
-  relevance: 'Retrieval relevance',
-  authorization: 'Authorization',
-  soc: {
-    queue: 'Queue',
-    investigating: 'Investigating',
-    correlated: 'Correlated',
-    'pending-approval': 'Pending approval',
-    approved: 'Approved',
-    rejected: 'Rejected',
-  },
+  nav: 'Scenes', source: 'SOURCE', close: 'Close',              // <nav aria-label>; design §15; drawer close
+  previous: 'Previous', next: 'Next', reset: 'Reset',           // design §14; requirement D, F
+  challengeCta: 'Start the 30-day challenge',                   // PRD §12
+  fictional: 'Fictional demonstration',                         // PRD §9 Demo 1
+  start: 'Start', pause: 'Pause', restart: 'Restart',           // MASTER_PROMPT §20 (scene 43)
+  relevance: 'Retrieval relevance', authorization: 'Authorization', // technical §11
+  soc: { queue: 'Queue', investigating: 'Investigating', correlated: 'Correlated',
+         'pending-approval': 'Pending approval', approved: 'Approved', rejected: 'Rejected' }, // TRD §6
 } as const;
 
 export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisional, Needs user N1

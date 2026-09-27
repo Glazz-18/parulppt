@@ -55,18 +55,14 @@ body {
   height: calc(var(--scroll-length) * 100vh);
 }
 
-[data-pin="false"] {
-  min-height: 100vh;
-}
-
-.scene-viewport {
+[data-pin="true"] .scene-viewport {
   position: sticky;
   top: 0;
   height: 100vh;
 }
 
-[data-pin="false"] .scene-viewport {
-  position: relative;
+[data-pin="false"] {
+  min-height: 100vh;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -77,6 +73,7 @@ body {
 
   .scene-viewport {
     position: static;
+    height: auto;
   }
 }
 
