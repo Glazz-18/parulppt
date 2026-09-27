@@ -607,9 +607,20 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'data',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · SECURITY → STARTUP',
+    title: 'Security is a market',
+    sourceNotes: ['IBM Cost of a Data Breach, India, 2026 · DSCI India Cybersecurity Product Landscape 3.0 (2025 revenue)'],
+    content: {
+      blocks: [
+        {
+          type: 'metrics',
+          items: [
+            { heading: 'A cost you avoid', value: '₹25.5cr', label: 'average Indian breach · ₹40.9 cr in financial services' },
+            { heading: 'A market you can enter', value: '$4.46B', label: '400+ Indian cyber product companies · 34% CAGR · 39% funded' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-32',
@@ -619,9 +630,23 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'editorial',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · SECURITY → STARTUP',
+    title: 'Feature moat vs trust moat',
+    content: {
+      blocks: [
+        {
+          type: 'columns',
+          items: [
+            { heading: 'Built from features', lines: ['Copied in a quarter', 'Speed · design · distribution · the model'] },
+            { heading: 'Built from trust', lines: ['Harder to copy every year', 'Audit history · data lineage · security · reliability'] },
+          ],
+        },
+        {
+          type: 'lines',
+          lines: ["You don’t get secure after you get big. You scale because trust was designed early."],
+        },
+      ],
+    },
   },
   {
     id: 'scene-33',
@@ -655,9 +680,26 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 2,
     kind: 'timeline',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · COMPLIANCE · 1 OF 2',
+    title: "India’s governance runway",
+    sourceNotes: ['DPDP Rules 2025, MeitY / PIB · EU AI Act and AI Omnibus (in force 27 Jul 2026)'],
+    content: {
+      blocks: [
+        {
+          type: 'marks',
+          items: [
+            { at: '13 Nov 2025', text: 'Rules notified · Board live' },
+            { at: 'Today', text: '47 days left' },
+            { at: '13 Nov 2026', text: 'Consent Managers + penalties' },
+            { at: '13 May 2027', text: 'Full obligations · up to ₹250 cr per category' },
+          ],
+        },
+        {
+          type: 'lines',
+          lines: ['Selling to Europe? EU AI Act transparency duties from Aug 2026 · high-risk (Annex III) from 2 Dec 2027.'],
+        },
+      ],
+    },
   },
   {
     id: 'scene-36',
@@ -667,9 +709,22 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 2,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · COMPLIANCE · 2 OF 2',
+    title: 'M.O.A.T.',
+    sourceNotes: ['MeitY India AI Governance Guidelines, 5 Nov 2025 · Framework from The Moat Nobody Insures'],
+    content: {
+      blocks: [
+        {
+          type: 'terms',
+          items: [
+            { letter: 'M', term: 'Map', text: 'Every data flow, model, agent and vendor' },
+            { letter: 'O', term: 'Own', text: 'A named human for every automation', note: 'MeitY 2025: accountability follows function' },
+            { letter: 'A', term: 'Align', text: "Controls mapped to the rules you’re under" },
+            { letter: 'T', term: 'Translate', text: 'Trust turned into faster sales' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-37',
@@ -679,9 +734,22 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'editorial',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · KEEP IT SIMPLE · 1 OF 3',
+    title: 'K.I.S.S.',
+    sourceNotes: ['Framework from The Moat Nobody Insures'],
+    content: {
+      blocks: [
+        {
+          type: 'terms',
+          items: [
+            { letter: 'K', term: 'Keep', text: 'One page, one owner, one date' },
+            { letter: 'I', term: 'It', text: 'What you actually do, not the licence you bought' },
+            { letter: 'S', term: 'Simple', text: "Needs a training session? It won’t survive your next sprint" },
+            { letter: 'S', term: 'Stupid', text: 'Said with love. Complexity kills governance quietly' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-38',
@@ -705,9 +773,16 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'editorial',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 5 · KEEP IT SIMPLE · 3 OF 3',
+    title: 'Nobody gets fined for a simple system.',
+    content: {
+      blocks: [
+        {
+          type: 'lines',
+          lines: ['Plenty get fined for a sophisticated one nobody ran.'],
+        },
+      ],
+    },
   },
   {
     id: 'scene-40',
@@ -728,9 +803,22 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 2,
     kind: 'diagram',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 6 · STUDENTS AS BUILDERS',
+    title: 'Skill stack over headcount',
+    sourceNotes: ['ISC2 Cybersecurity Workforce Study 2025 · ISC2 India analysis, Sept 2026: skills shortages now outrank headcount'],
+    content: {
+      blocks: [
+        {
+          type: 'layers',
+          items: [
+            { term: 'Human', text: 'Communication · networking · curiosity', aside: 'Every role' },
+            { term: 'Business', text: 'Problem discovery · sales · pitching', aside: 'Founder · GRC · security PM' },
+            { term: 'Building', text: 'Product · prototyping · automation', aside: 'AppSec · product security' },
+            { term: 'Technical', text: 'Python · APIs · cloud · AI · security', aside: 'SOC · cloud · AI security' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'scene-42',
@@ -763,9 +851,26 @@ export const scenes: Scene[] = [
     pin: true,
     scrollLength: 3,
     kind: 'challenge',
-    eyebrow: '',
-    title: '',
-    content: { blocks: [] },
+    eyebrow: 'ACT 8 · CALL TO ACTION',
+    title: 'The 30-day challenge',
+    content: {
+      blocks: [
+        {
+          type: 'marks',
+          items: [
+            { at: 'Day 1–3', text: 'Find one problem' },
+            { at: 'Day 4–7', text: 'Talk to five people' },
+            { at: 'Week 2', text: 'Build one workflow' },
+            { at: 'Week 3', text: 'Test with real users' },
+            { at: 'Week 4', text: 'Secure it, then publish' },
+          ],
+        },
+        {
+          type: 'lines',
+          lines: ["Don’t tell me you have an idea. Show me something.", 'No 10 engineers. No ₹50 lakh. One problem, one user, one prototype.'],
+        },
+      ],
+    },
   },
   {
     id: 'scene-45',
