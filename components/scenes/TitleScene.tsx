@@ -6,10 +6,6 @@ import { useGSAP } from '@gsap/react';
 import type { SceneProps } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 
-// Idempotent (Presentation.tsx also registers this); needed here too since TitleScene may be
-// the first client component to mount in isolation (tests render it directly).
-gsap.registerPlugin(useGSAP);
-
 // Design §16 opening: BUILD./SCALE. stay the section's foreground colour; BREAK. and SECURE.
 // take the deck's attacker/defender accents (CONTRACTS §3.1 recipe row 1).
 const WORD_COLORS = ['var(--fg)', 'var(--orange)', 'var(--green)', 'var(--fg)'];

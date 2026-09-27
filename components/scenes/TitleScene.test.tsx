@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
+import gsap from 'gsap';
 import { TitleScene } from './TitleScene';
 import type { Scene } from '@/lib/types';
 
@@ -91,8 +92,16 @@ describe('TitleScene', () => {
     expect(match?.textContent).toContain('prefers-reduced-motion: no-preference');
   });
 
-  it('under reduced motion the words are visible without a GSAP timeline throwing', () => {
+  it('builds a GSAP timeline only under no-preference, never under reduce', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+
     reduced = true;
-    expect(() => render(<TitleScene scene={scene1} />)).not.toThrow();
+    const { unmount } = render(<TitleScene scene={scene1} />);
+    expect(timelineSpy).not.toHaveBeenCalled();
+    unmount();
+
+    reduced = false;
+    render(<TitleScene scene={scene1} />);
+    expect(timelineSpy).toHaveBeenCalledTimes(1);
   });
 });

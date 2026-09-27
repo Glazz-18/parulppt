@@ -19,10 +19,6 @@ const monoStyle: CSSProperties = {
   letterSpacing: '0.08em',
 };
 
-const mutedStyle: CSSProperties = {
-  color: 'var(--muted)',
-};
-
 const ruleStyle: CSSProperties = {
   borderColor: 'var(--rule)',
 };
@@ -31,6 +27,11 @@ const bodyTextStyle: CSSProperties = {
   fontSize: 'clamp(20px, 1.6vw, 28px)',
   lineHeight: 1.35,
 };
+
+// Secondary/annotation fields (design §4): explicitly the body tier (muted) or the mono
+// metadata tier (muted), never the browser's unstyled 16px default.
+const mutedBodyStyle: CSSProperties = { ...bodyTextStyle, color: 'var(--muted)' };
+const metaMutedStyle: CSSProperties = { ...monoStyle, color: 'var(--muted)' };
 
 export function Blocks({ blocks }: BlocksProps) {
   return (
@@ -81,7 +82,7 @@ function BlockView({ block }: { block: Block }) {
               </strong>
               <span style={bodyTextStyle}>{item.text}</span>
               {item.note ? (
-                <span data-part="note" style={mutedStyle}>
+                <span data-part="note" style={metaMutedStyle}>
                   {item.note}
                 </span>
               ) : null}
@@ -109,7 +110,7 @@ function BlockView({ block }: { block: Block }) {
                 {item.term ? <strong className="mr-3">{item.term}</strong> : null}
                 <span>{item.text}</span>
                 {item.aside ? (
-                  <span data-part="aside" className="ml-3" style={mutedStyle}>
+                  <span data-part="aside" className="ml-3" style={metaMutedStyle}>
                     {item.aside}
                   </span>
                 ) : null}
@@ -188,7 +189,7 @@ function BlockView({ block }: { block: Block }) {
             <div key={i} data-part="column" className="flex flex-col gap-2">
               <h3 style={{ ...bodyTextStyle, fontWeight: 700 }}>{item.heading}</h3>
               {item.lines.map((line, j) => (
-                <p key={j} style={mutedStyle}>
+                <p key={j} style={mutedBodyStyle}>
                   {line}
                 </p>
               ))}
@@ -219,7 +220,7 @@ function BlockView({ block }: { block: Block }) {
             );
           })}
           {block.note ? (
-            <p data-part="note" style={mutedStyle}>
+            <p data-part="note" style={metaMutedStyle}>
               {block.note}
             </p>
           ) : null}

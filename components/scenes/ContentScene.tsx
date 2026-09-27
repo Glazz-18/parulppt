@@ -8,10 +8,6 @@ import { MonoLabel } from '@/components/ui/MonoLabel';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
 import { Blocks } from './Blocks';
 
-// Idempotent (Presentation.tsx also registers this); needed here too since ContentScene may be
-// the first client component to mount in isolation (tests render it directly).
-gsap.registerPlugin(useGSAP);
-
 const titleStyle = {
   fontFamily: 'var(--font-sans)',
   fontSize: 'clamp(40px, 4.4vw, 64px)',
@@ -60,29 +56,50 @@ function revealStagger(
   tl.fromTo(list, from, { ...to, duration: step, stagger: step, ease: 'power2.out' }, start);
 }
 
-// Metrics land value-first, then context (data grammar, beats 15, 24): the number is the
-// headline, the label is confirmation that follows it in.
+// Data grammar (CONTRACTS §11: label -> number -> context) reconciled with "metrics land
+// value-first" (manager ruling, Task 20 review round 1): within each metric, the heading (the
+// data-part="label" that BigNumber renders *before* the value) reveals first, then the value
+// lands, then everything after the value (the versus comparison and the trailing label) reveals
+// as context. BigNumber gives heading and the trailing label the same data-part ("label"), so
+// they're told apart by DOM order relative to the first data-part="value" node, not by selector.
+// All three phases stay inside this metric's own [itemStart, itemStart + step) slot.
 function revealMetrics(tl: gsap.core.Timeline, metricEls: Element[], start: number, end: number) {
   if (!metricEls.length || end <= start) return;
   const step = (end - start) / metricEls.length;
   metricEls.forEach((el, i) => {
     const itemStart = start + i * step;
-    const values = el.querySelectorAll('[data-part="value"]');
-    const labels = el.querySelectorAll('[data-part="label"]');
-    if (values.length) {
+    const parts = Array.from(el.querySelectorAll('[data-part="value"], [data-part="label"]'));
+    const valueIndex = parts.findIndex((p) => p.getAttribute('data-part') === 'value');
+    const heading = valueIndex > 0 ? parts.slice(0, valueIndex) : [];
+    const value = valueIndex >= 0 ? [parts[valueIndex]] : [];
+    const context = valueIndex >= 0 ? parts.slice(valueIndex + 1) : [];
+
+    const headingEnd = heading.length ? itemStart + step * 0.2 : itemStart;
+    const valueEnd = headingEnd + step * 0.4;
+
+    if (heading.length) {
       tl.fromTo(
-        values,
-        { opacity: 0, scale: 0.85 },
-        { opacity: 1, scale: 1, duration: step * 0.6, ease: 'power2.out' },
+        heading,
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: headingEnd - itemStart, ease: 'power2.out' },
         itemStart,
       );
     }
-    if (labels.length) {
+    if (value.length) {
       tl.fromTo(
-        labels,
+        value,
+        { opacity: 0, scale: 0.85 },
+        { opacity: 1, scale: 1, duration: valueEnd - headingEnd, ease: 'power2.out' },
+        headingEnd,
+      );
+    }
+    if (context.length) {
+      const contextStep = (itemStart + step - valueEnd) / context.length;
+      tl.fromTo(
+        context,
         { opacity: 0, y: 8 },
-        { opacity: 1, y: 0, duration: step * 0.5, stagger: step * 0.1, ease: 'power2.out' },
-        itemStart + step * 0.35,
+        { opacity: 1, y: 0, duration: contextStep, stagger: contextStep, ease: 'power2.out' },
+        valueEnd,
       );
     }
   });
