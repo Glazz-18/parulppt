@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import type { Scene } from '@/lib/types';
 import { KIND_COMPONENT, UI_COPY } from '@/lib/constants';
 import { SceneShell } from '@/components/ui/SceneShell';
+import { SceneProgressProvider } from './SceneProgress';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { registry } from '@/components/scenes';
 
@@ -26,25 +27,27 @@ export function SceneRenderer({ scene, onSource }: SceneRendererProps) {
   }, [Component, componentName, scene.id]);
 
   return (
-    <SceneShell scene={scene}>
-      {Component ? (
-        <Component scene={scene} />
-      ) : (
-        <>
-          {scene.eyebrow ? <MonoLabel as="p">{scene.eyebrow}</MonoLabel> : null}
-          {scene.title ? <h2>{scene.title}</h2> : null}
-        </>
-      )}
-      {scene.sourceNotes?.length ? (
-        <button
-          type="button"
-          aria-expanded={false}
-          aria-controls="source-drawer"
-          onClick={() => onSource?.(scene.slide)}
-        >
-          {UI_COPY.source}
-        </button>
-      ) : null}
-    </SceneShell>
+    <SceneProgressProvider slide={scene.slide}>
+      <SceneShell scene={scene}>
+        {Component ? (
+          <Component scene={scene} />
+        ) : (
+          <>
+            {scene.eyebrow ? <MonoLabel as="p">{scene.eyebrow}</MonoLabel> : null}
+            {scene.title ? <h2>{scene.title}</h2> : null}
+          </>
+        )}
+        {scene.sourceNotes?.length ? (
+          <button
+            type="button"
+            aria-expanded={false}
+            aria-controls="source-drawer"
+            onClick={() => onSource?.(scene.slide)}
+          >
+            {UI_COPY.source}
+          </button>
+        ) : null}
+      </SceneShell>
+    </SceneProgressProvider>
   );
 }
