@@ -102,9 +102,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: '',
-    title: '',
-    content: { memeId: 4, lines: [] },
+    eyebrow: 'RAG ≠ AUTHORIZATION',
+    content: { memeId: 4, lines: ['RAG hai bhai.'] },
   },
   {
     id: 'scene-08',

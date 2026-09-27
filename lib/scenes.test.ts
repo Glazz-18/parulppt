@@ -126,9 +126,9 @@ describe('scenes manifest', () => {
     });
   });
 
-  // Task 20 fills slides 1, 2, 8, 15 (CONTRACTS §3.1); every other slide is still the W2
-  // skeleton (empty strings) until its own manifest task lands.
-  const filledSlides = new Set([1, 2, 8, 15]);
+  // Task 20 fills slides 1, 2, 8, 15; Task 21 (part A) fills slide 7 (CONTRACTS §3.1). Every
+  // other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
+  const filledSlides = new Set([1, 2, 7, 8, 15]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
     scenes.forEach((scene) => {
@@ -157,6 +157,16 @@ describe('scenes manifest', () => {
     expect(content.blocks).toHaveLength(1);
     expect(content.blocks[0].type).toBe('steps');
     expect(content.blocks[0].items).toHaveLength(3);
+  });
+
+  it('slide 7 (meme) has its eyebrow and memeId 4 content.lines, and no title field', () => {
+    const scene = scenes[6];
+    expect(scene.eyebrow).toBe('RAG ≠ AUTHORIZATION');
+    expect(scene.title).toBeUndefined();
+    expect(scene.kind).toBe('meme');
+    const content = scene.content as { memeId: number; lines: string[] };
+    expect(content.memeId).toBe(4);
+    expect(content.lines).toEqual(['RAG hai bhai.']);
   });
 
   it('slide 8 (diagram) has a flow block with connectors and a lines block, plus sourceNotes', () => {
