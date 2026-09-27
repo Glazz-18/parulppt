@@ -71,6 +71,10 @@ function allRows(container: HTMLElement) {
   return Array.from(container.querySelectorAll('li'));
 }
 
+function occurrences(haystack: string, needle: string) {
+  return haystack.split(needle).length - 1;
+}
+
 describe('SocDemo', () => {
   it('queue: 4 event buttons + SOC_NOISE_ROWS textless aria-hidden rows, never more than 20 row elements, unrelated shown, live region empty', () => {
     const { container } = render(<SocDemo scene={makeScene()} />);
@@ -150,6 +154,8 @@ describe('SocDemo', () => {
 
     act(() => vi.advanceTimersByTime(1));
     expect(container.textContent).toContain(socCopy.gate);
+    // suggested is the gate's proposal now — a single copy, not also the copilot panel's
+    expect(occurrences(container.textContent ?? '', socCopy.suggested)).toBe(1);
   });
 
   it('reduced motion: PROPOSE fires with 0 delay', () => {
@@ -171,6 +177,8 @@ describe('SocDemo', () => {
 
     expect(container.textContent).toContain(UI_COPY.soc.approved);
     expect(container.querySelector('[data-tone="safe"]')).toBeTruthy();
+    expect(container.querySelector('s')).toBeNull();
+    expect(occurrences(container.textContent ?? '', socCopy.suggested)).toBe(1);
     expect(track).toHaveBeenCalledWith('demo_interaction', {
       slide: 23,
       demo: 'soc',
@@ -185,7 +193,7 @@ describe('SocDemo', () => {
     expect(track).not.toHaveBeenCalled();
   });
 
-  it('REJECT: outcome shows UI_COPY.soc.rejected, suggested struck through, neutral (never green)', () => {
+  it('REJECT: outcome shows UI_COPY.soc.rejected, suggested struck through, neutral tone (never green/orange)', () => {
     const { container } = render(<SocDemo scene={makeScene()} />);
     fireEvent.click(getButton(container, socCopy.copilot) as HTMLButtonElement);
     act(() => vi.advanceTimersByTime(SOC_PROPOSE_DELAY_MS));
@@ -195,8 +203,11 @@ describe('SocDemo', () => {
 
     expect(container.textContent).toContain(UI_COPY.soc.rejected);
     const struck = container.querySelector('s');
-    expect(struck?.textContent).toContain(socCopy.suggested);
+    expect(struck?.textContent).toBe(socCopy.suggested);
+    expect(occurrences(container.textContent ?? '', socCopy.suggested)).toBe(1);
+    expect(container.querySelector('[data-tone="neutral"]')).toBeTruthy();
     expect(container.querySelector('[data-tone="safe"]')).toBeNull();
+    expect(container.querySelector('[data-tone="alert"]')).toBeNull();
     expect(track).toHaveBeenCalledWith('demo_interaction', {
       slide: 23,
       demo: 'soc',

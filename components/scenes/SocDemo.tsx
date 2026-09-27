@@ -52,21 +52,6 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
-function CheckIcon() {
-  return (
-    <svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="14" height="14">
-      <path
-        d="M3 8.5 6.5 12 13 4"
-        fill="none"
-        stroke="var(--green)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function SocDemo({ scene }: SceneProps) {
   const [model, setModel] = useState<SocModel>(socInitial);
 
@@ -159,10 +144,7 @@ export function SocDemo({ scene }: SceneProps) {
               <MonoLabel as="p">{socCopy.copilot}</MonoLabel>
               <p>{socCopy.summary}</p>
               <p>{socCopy.evidence}</p>
-              <p>
-                {model.state === 'approved' ? <CheckIcon /> : null}{' '}
-                {model.state === 'rejected' ? <s>{socCopy.suggested}</s> : socCopy.suggested}
-              </p>
+              {model.state === 'correlated' ? <p>{socCopy.suggested}</p> : null}
             </div>
             {model.state !== 'correlated' ? (
               <ApprovalGate
