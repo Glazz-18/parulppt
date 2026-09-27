@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:memes": "node scripts/build-memes.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
