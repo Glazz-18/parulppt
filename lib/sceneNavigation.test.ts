@@ -17,12 +17,14 @@ import {
   getDrawerTrigger,
   getIndexEscape,
   getNavigationTarget,
+  getPenEscape,
   goToScene,
   isNavigationInFlight,
   keyToAction,
   nearestSnapTarget,
   setCurrentScene,
   setIndexEscape,
+  setPenEscape,
   startNavigationEngine,
   subscribeCurrentScene,
   useCurrentScene,
@@ -382,8 +384,11 @@ describe('keyToAction key table', () => {
     expect(press({ key: 'ArrowDown' }, { ...pinned(0.5), current: 46 })).toEqual({ type: 'scrollBy', direction: 1 });
   });
 
-  it('Escape closes the drawer first, else calls the demo escape, else nothing', () => {
-    expect(press({ key: 'Escape' }, { ...base, drawerOpen: true, demoEscape: true })).toEqual({ type: 'closeDrawer' });
+  it('Escape closes the drawer first, else turns off pen mode, else calls the demo escape, else nothing', () => {
+    expect(
+      press({ key: 'Escape' }, { ...base, drawerOpen: true, penOpen: true, demoEscape: true }),
+    ).toEqual({ type: 'closeDrawer' });
+    expect(press({ key: 'Escape' }, { ...base, penOpen: true, demoEscape: true })).toEqual({ type: 'closePen' });
     expect(press({ key: 'Escape' }, { ...base, demoEscape: true })).toEqual({ type: 'demoEscape' });
     expect(press({ key: 'Escape' })).toBeNull();
   });
@@ -401,10 +406,13 @@ describe('keyToAction key table', () => {
     expect(press({ key, shiftKey }, { ...base, indexOpen: true })).toBeNull();
   });
 
-  it('while the index overlay is open, Escape still closes it, ahead of the drawer and demo escape', () => {
-    expect(press({ key: 'Escape' }, { ...base, indexOpen: true, drawerOpen: true, demoEscape: true })).toEqual({
-      type: 'closeIndex',
-    });
+  it('while the index overlay is open, Escape still closes it, ahead of the drawer, pen mode and demo escape', () => {
+    expect(
+      press(
+        { key: 'Escape' },
+        { ...base, indexOpen: true, drawerOpen: true, penOpen: true, demoEscape: true },
+      ),
+    ).toEqual({ type: 'closeIndex' });
   });
 
   it.each(['a', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'])('%j is not a navigation key', (key) => {
@@ -923,6 +931,47 @@ describe('navigation engine', () => {
         key({ key: 'Escape' });
       });
       expect(drawer.result.current.slide).toBeNull();
+    });
+  });
+
+  describe('Escape precedence: pen mode off, between the drawer and demo escape (A21, Task 39)', () => {
+    afterEach(() => setPenEscape(null)); // module-level singleton; never leak into later tests
+
+    it('turns off pen mode via the real engine listener, even with a demo escape also active; the drawer wins first', () => {
+      start();
+      const penOff = vi.fn();
+      const demoEscape = vi.fn();
+      setPenEscape(penOff);
+      renderHook(() => useDemoEscape(1, demoEscape));
+      const drawer = renderHook(() => useSourceDrawer());
+      act(() => drawer.result.current.open(1));
+
+      let event!: KeyboardEvent;
+      act(() => {
+        event = key({ key: 'Escape' });
+      });
+      expect(event.defaultPrevented).toBe(true);
+      expect(drawer.result.current.slide).toBeNull(); // the drawer, above pen mode, closes first
+      expect(penOff).not.toHaveBeenCalled();
+
+      act(() => {
+        event = key({ key: 'Escape' });
+      });
+      expect(event.defaultPrevented).toBe(true);
+      expect(penOff).toHaveBeenCalledTimes(1);
+      expect(demoEscape).not.toHaveBeenCalled();
+    });
+
+    it('with pen mode off, falls through to the demo escape as before', () => {
+      start();
+      expect(getPenEscape()).toBeNull();
+      const demoEscape = vi.fn();
+      renderHook(() => useDemoEscape(1, demoEscape));
+
+      act(() => {
+        key({ key: 'Escape' });
+      });
+      expect(demoEscape).toHaveBeenCalledTimes(1);
     });
   });
 
