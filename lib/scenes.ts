@@ -173,8 +173,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "CHATBOT VS AGENT",
-    content: { memeId: 22, lines: ["…maine kab bola?"] },
+    eyebrow: 'CHATBOT VS AGENT',
+    content: { memeId: 22, lines: ['…maine kab bola?'] },
   },
   {
     id: 'scene-11',
@@ -197,8 +197,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "OVER-PERMISSIONED AGENTS",
-    content: { memeId: 3, lines: ["Bhai intern ko CEO ki permissions kyun di?"] },
+    eyebrow: 'OVER-PERMISSIONED AGENTS',
+    content: { memeId: 3, lines: ['Bhai intern ko CEO ki permissions kyun di?'] },
   },
   {
     id: 'scene-13',
@@ -313,16 +313,16 @@ export const scenes: Scene[] = [
         {
           type: 'marks',
           items: [
-            { text: "Investor email · “term sheet attached”", at: '09:12' },
-            { text: "WhatsApp · “co-founder, new number”", at: '11:40' },
-            { text: "Video call · the “investor”", at: '15:00' },
+            { text: 'Investor email · “term sheet attached”', at: '09:12' },
+            { text: 'WhatsApp · “co-founder, new number”', at: '11:40' },
+            { text: 'Video call · the “investor”', at: '15:00' },
           ],
         },
         {
           type: 'metrics',
           items: [
             { value: '$25M', label: 'Arup, 2024 · every other face on the call was a deepfake' },
-            { value: '₹7.29L', label: "IIT Bombay student · fake “TRAI” digital arrest" },
+            { value: '₹7.29L', label: 'IIT Bombay student · fake “TRAI” digital arrest' },
           ],
         },
       ],
@@ -358,7 +358,7 @@ export const scenes: Scene[] = [
             { n: '02', text: 'Confirm on a second channel' },
             { n: '03', text: 'Two people approve any transfer' },
             { n: '04', text: 'Agree a passphrase in advance' },
-            { n: '05', text: "Treat “urgent” as a red flag" },
+            { n: '05', text: 'Treat “urgent” as a red flag' },
           ],
         },
       ],
@@ -425,8 +425,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "MTTR",
-    content: { memeId: 14, lines: ["SOC: We found the attacker!","Attacker: Cool. I’m still inside."] },
+    eyebrow: 'MTTR',
+    content: { memeId: 14, lines: ['SOC: We found the attacker!','Attacker: Cool. I’m still inside.'] },
   },
   {
     id: 'scene-22',
@@ -436,8 +436,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "ALERT FATIGUE",
-    content: { memeId: 12, lines: ["10,000 alerts later…","Jo hoga dekha jayega."] },
+    eyebrow: 'ALERT FATIGUE',
+    content: { memeId: 12, lines: ['10,000 alerts later…','Jo hoga dekha jayega.'] },
   },
   {
     id: 'scene-23',
@@ -519,7 +519,7 @@ export const scenes: Scene[] = [
     scrollLength: 3,
     kind: 'data',
     eyebrow: 'AI FINDS · AI FIXES · HUMANS DECIDE · 4 OF 4',
-    title: "The defender’s AI stack",
+    title: 'The defender’s AI stack',
     sourceNotes: ['IBM Cost of a Data Breach 2026 · IBM Cost of a Data Breach, India, 2026'],
     content: {
       blocks: [
@@ -543,7 +543,7 @@ export const scenes: Scene[] = [
         },
         {
           type: 'lines',
-          lines: ["Half these tools cost more than an SME’s IT budget. That gap is your startup."],
+          lines: ['Half these tools cost more than an SME’s IT budget. That gap is your startup.'],
         },
       ],
     },
@@ -596,8 +596,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "PROBLEM DISCOVERY",
-    content: { memeId: 15, lines: ["“Who has this problem?”","“Everyone.”"] },
+    eyebrow: 'PROBLEM DISCOVERY',
+    content: { memeId: 15, lines: ['“Who has this problem?”','“Everyone.”'] },
   },
   {
     id: 'scene-31',
@@ -643,7 +643,7 @@ export const scenes: Scene[] = [
         },
         {
           type: 'lines',
-          lines: ["You don’t get secure after you get big. You scale because trust was designed early."],
+          lines: ['You don’t get secure after you get big. You scale because trust was designed early.'],
         },
       ],
     },
@@ -656,8 +656,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "GOVERNANCE DEBT",
-    content: { memeId: 6, lines: ["Customer: Please complete our 187-question security questionnaire.","Founder: …"] },
+    eyebrow: 'GOVERNANCE DEBT',
+    content: { memeId: 6, lines: ['Customer: Please complete our 187-question security questionnaire.','Founder: …'] },
   },
   {
     id: 'scene-34',
@@ -681,7 +681,7 @@ export const scenes: Scene[] = [
     scrollLength: 2,
     kind: 'timeline',
     eyebrow: 'ACT 5 · COMPLIANCE · 1 OF 2',
-    title: "India’s governance runway",
+    title: 'India’s governance runway',
     sourceNotes: ['DPDP Rules 2025, MeitY / PIB · EU AI Act and AI Omnibus (in force 27 Jul 2026)'],
     content: {
       blocks: [
@@ -719,7 +719,7 @@ export const scenes: Scene[] = [
           items: [
             { letter: 'M', term: 'Map', text: 'Every data flow, model, agent and vendor' },
             { letter: 'O', term: 'Own', text: 'A named human for every automation', note: 'MeitY 2025: accountability follows function' },
-            { letter: 'A', term: 'Align', text: "Controls mapped to the rules you’re under" },
+            { letter: 'A', term: 'Align', text: 'Controls mapped to the rules you’re under' },
             { letter: 'T', term: 'Translate', text: 'Trust turned into faster sales' },
           ],
         },
@@ -744,7 +744,7 @@ export const scenes: Scene[] = [
           items: [
             { letter: 'K', term: 'Keep', text: 'One page, one owner, one date' },
             { letter: 'I', term: 'It', text: 'What you actually do, not the licence you bought' },
-            { letter: 'S', term: 'Simple', text: "Needs a training session? It won’t survive your next sprint" },
+            { letter: 'S', term: 'Simple', text: 'Needs a training session? It won’t survive your next sprint' },
             { letter: 'S', term: 'Stupid', text: 'Said with love. Complexity kills governance quietly' },
           ],
         },
@@ -792,8 +792,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "HACKATHON REALITY",
-    content: { memeId: 18, lines: ["9 AM: revolutionary product.","2 AM: Bhai database connect nahi ho raha."] },
+    eyebrow: 'HACKATHON REALITY',
+    content: { memeId: 18, lines: ['9 AM: revolutionary product.','2 AM: Bhai database connect nahi ho raha.'] },
   },
   {
     id: 'scene-41',
@@ -828,8 +828,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "NETWORKING",
-    content: { memeId: 19, lines: ["“I don’t need networking.”","Six months later: internship kaise milegi?"] },
+    eyebrow: 'NETWORKING',
+    content: { memeId: 19, lines: ['“I don’t need networking.”','Six months later: internship kaise milegi?'] },
   },
   {
     id: 'scene-43',
@@ -867,7 +867,7 @@ export const scenes: Scene[] = [
         },
         {
           type: 'lines',
-          lines: ["Don’t tell me you have an idea. Show me something.", 'No 10 engineers. No ₹50 lakh. One problem, one user, one prototype.'],
+          lines: ['Don’t tell me you have an idea. Show me something.', 'No 10 engineers. No ₹50 lakh. One problem, one user, one prototype.'],
         },
       ],
     },
@@ -880,8 +880,8 @@ export const scenes: Scene[] = [
     pin: false,
     scrollLength: 1,
     kind: 'meme',
-    eyebrow: "START NOW",
-    content: { memeId: 28, lines: ["“Exams ke baad start karunga.”","Graduation day: I should have started in college."] },
+    eyebrow: 'START NOW',
+    content: { memeId: 28, lines: ['“Exams ke baad start karunga.”','Graduation day: I should have started in college.'] },
   },
   {
     id: 'scene-46',
