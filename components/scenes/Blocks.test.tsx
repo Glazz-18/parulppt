@@ -1,7 +1,15 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, describe, it, expect } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
 import type { Block } from '@/lib/types';
 import { Blocks } from './Blocks';
+
+// This file had no per-test cleanup, so every test's rendered DOM piled up in document.body for
+// the rest of the file (harmless while each test used distinct text, but it silently double- or
+// triple-counts anything reused across tests, e.g. plain series labels like 'A'/'B' -- Task 32 fix
+// round 1 finding). Matches the afterEach(cleanup) every other *.test.tsx in this folder already has.
+afterEach(() => {
+  cleanup();
+});
 
 describe('Blocks', () => {
   it('renders a lines block with each line as a separate part', () => {
@@ -129,5 +137,23 @@ describe('Blocks', () => {
       expect((fill as HTMLElement).style.width).not.toContain('NaN');
       expect((fill as HTMLElement).style.width).not.toBe('');
     });
+  });
+
+  // Manager ruling (Task 32 fix round 1): ratios carry every measured bar in deck shape order, so
+  // a `ratios` array longer than `series.length` groups into multiple rows of `series.length`.
+  it('renders a bars block with multiple rows when ratios carries more than one row', () => {
+    const blocks: Block[] = [
+      { type: 'bars', series: ['A', 'B'], note: 'a note', ratios: [1, 0.14, 0.86, 0.08] },
+    ];
+    const { container } = render(<Blocks blocks={blocks} />);
+    const bars = container.querySelectorAll('[data-part="bar"]');
+    expect(bars).toHaveLength(4);
+    const rows = container.querySelectorAll('[data-part="bar-row"]');
+    expect(rows).toHaveLength(2);
+    const fills = Array.from(container.querySelectorAll('[data-part="fill"]')) as HTMLElement[];
+    expect(fills.map((f) => f.style.width)).toEqual(['100%', '14%', '86%', '8%']);
+    // Every bar is identifiable by its own series label, not colour alone (both rows repeat A/B).
+    expect(screen.getAllByText('A')).toHaveLength(2);
+    expect(screen.getAllByText('B')).toHaveLength(2);
   });
 });

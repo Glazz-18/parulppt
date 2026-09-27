@@ -19,6 +19,57 @@ export const titleStyle = {
 
 export const eyebrowStyle = { fontSize: 'clamp(12px, 1vw, 16px)' };
 
+// Finding 4 (Task 22b, fix round 1): shared by every scene whose `useGSAP` builds its paused
+// timeline inside `gsap.matchMedia().add(...)` and scrubs it with `tl.progress(progress)` there
+// (ContentScene, MemeScene, RolePathScene, and any later scene with the same shape). That
+// matchMedia callback only re-runs when the media query's match state changes at runtime (e.g.
+// the OS reduced-motion setting flips mid-scroll) — not on every `progress` change — so reading
+// the `progress` closure variable directly would apply whatever value was current when the
+// effect last ran, not the latest one. Keep the latest value in a ref instead, updated via effect
+// (mutating a ref during render trips the `react-hooks/refs` lint rule), and read `ref.current`
+// when (re)building the timeline.
+export function useProgressRef(progress: number) {
+  const progressRef = useRef(progress);
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+  return progressRef;
+}
+
+export type HeadReveal = { headEnd: number; supportingSpan: number };
+
+// Arrival pose (CONTRACTS §6/§11, A9): pinned scenes complete metadata+title by 1/scrollLength;
+// unpinned scenes (scrollLength 1) use a fixed 0.35 head instead. Exported so scenes that need the
+// boundary itself (not just revealHead's tweens) — e.g. RagFlowScene mapping design §9 beats into
+// [headEnd, 1] — read it from one place instead of re-deriving the formula (Task 26 review round 1).
+export function headArrival(scene: { pin: boolean; scrollLength: number }): number {
+  const arrival = 1 / scene.scrollLength;
+  return scene.pin ? arrival : 0.35;
+}
+
+// Arrival pose (CONTRACTS §6/§11, A9): pinned scenes complete metadata+title by 1/scrollLength and
+// keep supporting beats in [that, 1]; unpinned scenes (scrollLength 1) play the whole metadata ->
+// title -> supporting sequence across 0..1. Shared by every scene whose useGSAP timeline opens
+// with an eyebrow + title pair before its own beats (ContentScene, RolePathScene, TimelineScene,
+// and any later scene with the same shape) — third verbatim copy flagged in Task 23 review round 1.
+export function revealHead(
+  tl: gsap.core.Timeline,
+  eyebrowEl: Element | null,
+  titleEl: Element | null,
+  scene: { pin: boolean; scrollLength: number },
+): HeadReveal {
+  const headEnd = headArrival(scene);
+
+  if (eyebrowEl) {
+    tl.fromTo(eyebrowEl, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
+  }
+  if (titleEl) {
+    tl.fromTo(titleEl, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: headEnd * 0.6 }, headEnd * 0.35);
+  }
+
+  return { headEnd, supportingSpan: Math.max(1 - headEnd, 0) };
+}
+
 type BlockAnim = { selector: string; from: gsap.TweenVars; to: gsap.TweenVars };
 
 // CONTRACTS §11 grammar (MASTER_PROMPT §19 beats): choreography keyed by block type, not by
@@ -67,7 +118,9 @@ export function revealStagger(
 // as context. BigNumber gives heading and the trailing label the same data-part ("label"), so
 // they're told apart by DOM order relative to the first data-part="value" node, not by selector.
 // All three phases stay inside this metric's own [itemStart, itemStart + step) slot.
-function revealMetrics(tl: gsap.core.Timeline, metricEls: Element[], start: number, end: number) {
+// Exported for reuse by one-off scene components (e.g. AgentLoopScene) that render metrics
+// blocks via <Blocks> but build their own paused timeline instead of ContentScene's.
+export function revealMetrics(tl: gsap.core.Timeline, metricEls: Element[], start: number, end: number) {
   if (!metricEls.length || end <= start) return;
   const step = (end - start) / metricEls.length;
   metricEls.forEach((el, i) => {
@@ -109,6 +162,18 @@ function revealMetrics(tl: gsap.core.Timeline, metricEls: Element[], start: numb
   });
 }
 
+// Finding 3 (Task 22b): secondary/annotation parts (layer marker/footer, flow label/marker, bars
+// note) were never animated and so showed before their block's own items landed. They now reveal
+// at the END of their own block's [start, end) slot, after the items — carving a small tail off
+// the slot for them when present, so the block's own span (and the timeline's total duration,
+// CONTRACTS §6) is unchanged either way.
+const TRAILING_SPAN = 0.15;
+function splitTrailing(start: number, end: number, hasTrailing: boolean) {
+  if (!hasTrailing) return { itemsEnd: end, trailStart: end };
+  const trailStart = start + (end - start) * (1 - TRAILING_SPAN);
+  return { itemsEnd: trailStart, trailStart };
+}
+
 // Bars grow (beat 28): the fill scales in from the left; the row itself also fades up so a
 // bar with no ratio yet (undefined -> full width, see Blocks.tsx) still reads as a reveal.
 function revealBars(tl: gsap.core.Timeline, barEls: Element[], start: number, end: number) {
@@ -137,6 +202,7 @@ export function ContentScene({ scene }: SceneProps) {
   const eyebrowRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const progressRef = useProgressRef(progress);
 
   const blocks = 'blocks' in scene.content ? scene.content.blocks : [];
 
@@ -148,28 +214,11 @@ export function ContentScene({ scene }: SceneProps) {
         const tl = gsap.timeline({ paused: true });
         tlRef.current = tl;
 
-        // Arrival pose (CONTRACTS §6/§11, A9): pinned scenes complete metadata+title by
-        // 1/scrollLength and keep supporting beats in [that, 1]; unpinned scenes (scrollLength
-        // 1) play the whole metadata -> title -> supporting sequence across 0..1.
-        const arrival = 1 / scene.scrollLength;
-        const headEnd = scene.pin ? arrival : 0.35;
-
-        if (eyebrowRef.current) {
-          tl.fromTo(eyebrowRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
-        }
-        if (titleRef.current) {
-          tl.fromTo(
-            titleRef.current,
-            { opacity: 0, y: 16 },
-            { opacity: 1, y: 0, duration: headEnd * 0.6 },
-            headEnd * 0.35,
-          );
-        }
+        const { headEnd, supportingSpan } = revealHead(tl, eyebrowRef.current, titleRef.current, scene);
 
         const wrappers = containerRef.current
           ? Array.from(containerRef.current.querySelectorAll<HTMLElement>('[data-block]'))
           : [];
-        const supportingSpan = Math.max(1 - headEnd, 0);
         const perBlock = blocks.length ? supportingSpan / blocks.length : 0;
 
         blocks.forEach((block, i) => {
@@ -182,7 +231,25 @@ export function ContentScene({ scene }: SceneProps) {
             return;
           }
           if (block.type === 'bars') {
-            revealBars(tl, Array.from(wrapper.querySelectorAll('[data-part="bar"]')), start, end);
+            const note = wrapper.querySelector('[data-part="note"]');
+            const { itemsEnd, trailStart } = splitTrailing(start, end, !!note);
+            revealBars(tl, Array.from(wrapper.querySelectorAll('[data-part="bar"]')), start, itemsEnd);
+            if (note) revealStagger(tl, [note], trailStart, end, { opacity: 0, y: 8 }, { opacity: 1, y: 0 });
+            return;
+          }
+          if (block.type === 'layers' || block.type === 'flow') {
+            const cfg = BLOCK_ANIM[block.type];
+            if (!cfg) return;
+            // layers' marker/footer (Blocks.tsx ~97-124) and flow's label/marker (~153-162) are
+            // never part of the block's own item selector, so they're picked up separately here.
+            const trailingSelector =
+              block.type === 'layers'
+                ? '[data-part="marker"], [data-part="footer"]'
+                : '[data-part="flow-label"], [data-part="marker"]';
+            const trailing = Array.from(wrapper.querySelectorAll(trailingSelector));
+            const { itemsEnd, trailStart } = splitTrailing(start, end, trailing.length > 0);
+            revealStagger(tl, wrapper.querySelectorAll(cfg.selector), start, itemsEnd, cfg.from, cfg.to);
+            if (trailing.length) revealStagger(tl, trailing, trailStart, end, { opacity: 0, y: 8 }, { opacity: 1, y: 0 });
             return;
           }
           const cfg = BLOCK_ANIM[block.type];
@@ -193,7 +260,7 @@ export function ContentScene({ scene }: SceneProps) {
         // Guarantees total duration 1 (CONTRACTS §6) even when content is empty or float
         // rounding left the last beat a hair short.
         tl.set({}, {}, 1);
-        tl.progress(progress);
+        tl.progress(progressRef.current);
 
         return () => {
           tlRef.current = null;

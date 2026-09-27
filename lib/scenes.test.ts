@@ -127,8 +127,15 @@ describe('scenes manifest', () => {
   });
 
   // Task 20 fills slides 1, 2, 8, 15; Task 21 (part A) fills slide 7; Task 21 (part B) fills slides 10, 12, 21, 22, 30, 33, 40, 42, 45;
-  // Task 22 fills slide 3. Every other slide is still the W2 skeleton (empty strings) until its own manifest task lands.
-  const filledSlides = new Set([1, 2, 3, 7, 8, 10, 12, 15, 21, 22, 30, 33, 40, 42, 45]);
+  // Task 22 fills slide 3; Task 23 fills slides 19, 20; Task 24 fills slides 9, 13, 16, 17, 18, 24, 27, 28.
+  // Task 25 fills slides 31, 32, 35, 36, 37, 39, 41, 44. Task 26 fills slide 5. Task 27 fills slide 11.
+  // Task 28 fills slide 14. Task 29 fills slide 25. Task 30 fills slide 26. Task 31 fills slide 29.
+  // Task 32 fills slide 34. Task 34 fills slide 43. Task 35 fills slide 46. Task 36 fills the
+  // three demos, 4, 6, 23. Every other slide is still the W2 skeleton (empty strings) until its
+  // own manifest task lands.
+  const filledSlides = new Set([
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+  ]);
 
   it('slides not yet filled keep the skeleton empty eyebrow and title', () => {
     scenes.forEach((scene) => {
@@ -168,6 +175,36 @@ describe('scenes manifest', () => {
     expect(content.blocks[0].type).toBe('flow');
     expect(content.blocks[0].marker).toBe('You are here');
     expect(content.blocks[0].items).toEqual(['User', 'Power user', 'Builder', 'Founder', 'System designer']);
+  });
+
+  it('slide 4 (demo) has eyebrow, title and subtitle from source/slides.json paragraphs [0], [2], [1], with no extra content fields', () => {
+    const scene = scenes[3];
+    expect(scene.eyebrow).toBe('ACT 2 · LIVE DEMO 1 · 5 MIN');
+    expect(scene.title).toBe('Talk the assistant out of its secret');
+    expect(scene.kind).toBe('demo');
+    const content = scene.content as { subtitle: string };
+    expect(content.subtitle).toBe('Instruction hierarchy → role-play → guardrail');
+    expect(Object.keys(content)).toEqual(['subtitle']);
+  });
+
+  it('slide 6 (demo) has eyebrow, title and subtitle from source/slides.json paragraphs [0], [2], [1], with no extra content fields', () => {
+    const scene = scenes[5];
+    expect(scene.eyebrow).toBe('ACT 2 · LIVE DEMO 2 · 6 MIN');
+    expect(scene.title).toBe('Poison the policy folder');
+    expect(scene.kind).toBe('demo');
+    const content = scene.content as { subtitle: string };
+    expect(content.subtitle).toBe('University assistant · 3 policies + 1 plant');
+    expect(Object.keys(content)).toEqual(['subtitle']);
+  });
+
+  it('slide 23 (demo) has eyebrow, title and subtitle from source/slides.json paragraphs [0], [2], [1], with no extra content fields', () => {
+    const scene = scenes[22];
+    expect(scene.eyebrow).toBe('ACT 4 · LIVE DEMO 3 · 6 MIN');
+    expect(scene.title).toBe('10,000 alerts, one story');
+    expect(scene.kind).toBe('demo');
+    const content = scene.content as { subtitle: string };
+    expect(content.subtitle).toBe('Synthetic logs · aarav-startup.example');
+    expect(Object.keys(content)).toEqual(['subtitle']);
   });
 
   it('slide 7 (meme) has its eyebrow and memeId 4 content.lines, and no title field', () => {
@@ -216,6 +253,80 @@ describe('scenes manifest', () => {
     expect(content.blocks[1].lines).toEqual([
       'The college project you built on a free API key, with the placement data in it.',
     ]);
+  });
+
+  it('slide 19 (timeline) has a marks block of 5 in deck order, plus sourceNotes', () => {
+    const scene = scenes[18];
+    expect(scene.eyebrow).toBe('ACT 4 · TIMELINE COMPRESSION · 1 OF 2');
+    expect(scene.title).toBe('The attacker’s clock');
+    expect(scene.accent).toBe('orange');
+    expect(scene.sourceNotes).toEqual([
+      'CrowdStrike 2026 Global Threat Report (2025 data) · Mandiant M-Trends 2026',
+    ]);
+    const content = scene.content as { blocks: { type: string; items?: { at: string; text: string }[] }[] };
+    expect(content.blocks).toHaveLength(1);
+    expect(content.blocks[0].type).toBe('marks');
+    expect(content.blocks[0].items).toEqual([
+      { at: '22s', text: 'access broker hands off to ransomware crew' },
+      { at: '27s', text: 'fastest breakout' },
+      { at: '4m', text: 'to first data out' },
+      { at: '29m', text: 'average breakout' },
+      { at: '−7 days', text: 'mean time-to-exploit: used before the patch exists' },
+    ]);
+  });
+
+  it('slide 20 (timeline) has a marks block of 4 plus a closing lines block, plus sourceNotes', () => {
+    const scene = scenes[19];
+    expect(scene.eyebrow).toBe('ACT 4 · TIMELINE COMPRESSION · 2 OF 2');
+    expect(scene.title).toBe('The defender’s clock');
+    expect(scene.accent).toBeUndefined();
+    expect(scene.sourceNotes).toEqual([
+      'Mandiant M-Trends 2026 · IBM Cost of a Data Breach 2026 · IBM Cost of a Data Breach, India, 2026',
+    ]);
+    const content = scene.content as {
+      blocks: { type: string; items?: { at: string; text: string }[]; lines?: string[] }[];
+    };
+    expect(content.blocks).toHaveLength(2);
+    expect(content.blocks[0].type).toBe('marks');
+    expect(content.blocks[0].items).toEqual([
+      { at: '14d', text: 'median dwell time, up from 11' },
+      { at: '236d', text: 'to identify, India, no automation · 175 with it' },
+      { at: '247d', text: 'to identify and contain, global' },
+      { at: '−$1.93M', text: 'and 65 days faster with extensive security AI and automation' },
+    ]);
+    expect(content.blocks[1].type).toBe('lines');
+    expect(content.blocks[1].lines).toEqual([
+      'The human doesn’t get faster. The tooling and the design do.',
+    ]);
+  });
+
+  it('slide 29 (diagram) has five flow blocks of problem, →, product in deck order', () => {
+    const scene = scenes[28];
+    expect(scene.eyebrow).toBe('ACT 5 · SECURITY → STARTUP');
+    expect(scene.title).toBe('Every security problem is a product');
+    const content = scene.content as { blocks: { type: string; items: string[] }[] };
+    expect(content.blocks).toHaveLength(5);
+    content.blocks.forEach((block) => expect(block.type).toBe('flow'));
+    expect(content.blocks.map((b) => b.items)).toEqual([
+      ['Phishing', '→', 'Security awareness'],
+      ['Deepfakes', '→', 'Identity verification'],
+      ['RAG leakage', '→', 'AI data security'],
+      ['Prompt injection', '→', 'AI red-teaming platforms'],
+      ['Alert fatigue', '→', 'SOC automation for SMEs'],
+    ]);
+  });
+
+  it('slide 46 (cta) has no eyebrow and no title field (§3.1 recipe rules 1, 3) and the closing content', () => {
+    const scene = scenes[45];
+    expect(scene.eyebrow).toBeUndefined();
+    expect(scene.title).toBeUndefined();
+    expect(scene.kind).toBe('cta');
+    const content = scene.content as { lines: string[]; closing: string; speaker: string; role: string; linkedin: string };
+    expect(content.lines).toEqual(['Build something.', 'Break something.', 'Secure something.', 'Scale something.']);
+    expect(content.closing).toBe('And find the people who will build it with you.');
+    expect(content.speaker).toBe('Atharv Tiwari');
+    expect(content.role).toBe('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(content.linkedin).toBe('linkedin.com/in/atharvtiwari');
   });
 
   it('every scene has appropriate content shape', () => {
@@ -268,14 +379,36 @@ describe('scenes manifest', () => {
     });
   });
 
-  it('no scene has sourceNotes yet, except 8 and 15 (Task 20)', () => {
-    const sourceNotesSlides = new Set([8, 15]);
+  it('no scene has sourceNotes yet, except 8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 26, 27, 31, 35, 36, 37, 41 (Tasks 20, 23, 24, 25, 27, 28, 29, 30)', () => {
+    const sourceNotesSlides = new Set([8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 26, 27, 31, 35, 36, 37, 41]);
     scenes.forEach((scene) => {
       if (sourceNotesSlides.has(scene.slide)) {
         expect(scene.sourceNotes).toBeDefined();
       } else {
         expect(scene.sourceNotes).toBeUndefined();
       }
+    });
+  });
+
+  // Manager ruling (Task 32 fix round 1): bars.ratios carry EVERY measured bar in deck shape
+  // order, normalised to the longest bar = 1; slide 28 has 2 rows of 2 series (MTTD, MTTR) = 4;
+  // slide 34 has 4 rows of 2 series (one per phase) = 8.
+  it('every bars block (slides 28, 34) carries measured ratios for every bar, in (0, 1], max 1', () => {
+    const expectedLengths: Record<number, number> = { 28: 4, 34: 8 };
+    Object.entries(expectedLengths).forEach(([slideStr, length]) => {
+      const slide = Number(slideStr);
+      const scene = scenes[slide - 1];
+      const content = scene.content as { blocks: Array<{ type: string; series?: string[]; ratios?: number[] }> };
+      const barsBlock = content.blocks.find((b) => b.type === 'bars');
+      expect(barsBlock).toBeTruthy();
+      const ratios = barsBlock!.ratios;
+      expect(ratios).toHaveLength(length);
+      expect(length % barsBlock!.series!.length).toBe(0);
+      ratios!.forEach((r) => {
+        expect(r).toBeGreaterThan(0);
+        expect(r).toBeLessThanOrEqual(1);
+      });
+      expect(Math.max(...ratios!)).toBe(1);
     });
   });
 });

@@ -103,4 +103,65 @@ describe('MemeScene', () => {
     const created = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
     expect(created.duration()).toBe(1);
   });
+
+  // Task 37 hand-off (design §8, A9, 22->23): slide 22 only gets the dark field; every other
+  // meme slide is unaffected (scoped by data, not by kind).
+  it('slide 22 renders the dark hand-off field as its last, in-flow, aria-hidden child (--bg-dark/--text-dark tokens); other meme slides do not', () => {
+    const { container: c22 } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    const root = c22.firstElementChild as HTMLElement;
+    const field = c22.querySelector('[data-part="handoff-field"]') as HTMLElement;
+    expect(field).toBeTruthy();
+    expect(root.lastElementChild).toBe(field);
+    expect(field.getAttribute('aria-hidden')).toBe('true');
+    expect(field.style.background).toBe('var(--bg-dark)');
+    expect(field.style.borderTop).toContain('var(--text-dark)');
+    // In-flow (fix round 1, finding 2), not absolutely positioned over the content above it.
+    expect(field.style.position).not.toBe('absolute');
+    cleanup();
+
+    const { container: c7 } = render(<MemeScene scene={baseScene({ slide: 7 })} />);
+    expect(c7.querySelector('[data-part="handoff-field"]')).toBeNull();
+  });
+
+  it('slide 22 renders the hand-off field under reduced motion too (it is not GSAP-driven)', () => {
+    reduced = true;
+    const { container } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    expect(container.querySelector('[data-part="handoff-field"]')).toBeTruthy();
+  });
+
+  // Fix round 2 (finding 1): the 880px cap must live on the interstitial's own root div, never on
+  // the outer wrapper -- otherwise the hand-off field's vw-based bleed margins reach only 5vw past
+  // an 880px-wide box, not the section's true edge, on any viewport wider than ~1038px.
+  it('the outer wrapper applies no max-w- utility to itself; it only targets the interstitial child via a descendant selector', () => {
+    const { container } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    const root = container.firstElementChild as HTMLElement;
+    // No class token on the wrapper's OWN className directly applies max-w- to itself (only the
+    // `[&>div]:max-w-[880px]` descendant-variant selector below, which targets its child instead,
+    // may mention "max-w-").
+    const ownClasses = root.className.split(/\s+/);
+    expect(ownClasses.some((c) => c.startsWith('max-w-'))).toBe(false);
+    expect(root.className).toContain('[&>div]:max-w-[880px]');
+  });
+
+  // Fix round 2 (finding 2): only slide 22 (which has the field, a second in-flow sibling) needs
+  // `my-auto` on the interstitial to stay vertically centred; every other meme slide is unaffected.
+  it('scopes the interstitial’s my-auto centring fix to the hand-off slide only', () => {
+    const { container: c22 } = render(<MemeScene scene={baseScene({ slide: 22 })} />);
+    expect((c22.firstElementChild as HTMLElement).className).toMatch(/\[&>div\]:my-auto/);
+    cleanup();
+
+    const { container: c7 } = render(<MemeScene scene={baseScene({ slide: 7 })} />);
+    expect((c7.firstElementChild as HTMLElement).className).not.toMatch(/my-auto/);
+  });
+
+  // Finding 4 (Task 22b, fix round 1): scrubbing now goes through the shared `useProgressRef`
+  // (`./ContentScene`) instead of a local ref — this confirms the refactor still wires
+  // `tl.progress(progressRef.current)` correctly (no provider wraps this render, so
+  // `useSceneProgress()` reads its documented no-measurement default of 1, CONTRACTS §6).
+  it('scrubs the built timeline to the current progress via the shared progress ref', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+    render(<MemeScene scene={baseScene()} />);
+    const created = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
+    expect(created.progress()).toBe(1);
+  });
 });

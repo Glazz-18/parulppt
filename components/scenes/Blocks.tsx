@@ -9,8 +9,9 @@ import { BigNumber } from '@/components/ui/BigNumber';
 export type BlocksProps = { blocks: Block[] };
 
 // The deck's own connector glyphs (§3.1): rendered as distinct, visible connector elements,
-// never aria-hidden — they are deck copy, not decoration.
-const CONNECTORS = new Set(['→', '+', '=', '↺']);
+// never aria-hidden — they are deck copy, not decoration. Exported for reuse by one-off scene
+// components (e.g. AgentLoopScene) that lay out flow items themselves instead of via <Blocks>.
+export const CONNECTORS = new Set(['→', '+', '=', '↺']);
 
 const monoStyle: CSSProperties = {
   fontFamily: 'var(--font-mono)',
@@ -198,27 +199,37 @@ function BlockView({ block }: { block: Block }) {
         </div>
       );
 
-    case 'bars':
+    case 'bars': {
+      // Manager ruling (Task 32 fix round 1, CONTRACTS §3.1): `ratios` carries every measured bar
+      // in deck shape order, not one per series -- so a longer `ratios` array groups into rows of
+      // `series.length` (one row per measured group, e.g. MTTD/MTTR or one per phase), each row
+      // repeating the series labels. With no `ratios` (or exactly one row's worth), this is the
+      // original single-row behaviour: a full-width neutral placeholder per series.
+      const seriesLen = block.series.length;
+      const ratios = block.ratios;
+      const rowCount = ratios && seriesLen > 0 ? ratios.length / seriesLen : 1;
       return (
-        <div data-block="bars" className="flex flex-col gap-4">
-          {block.series.map((label, i) => {
-            // ponytail: ratio not yet measured (later task fills it from PPTX shape widths) ->
-            // full-width neutral placeholder so the bar renders sensibly instead of NaN/empty.
-            const ratio = block.ratios?.[i];
-            const widthPct = `${Math.round((ratio ?? 1) * 100)}%`;
-            return (
-              <div key={i} data-part="bar" className="flex flex-col gap-1">
-                <span style={monoStyle}>{label}</span>
-                <div className="h-3 w-full border" style={ruleStyle}>
-                  <div
-                    data-part="fill"
-                    className="h-full"
-                    style={{ width: widthPct, background: 'var(--label)' }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+        <div data-block="bars" className="flex flex-col gap-6">
+          {Array.from({ length: rowCount }).map((_, row) => (
+            <div key={row} data-part="bar-row" className="flex flex-col gap-4">
+              {block.series.map((label, i) => {
+                const ratio = ratios?.[row * seriesLen + i];
+                const widthPct = `${Math.round((ratio ?? 1) * 100)}%`;
+                return (
+                  <div key={i} data-part="bar" className="flex flex-col gap-1">
+                    <span style={monoStyle}>{label}</span>
+                    <div className="h-3 w-full border" style={ruleStyle}>
+                      <div
+                        data-part="fill"
+                        className="h-full"
+                        style={{ width: widthPct, background: 'var(--label)' }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
           {block.note ? (
             <p data-part="note" style={metaMutedStyle}>
               {block.note}
@@ -226,6 +237,7 @@ function BlockView({ block }: { block: Block }) {
           ) : null}
         </div>
       );
+    }
 
     default:
       return null;

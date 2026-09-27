@@ -82,6 +82,19 @@ describe('RolePathScene', () => {
     expect(userItem?.querySelector('[data-part="marker"]')?.textContent).toContain('You are here');
   });
 
+  // Finding 5 (Task 22b): five equal flex-1 columns put column 1's (User) centre at 10% and
+  // column 5's (System designer) centre at 90% — path/pointer must span exactly that, not the
+  // full inset-x-0 (0%..100%), or the pointer overshoots past the last dot at rest.
+  it('insets the path and pointer to the first/last dot centres (10%), not the full width', () => {
+    const { container } = render(<RolePathScene scene={baseScene()} />);
+    const path = container.querySelector('[data-part="path"]') as HTMLElement;
+    const pointer = container.querySelector('[data-part="pointer"]') as HTMLElement;
+    expect(path.style.left).toBe('10%');
+    expect(path.style.right).toBe('10%');
+    expect(pointer.style.left).toBe('10%');
+    expect(pointer.style.right).toBe('10%');
+  });
+
   it('under reduced motion, all text is present and no GSAP timeline is created', () => {
     reduced = true;
     const timelineSpy = vi.spyOn(gsap, 'timeline');
@@ -100,6 +113,17 @@ describe('RolePathScene', () => {
     expect(vars?.paused).toBe(true);
     const created = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
     expect(created.duration()).toBe(1);
+  });
+
+  // Finding 4 (Task 22b, fix round 1): scrubbing now goes through the shared `useProgressRef`
+  // (`./ContentScene`) instead of a local ref — this confirms the refactor still wires
+  // `tl.progress(progressRef.current)` correctly (no provider wraps this render, so
+  // `useSceneProgress()` reads its documented no-measurement default of 1, CONTRACTS §6).
+  it('scrubs the built timeline to the current progress via the shared progress ref', () => {
+    const timelineSpy = vi.spyOn(gsap, 'timeline');
+    render(<RolePathScene scene={baseScene()} />);
+    const created = timelineSpy.mock.results[0]!.value as gsap.core.Timeline;
+    expect(created.progress()).toBe(1);
   });
 
   it('at tl.progress(1), the eyebrow, title, path, pointer, every role and the marker are fully settled (no leftover transform/opacity)', () => {

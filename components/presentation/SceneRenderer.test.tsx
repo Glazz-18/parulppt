@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import type { Scene } from '@/lib/types';
 import { UI_COPY } from '@/lib/constants';
+import { campusBotCopy, ragCopy, socCopy } from '@/lib/demoState';
 import { SceneRenderer } from './SceneRenderer';
 import { Presentation } from './Presentation';
+import { registry } from '@/components/scenes';
 
 // This file's fallback tests must stay true regardless of which scene components the registry
 // gains over time (Task 20 added TitleScene/ContentScene; Task 23 adds TimelineScene, etc.), so
@@ -50,6 +52,63 @@ describe('Presentation', () => {
     sections.forEach((section, index) => {
       expect(section.getAttribute('data-slide')).toBe(String(index + 1).padStart(2, '0'));
     });
+  });
+
+  it('every section has non-empty text through the real registry, incl. the 3 dynamic demos (TRD §16)', async () => {
+    // This file's registry mock is empty (see above) so the fallback tests above stay meaningful;
+    // for this one test only, temporarily fill that same (shared) mocked object with the real
+    // registry — including the next/dynamic-wrapped demos — then empty it again in `finally` so
+    // every later test keeps seeing the empty registry it expects.
+    const actual = await vi.importActual<typeof import('@/components/scenes')>('@/components/scenes');
+    Object.assign(registry, actual.registry);
+    // Reduced motion: no scene builds a GSAP timeline (CONTRACTS §11), so every scene's
+    // progress-1 static markup renders immediately with no ScrollTrigger/matchMedia setup needed.
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: (query: string) => ({
+        matches: query.includes('reduce'),
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+
+    try {
+      const { container } = render(<Presentation />);
+
+      // The 3 demos are next/dynamic (SSR on); waiting on scene.title text would not discriminate
+      // a mounted demo from SceneRenderer's fallback, which renders that identical
+      // <h2>{scene.title}</h2> when the registry lookup fails — so instead wait, per demo section,
+      // for DemoShell-only markup the fallback never renders: its Reset button, plus one
+      // demo-interior fixture string from lib/demoState.ts that only the demo's own body renders.
+      const campusBotSection = container.querySelector('section[data-scene="scene-04"]') as HTMLElement;
+      await within(campusBotSection).findByRole('button', { name: UI_COPY.reset });
+      within(campusBotSection).getByText(campusBotCopy.question);
+
+      const ragSection = container.querySelector('section[data-scene="scene-06"]') as HTMLElement;
+      await within(ragSection).findByRole('button', { name: UI_COPY.reset });
+      within(ragSection).getByText(ragCopy.index);
+
+      const socSection = container.querySelector('section[data-scene="scene-23"]') as HTMLElement;
+      await within(socSection).findByRole('button', { name: UI_COPY.reset });
+      within(socSection).getByText(socCopy.queue);
+
+      const sections = Array.from(container.querySelectorAll('main#presentation > section[data-scene]'));
+      expect(sections).toHaveLength(46);
+      sections.forEach((section) => {
+        expect(section.textContent?.trim()).not.toBe('');
+      });
+    } finally {
+      Object.keys(registry).forEach((key) => {
+        delete (registry as Record<string, unknown>)[key];
+      });
+      delete (window as { matchMedia?: unknown }).matchMedia;
+    }
   });
 });
 

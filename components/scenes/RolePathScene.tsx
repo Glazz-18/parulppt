@@ -6,7 +6,7 @@ import { useGSAP } from '@gsap/react';
 import type { SceneProps } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
-import { titleStyle, eyebrowStyle, revealStagger } from './ContentScene';
+import { titleStyle, eyebrowStyle, revealHead, revealStagger, useProgressRef } from './ContentScene';
 
 const bodyTextStyle = {
   fontSize: 'clamp(20px, 1.6vw, 28px)',
@@ -19,6 +19,13 @@ const bodyTextStyle = {
 // 4381500/7620000/10858500/14097000) — the marker rests over the first (lowest) step, User.
 const RESTING_ROLE_INDEX = 0;
 
+// Finding 5 (Task 22b): the roles list is five equal `flex-1` columns (see the `<ol>` below), so
+// column 1 (User) is centred at 10% and column 5 (System designer) at 90%. `path`/`pointer` were
+// `inset-x-0` (0%..100%), overshooting past System designer's dot centre; inset them to the first
+// and last dot centres instead so the pointer's resting position (progress 1, x: 0) lines up with
+// the last dot, not the column's outer edge.
+const PATH_INSET = '10%';
+
 export function RolePathScene({ scene }: SceneProps) {
   const progress = useSceneProgress();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +35,7 @@ export function RolePathScene({ scene }: SceneProps) {
   const pointerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const progressRef = useProgressRef(progress);
 
   const blocks = 'blocks' in scene.content ? scene.content.blocks : [];
   const flowBlock = blocks.find((b) => b.type === 'flow');
@@ -44,22 +52,7 @@ export function RolePathScene({ scene }: SceneProps) {
 
         // Arrival pose (CONTRACTS §6/§11): unpinned scene (scrollLength 1), same head/supporting
         // split as ContentScene's unpinned case.
-        const arrival = 1 / scene.scrollLength;
-        const headEnd = scene.pin ? arrival : 0.35;
-
-        if (eyebrowRef.current) {
-          tl.fromTo(eyebrowRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: headEnd * 0.4 }, 0);
-        }
-        if (titleRef.current) {
-          tl.fromTo(
-            titleRef.current,
-            { opacity: 0, y: 16 },
-            { opacity: 1, y: 0, duration: headEnd * 0.6 },
-            headEnd * 0.35,
-          );
-        }
-
-        const supportingSpan = Math.max(1 - headEnd, 0);
+        const { headEnd, supportingSpan } = revealHead(tl, eyebrowRef.current, titleRef.current, scene);
 
         // MASTER_PROMPT §19 scene 3 beat: the path line draws left -> right first (design §8
         // "shared geometry" enter grammar), roles reveal in sequence over it, and the marker
@@ -106,7 +99,7 @@ export function RolePathScene({ scene }: SceneProps) {
 
         // Guarantees total duration 1 (CONTRACTS §6) even when float rounding left a beat short.
         tl.set({}, {}, 1);
-        tl.progress(progress);
+        tl.progress(progressRef.current);
 
         return () => {
           tlRef.current = null;
@@ -139,13 +132,19 @@ export function RolePathScene({ scene }: SceneProps) {
         <div
           ref={pathRef}
           data-part="path"
-          className="absolute inset-x-0 top-2 h-px origin-left"
-          style={{ background: 'var(--rule)' }}
+          className="absolute top-2 h-px origin-left"
+          style={{ left: PATH_INSET, right: PATH_INSET, background: 'var(--rule)' }}
         />
         {/* Decorative path-head pointer (not the "You are here" marker): same width as `path`, so
             translating it by its own -100%/0% moves it exactly one path-length. Its natural,
             untransformed position (the inner dot at `right-0`) is the path's end. */}
-        <div ref={pointerRef} data-part="pointer" aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-2 h-0">
+        <div
+          ref={pointerRef}
+          data-part="pointer"
+          aria-hidden="true"
+          className="pointer-events-none absolute top-2 h-0"
+          style={{ left: PATH_INSET, right: PATH_INSET }}
+        >
           <span className="absolute right-0 top-1/2 block h-2 w-2 -translate-y-1/2 rounded-full" style={{ background: 'var(--label)' }} />
         </div>
         <ol data-part="roles" className="relative flex items-start justify-between gap-2">
