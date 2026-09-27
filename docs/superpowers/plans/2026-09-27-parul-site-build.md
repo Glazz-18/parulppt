@@ -474,6 +474,20 @@
 - [ ] **Step 1:** Failing tests in `SceneShell.test.tsx`: the root's inline style (or computed class) carries the two padding values; a `pin: false` scene's `.scene-viewport` is a flex column with `min-height: 100vh` (assert via the CSS text of `app/globals.css` read with Node `fs`, since jsdom does not compute stylesheet rules); a `pin: true` scene keeps `position: sticky` in the same CSS.
 - [ ] **Step 2:** Implement; `npm run lint && npm test && npm run build`; commit `fix(w1): scene frame padding floor and unpinned viewport height`.
 
+### Task 42: Theme-aware HUD chrome
+
+**Model:** Sonnet (W2-owned follow-up, dispatched by Fable on build/site; reviewer Sonnet)
+**Files:**
+- Modify: `components/presentation/Presentation.tsx` (or a small wrapper it renders) so the fixed chrome — `SideNav`, `SceneControls` (Previous/Next, counter, Act label), the `IndexOverlay` trigger and the `PresenterPen` toolbar — sits inside one element carrying `data-theme={scenes[currentScene - 1].theme}` (and `data-accent` when set) derived from `useCurrentScene()`; tests beside the touched files.
+- Modify only if needed: `components/presentation/SideNav.tsx`, `SceneControls.tsx`, `IndexOverlay.tsx`, `PresenterPen.tsx` to take their colours from `var(--fg)` / `var(--muted)` / `var(--label)` / `var(--rule)` (the §5.3 theme variables) instead of `--text-light` or any fixed token.
+
+**Interfaces:**
+- Consumes: `useCurrentScene`, `scenes`, the §5.3 theme variables already defined per `[data-theme]` in `app/globals.css`.
+- Produces: HUD text and rules readable on every scene theme — verified on scene 3 (light) the buttons compute to `--text-dark`, on scene 7 (orange) to `--text-dark`, on scene 1 (dark) to `--text-light`; no HUD element uses a literal token colour.
+
+- [ ] **Step 1:** Failing test: render `Presentation` with a mocked current scene of 3 → the chrome wrapper has `data-theme="light"`; with 7 → `"orange"`; with 1 → `"dark"`; and a CSS text assertion (Node `fs`) that the HUD components contain no `--text-light`/`--text-dark` literals.
+- [ ] **Step 2:** Implement; `npm run lint && npm test && npm run build`; commit `fix(w2): HUD chrome follows the current scene theme`.
+
 ---
 
 ## Phase gates (Fable records, Opus signs) — see `docs/AGENT_HIERARCHY.md` §11

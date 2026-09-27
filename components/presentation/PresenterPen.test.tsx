@@ -77,6 +77,20 @@ describe('PresenterPen', () => {
     expect(clear.textContent).toBe(UI_COPY.clear);
   });
 
+  it("the toolbar carries the current scene's theme (scene 3 = light, scene 7 = orange, scene 1 = dark)", () => {
+    act(() => setCurrentScene(3));
+    const { container, rerender } = render(<PresenterPen />);
+    expect(container.querySelector('[data-theme]')?.getAttribute('data-theme')).toBe('light');
+
+    act(() => setCurrentScene(7));
+    rerender(<PresenterPen />);
+    expect(container.querySelector('[data-theme]')?.getAttribute('data-theme')).toBe('orange');
+
+    act(() => setCurrentScene(1));
+    rerender(<PresenterPen />);
+    expect(container.querySelector('[data-theme]')?.getAttribute('data-theme')).toBe('dark');
+  });
+
   it('PEN toggles aria-pressed and the canvas pointer-events', () => {
     render(<PresenterPen />);
     const { pen, canvas } = getToolbar();

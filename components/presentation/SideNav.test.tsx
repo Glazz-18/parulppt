@@ -38,6 +38,20 @@ describe('SideNav', () => {
     expect(nav?.getAttribute('aria-label')).toBe('Scenes');
   });
 
+  it("nav rail carries the current scene's theme (scene 3 = light, scene 7 = orange, scene 1 = dark)", () => {
+    act(() => setCurrentScene(3));
+    const { container, rerender } = render(<SideNav />);
+    expect(container.querySelector('nav')?.getAttribute('data-theme')).toBe('light');
+
+    act(() => setCurrentScene(7));
+    rerender(<SideNav />);
+    expect(container.querySelector('nav')?.getAttribute('data-theme')).toBe('orange');
+
+    act(() => setCurrentScene(1));
+    rerender(<SideNav />);
+    expect(container.querySelector('nav')?.getAttribute('data-theme')).toBe('dark');
+  });
+
   it('renders 46 scene links with the correct #scene-NN hrefs, in slide order', () => {
     const { container } = render(<SideNav />);
     const links = container.querySelectorAll('nav a[href^="#scene-"]');

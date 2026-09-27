@@ -127,6 +127,14 @@ function SceneButton({ slide, title, eyebrow, current, onNavigate }: SceneButton
 
 export function IndexOverlay() {
   const current = useCurrentScene();
+  const scene = scenes[current - 1];
+  // CONTRACTS §5.3/Task 42: the trigger and dialog take --bg/--fg/--muted/--rule/--label from the
+  // current scene's theme (like SideNav/SceneControls already do), so they stay readable on every
+  // scene instead of inheriting body's fixed dark default.
+  const themeProps = {
+    'data-theme': scene.theme,
+    ...(scene.accent ? { 'data-accent': scene.accent } : {}),
+  };
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -178,6 +186,7 @@ export function IndexOverlay() {
       <button
         type="button"
         ref={triggerRef}
+        {...themeProps}
         aria-expanded={open}
         aria-controls="scene-index"
         style={triggerStyle}
@@ -191,6 +200,7 @@ export function IndexOverlay() {
             key="index"
             ref={dialogRef}
             id="scene-index"
+            {...themeProps}
             role="dialog"
             aria-modal="true"
             aria-labelledby="scene-index-title"
