@@ -7,8 +7,16 @@ import { useGSAP } from '@gsap/react';
 import type { SceneProps } from '@/lib/types';
 import { MonoLabel } from '@/components/ui/MonoLabel';
 import { useSceneProgress } from '@/components/presentation/SceneProgress';
-import { titleStyle, eyebrowStyle, revealHead, headArrival, revealStagger, useProgressRef } from './ContentScene';
-import { Blocks } from './Blocks';
+import {
+  titleStyle,
+  eyebrowStyle,
+  revealHead,
+  headArrival,
+  revealStagger,
+  revealMetrics,
+  useProgressRef,
+} from './ContentScene';
+import { Blocks, CONNECTORS } from './Blocks';
 
 const monoStyle: CSSProperties = {
   fontFamily: 'var(--font-mono)',
@@ -23,10 +31,6 @@ const nodeStyle: CSSProperties = {
   borderColor: 'var(--rule)',
   background: 'var(--bg)',
 };
-
-// CONTRACTS §3.1: the deck's own connector glyphs render as distinct elements, never aria-hidden
-// (they are deck copy, same rule Blocks.tsx follows for the shared flow block).
-const CONNECTORS = new Set(['→', '↺']);
 
 // Ring geometry (MASTER_PROMPT §19 scene 11 "agent loop physically cycles"; manager brief): the
 // 5 agent nodes (Goal, Reason, Use a tool, Act, Observe) sit equally spaced (72° apart) on a
@@ -69,7 +73,6 @@ export function AgentLoopScene({ scene }: SceneProps) {
   const supportingSpan = Math.max(1 - headEnd, 0);
   const chatbotEnd = headEnd + supportingSpan * 0.2;
   const ringEnd = headEnd + supportingSpan * 0.6;
-  const metricValueEnd = ringEnd + (1 - ringEnd) * 0.5;
 
   useGSAP(
     () => {
@@ -119,27 +122,11 @@ export function AgentLoopScene({ scene }: SceneProps) {
           );
         }
 
+        // Data grammar (CONTRACTS §11): metric lands value-first, then its label — the same
+        // treatment ContentScene gives every metrics block (brief: "reuse … where possible").
         const metricEl = container?.querySelector('[data-part="metric"]');
         if (metricEl) {
-          // Data grammar (CONTRACTS §11): metric lands value-first, then its label (brief).
-          const value = metricEl.querySelector('[data-part="value"]');
-          const label = metricEl.querySelector('[data-part="label"]');
-          if (value) {
-            tl.fromTo(
-              value,
-              { opacity: 0, scale: 0.85 },
-              { opacity: 1, scale: 1, duration: Math.max(metricValueEnd - ringEnd, 0), ease: 'power2.out' },
-              ringEnd,
-            );
-          }
-          if (label) {
-            tl.fromTo(
-              label,
-              { opacity: 0, y: 8 },
-              { opacity: 1, y: 0, duration: Math.max(1 - metricValueEnd, 0), ease: 'power2.out' },
-              metricValueEnd,
-            );
-          }
+          revealMetrics(tl, [metricEl], ringEnd, 1);
         }
 
         // Guarantees total duration 1 (CONTRACTS §6) even when float rounding left a beat short.

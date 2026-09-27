@@ -118,7 +118,9 @@ export function revealStagger(
 // as context. BigNumber gives heading and the trailing label the same data-part ("label"), so
 // they're told apart by DOM order relative to the first data-part="value" node, not by selector.
 // All three phases stay inside this metric's own [itemStart, itemStart + step) slot.
-function revealMetrics(tl: gsap.core.Timeline, metricEls: Element[], start: number, end: number) {
+// Exported for reuse by one-off scene components (e.g. AgentLoopScene) that render metrics
+// blocks via <Blocks> but build their own paused timeline instead of ContentScene's.
+export function revealMetrics(tl: gsap.core.Timeline, metricEls: Element[], start: number, end: number) {
   if (!metricEls.length || end <= start) return;
   const step = (end - start) / metricEls.length;
   metricEls.forEach((el, i) => {

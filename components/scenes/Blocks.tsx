@@ -9,8 +9,9 @@ import { BigNumber } from '@/components/ui/BigNumber';
 export type BlocksProps = { blocks: Block[] };
 
 // The deck's own connector glyphs (§3.1): rendered as distinct, visible connector elements,
-// never aria-hidden — they are deck copy, not decoration.
-const CONNECTORS = new Set(['→', '+', '=', '↺']);
+// never aria-hidden — they are deck copy, not decoration. Exported for reuse by one-off scene
+// components (e.g. AgentLoopScene) that lay out flow items themselves instead of via <Blocks>.
+export const CONNECTORS = new Set(['→', '+', '=', '↺']);
 
 const monoStyle: CSSProperties = {
   fontFamily: 'var(--font-mono)',
