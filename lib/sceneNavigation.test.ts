@@ -384,7 +384,7 @@ describe('keyToAction filters', () => {
 
 describe('nearestSnapTarget', () => {
   const vh = 800;
-  // 1 unpinned at 0; 2 pinned (3 viewports) at 800, sticky range (800, 2400); 3 unpinned at 3200.
+  // 1 unpinned at 0; 2 pinned (3 viewports) at 800, sticky range (800, 2400]; 3 unpinned at 3200.
   const sections = [
     { top: 0, pinned: false, height: 800 },
     { top: 800, pinned: true, height: 2400 },
@@ -395,25 +395,28 @@ describe('nearestSnapTarget', () => {
     [300, 0],
     [500, 800],
     [800, 800], // exact start of the sticky range: its own top
-    [2400, 3200], // exact end of the sticky range: nearest top
+    [2400.5, 3200], // just past the range end: nearest top
     [2900, 3200],
     [9999, 3200],
-  ])('scrollY %i -> %i', (scrollY, top) => {
+  ])('scrollY %d -> %i', (scrollY, top) => {
     expect(nearestSnapTarget(scrollY, sections, vh)).toBe(top);
   });
 
-  it.each([800.5, 1600, 2399])('scrollY %d strictly inside the sticky range -> null', (scrollY) => {
+  it.each([800.5, 1600, 2399, 2400])('scrollY %d in the sticky range past its top (end included) -> null', (scrollY) => {
     expect(nearestSnapTarget(scrollY, sections, vh)).toBeNull();
   });
 
-  it('a tie goes to the earlier top', () => {
-    expect(nearestSnapTarget(400, sections, vh)).toBe(0);
-    // Pinned with 2 viewports: its range end is equidistant from its own top and the next.
+  it('pinned with 2 viewports: its exact range end holds (ruling 15), not a tie back to its top', () => {
     const two = [
       { top: 0, pinned: true, height: 1600 },
       { top: 1600, pinned: false, height: 800 },
     ];
-    expect(nearestSnapTarget(800, two, vh)).toBe(0);
+    expect(nearestSnapTarget(800, two, vh)).toBeNull();
+  });
+
+  it('a tie goes to the earlier top', () => {
+    expect(nearestSnapTarget(400, sections, vh)).toBe(0);
+    expect(nearestSnapTarget(2800, sections, vh)).toBe(3200); // not a tie: 800 is 2000 away
   });
 
   it('returns null when there are no sections', () => {
@@ -488,7 +491,7 @@ describe('navigation engine', () => {
       expect(scrollTo).toHaveBeenCalledTimes(1); // disarmed after firing
     });
 
-    it('touchend and unhandled keys arm snapping too', () => {
+    it('touchend arms snapping; an unhandled key does not (ruling 14)', () => {
       start();
       scrollToY(500);
       window.dispatchEvent(new Event('touchend'));
@@ -496,8 +499,9 @@ describe('navigation engine', () => {
       expect(scrollTo).toHaveBeenLastCalledWith({ top: 800, behavior: 'smooth' });
       scrollToY(1300);
       key({ key: 'a' });
-      vi.advanceTimersByTime(SNAP_IDLE_MS);
-      expect(scrollTo).toHaveBeenLastCalledWith({ top: 1600, behavior: 'smooth' });
+      key({ key: 'ArrowDown' }, document.body.appendChild(document.createElement('input')));
+      vi.advanceTimersByTime(1000);
+      expect(scrollTo).toHaveBeenCalledTimes(1);
     });
 
     it('new input restarts the timer', () => {
@@ -562,15 +566,6 @@ describe('navigation engine', () => {
       vi.advanceTimersByTime(1000);
       expect(scrollTo.mock.calls).toEqual([[{ top: 2400, behavior: 'smooth' }]]);
       expect(isNavigationInFlight()).toBe(false);
-    });
-
-    it('input during a navigation that does not end it never snaps', () => {
-      start();
-      goToScene(4);
-      key({ key: 'a' });
-      scrollToY(1000); // smooth scroll under way, not yet at the target
-      vi.advanceTimersByTime(1000);
-      expect(scrollTo).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -684,22 +679,71 @@ describe('navigation engine', () => {
 
     it('in a pinned scene with progress < 1 scrolls one viewport, clamped to the sticky range; never snapped away', () => {
       start();
-      scrollToY(TOPS[4]); // arrival at 5
-      setSceneProgress(5, 1 / 3);
-      wheel(); // armed before the key
+      scrollToY(4300); // mid 5, no navigation in flight
+      setSceneProgress(5, 0.875);
+      wheel(); // armed before the key; the handled key cancels it (ruling 14)
       expect(key({ key: 'ArrowDown' }).defaultPrevented).toBe(true);
-      expect(scrollTo).toHaveBeenLastCalledWith({ top: 4000, behavior: 'smooth' });
-      scrollToY(4000);
-      setSceneProgress(5, 2 / 3);
-      key({ key: 'PageDown' });
-      expect(scrollTo).toHaveBeenLastCalledWith({ top: 4800, behavior: 'smooth' });
-      scrollToY(4700);
-      key({ key: ' ' });
       expect(scrollTo).toHaveBeenLastCalledWith({ top: 4800, behavior: 'smooth' }); // clamped to the range end
       scrollToY(4800);
+      expect(isNavigationInFlight()).toBe(false);
       vi.advanceTimersByTime(1000);
-      expect(scrollTo).toHaveBeenCalledTimes(3);
+      expect(scrollTo).toHaveBeenCalledTimes(1);
       expect(getCurrentScene()).toBe(5);
+    });
+
+    describe('keys pressed while a scroll is still animating act from the pending destination', () => {
+      const targets = () => scrollTo.mock.calls.map(([options]) => (options as ScrollToOptions).top);
+
+      it('two quick ArrowDowns from 4 end on 5 second beat (4000)', () => {
+        start();
+        scrollToY(TOPS[3]);
+        key({ key: 'ArrowDown' }); // -> 5 (3200)
+        scrollToY(2600); // mid-animation, not at the target
+        setSceneProgress(5, 0.1); // live measurement mid-animation
+        key({ key: 'ArrowDown' });
+        expect(targets()).toEqual([3200, 4000]);
+        scrollToY(4000);
+        expect(isNavigationInFlight()).toBe(false);
+        expect(getCurrentScene()).toBe(5);
+      });
+
+      it('two quick ArrowUps from 6 go to 5 top, then to 4', () => {
+        start();
+        scrollToY(TOPS[5]);
+        key({ key: 'ArrowUp' }); // -> 5 (3200)
+        scrollToY(5000);
+        setSceneProgress(5, 1);
+        key({ key: 'ArrowUp' });
+        expect(targets()).toEqual([3200, 2400]);
+        expect(getCurrentScene()).toBe(4);
+      });
+
+      it('repeated PageDown steps in exact viewport multiples, then leaves the scene', () => {
+        start();
+        scrollToY(TOPS[4]);
+        setSceneProgress(5, 1 / 3);
+        key({ key: 'PageDown' });
+        scrollToY(3500);
+        setSceneProgress(5, 0.5);
+        key({ key: 'PageDown' });
+        scrollToY(3900);
+        setSceneProgress(5, 0.66);
+        key({ key: 'PageDown' });
+        expect(targets()).toEqual([4000, 4800, 5600]);
+        expect(getCurrentScene()).toBe(6);
+      });
+
+      it('a pending in-scene step clears like a navigation, and goToScene to that scene top is not swallowed', () => {
+        start();
+        scrollToY(TOPS[4]);
+        setSceneProgress(5, 1 / 3);
+        key({ key: 'PageDown' });
+        expect(isNavigationInFlight()).toBe(true);
+        goToScene(5);
+        expect(targets()).toEqual([4000, 3200]);
+        vi.advanceTimersByTime(SNAP_IDLE_MS);
+        expect(isNavigationInFlight()).toBe(false);
+      });
     });
 
     it('scrolls back clamped to the section top, with auto behaviour under reduced motion', () => {

@@ -47,9 +47,10 @@ function readSections(): SnapSection[] {
 }
 
 // ---- goToScene ----
-// In flight from goToScene until the scroll settles (ruling 6): a scroll event at the target, scrollend,
-// user scroll input, or SNAP_IDLE_MS without a scroll event (covers a target already at scrollY).
-let target: { slide: number; top: number } | null = null;
+// In flight from goToScene (or a key's in-scene step) until the scroll settles (ruling 6): a scroll event at
+// the target, scrollend, user scroll input, or SNAP_IDLE_MS without a scroll event (target already at scrollY).
+// `progress` is the scene's progress at `top`, so keys pressed mid-animation act from the destination.
+let target: { slide: number; top: number; progress: number } | null = null;
 let settleTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function isNavigationInFlight(): boolean {
@@ -74,9 +75,10 @@ function restartSettle() {
 export function goToScene(slide: number): void {
   if (!Number.isInteger(slide) || slide < FIRST || slide > LAST) return;
   const el = sectionOf(slide);
-  if (!el || target?.slide === slide) return;
+  if (!el) return;
   const top = el.getBoundingClientRect().top + window.scrollY;
-  target = { slide, top };
+  if (target?.slide === slide && target.top === top) return;
+  target = { slide, top, progress: 1 / scenes[slide - 1].scrollLength }; // arrival pose (§6)
   cancelSnap();
   restartSettle();
   setCurrentScene(slide);
@@ -89,17 +91,17 @@ export const SNAP_IDLE_MS = 160;
 
 export type SnapSection = { top: number; pinned: boolean; height: number };
 
-/** Nearest section top (ties → earlier); null strictly inside a pinned scene's sticky range (ruling 7). */
+/** Nearest section top (ties → earlier); null in a pinned scene's range past its top, end included (ruling 15). */
 export function nearestSnapTarget(scrollY: number, sections: SnapSection[], innerHeight: number): number | null {
   let best: number | null = null;
   for (const { top, pinned, height } of sections) {
-    if (pinned && scrollY > top && scrollY < top + height - innerHeight) return null;
+    if (pinned && scrollY > top && scrollY <= top + height - innerHeight) return null;
     if (best === null || Math.abs(top - scrollY) < Math.abs(best - scrollY)) best = top;
   }
   return best;
 }
 
-// Armed = a snap timer is pending (ruling 13).
+// Armed = a snap timer is pending; only wheel and touchend arm it (rulings 13, 14).
 let snapTimer: ReturnType<typeof setTimeout> | undefined;
 
 function cancelSnap() {
@@ -121,16 +123,22 @@ function snap() {
 }
 
 // ---- engine listeners ----
-/** Scroll ±1 viewport clamped to the scene's sticky range; if that moves < 1px, go to the adjacent scene (ruling 12). */
+/**
+ * Scroll ±1 viewport clamped to the scene's sticky range; if that moves ≤ 1px, go to the adjacent scene (ruling 12).
+ * Steps from the pending destination while one is in flight, and becomes the pending destination itself.
+ */
 function scrollInScene(slide: number, direction: 1 | -1) {
   const el = sectionOf(slide);
   if (!el) return;
   const { top: rectTop, height } = el.getBoundingClientRect();
   const top = rectTop + window.scrollY;
   const end = Math.max(top, top + height - window.innerHeight);
-  const next = Math.min(Math.max(window.scrollY + direction * window.innerHeight, top), end);
-  if (Math.abs(next - window.scrollY) <= 1) return goToScene(slide + direction);
-  cancelSnap(); // the key's clamped landing is deliberate; a snap from its range end would undo it
+  const base = target?.top ?? window.scrollY;
+  const next = Math.min(Math.max(base + direction * window.innerHeight, top), end);
+  if (Math.abs(next - base) <= 1) return goToScene(slide + direction);
+  cancelSnap(); // ruling 14
+  target = { slide, top: next, progress: (next - top + window.innerHeight) / height }; // §6 formula
+  restartSettle();
   window.scrollTo({ top: next, behavior: behavior() });
 }
 
@@ -169,11 +177,12 @@ export function startNavigationEngine(): () => void {
       current: slide,
       pinned: scene.pin,
       scrollLength: scene.scrollLength,
-      progress: getSceneProgress(slide),
+      // In flight: act from the pending destination, not the mid-animation measurement.
+      progress: target ? target.progress : getSceneProgress(slide),
       drawerOpen: false, // Task 13: SourceDrawer state
       demoEscape: false, // Task 13: useDemoEscape registration for `slide`
     });
-    if (!action) return armSnap(); // an unhandled key may scroll natively
+    if (!action) return; // ruling 14: keys never arm snapping
     event.preventDefault();
     switch (action.type) {
       case 'goTo':
