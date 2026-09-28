@@ -12,14 +12,19 @@ export type MemeInterstitialProps = {
 };
 
 // Overflow fix (design §10 "hard cut, single screen"): several meme scenes measured taller than
-// one 740px viewport (e.g. slide 33: 1265px). Capping the box's height keeps it (and the fallback
-// branch below, which shares this same outer box -- CONTRACTS §3.2 MemeInterstitialProps unchanged)
-// from growing past its share of the viewport regardless of the 4:3 aspect ratio's own math.
-// Round 2 (Fable measurement at 1440x757, slides 22/30, still over the 720px floor at the round-1
-// cap): min(52vh, 480px) -> min(46vh, 420px).
+// one 740px viewport (e.g. slide 33: 1265px). Fixing the box's height (not a fixed aspect ratio)
+// keeps it from growing past its share of the viewport; width follows the image's own aspect
+// ratio instead of a fixed 4:3, so small-caption templates (e.g. slide 12, Distracted Boyfriend)
+// aren't force-cropped into an unreadable width. Round 2 (Fable measurement at 1440x757, slides
+// 22/30, still over the 720px floor at the round-1 cap): min(52vh, 480px) -> min(46vh, 420px).
+// Round 3 (Fable: a fixed max-width of 340px, layered on this box from MemeScene.tsx, made
+// small-caption templates unreadable) -- height-driven sizing replaces both that cap and the
+// aspect-ratio box below: a 3:2 image renders ~630px wide at 420px tall instead of being cropped
+// to a 340px-wide slice.
 const boxStyle: CSSProperties = {
-  aspectRatio: '4 / 3',
-  maxHeight: 'min(46vh, 420px)',
+  height: 'min(46vh, 420px)',
+  width: 'auto',
+  maxWidth: '100%',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -28,9 +33,15 @@ const boxStyle: CSSProperties = {
 };
 
 const imgStyle: CSSProperties = {
-  width: '100%',
   height: '100%',
+  width: 'auto',
   objectFit: 'contain',
+};
+
+// Fallback (no image) has no natural width to drive the box's own auto width, so it needs its own
+// floor -- same height as the image box (inherited from boxStyle), never narrower than 320px.
+const fallbackStyle: CSSProperties = {
+  minWidth: '320px',
 };
 
 const captionStyle: CSSProperties = {
@@ -60,7 +71,7 @@ export function MemeInterstitial({ meme, eyebrow, lines }: MemeInterstitialProps
             onError={() => setFailedSrc(meme.src)}
           />
         ) : meme ? (
-          <div>
+          <div style={fallbackStyle}>
             <MonoLabel as="p">{meme.title}</MonoLabel>
             {meme.caption.map((line, index) => (
               <p key={index} style={captionStyle}>

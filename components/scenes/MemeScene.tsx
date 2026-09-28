@@ -32,14 +32,6 @@ const BASE_WRAPPER_CLASSES = [
   // Punchline (design §4 hero/major tier; design §10 "huge headline or punchline") -- font-size
   // itself is length-aware (headlineSizeClasses below), so it's not listed here.
   '[&_h2]:font-bold [&_h2]:leading-[0.98]',
-  // The meme box is the root div's last child (image or fallback); cap its width so the
-  // punchline + box fit a 1440x900 viewport without a second scroll.
-  // Overflow fix, this task's pass (Fable measurement at 1440x757, slides 22/30, tier-1 headline,
-  // still over the 720px floor): 420px -> 340px. The box's own `aspectRatio: '4/3'` (boxStyle
-  // below) derives its HEIGHT from this width (420*0.75=315px, comfortably under either
-  // maxHeight cap this file or MemeInterstitial.tsx have ever set) -- so maxHeight was never the
-  // real lever for this box's rendered size, only its width is. 340*0.75=255px, a real 60px cut.
-  '[&>div>*:last-child]:w-full [&>div>*:last-child]:max-w-[340px]',
 ];
 
 // Overflow fix, round 2 (Fable browser measurement at 1470x740, slide 33): a single punchline
