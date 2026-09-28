@@ -160,7 +160,8 @@ export function SupplyChainScene({ scene }: SceneProps) {
   }, [progress]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-8">
+    // Slide 14 fix (measured overflow 1119px in a 796px viewport): tighter outer gap (gap-8 -> gap-5).
+    <div ref={containerRef} className="flex flex-col gap-5">
       {scene.eyebrow ? (
         <div ref={eyebrowRef} style={eyebrowStyle}>
           <MonoLabel as="p" tone="label">
@@ -173,7 +174,7 @@ export function SupplyChainScene({ scene }: SceneProps) {
           {scene.title}
         </h2>
       ) : null}
-      <div className="relative flex flex-col items-center gap-6 pb-4">
+      <div className="relative flex flex-col items-center gap-3 pb-1">
         {rootLabel ? (
           <span data-part="node" data-role="root" className="border px-4 py-2 font-semibold" style={nodeStyle}>
             {rootLabel}
@@ -201,12 +202,15 @@ export function SupplyChainScene({ scene }: SceneProps) {
           ) : null}
         </div>
         {/* Decorative "many dependencies" fan (CONTRACTS: decorative shapes aria-hidden) -- no
-            invented deck words, purely unlabelled nodes/edges (manager brief). */}
+            invented deck words, purely unlabelled nodes/edges (manager brief). Capped at
+            min(42vh, 360px) square (overflow fix item 4) instead of scaling with the full content
+            width, so the graph can't push the metrics/lines below the pinned viewport. */}
         <div
           ref={graphRef}
           data-part="graph"
           aria-hidden="true"
-          className="pointer-events-none relative mt-2 aspect-square w-full max-w-[480px]"
+          className="pointer-events-none relative mt-1"
+          style={{ width: 'min(42vh, 360px)', height: 'min(42vh, 360px)' }}
         >
           {Array.from({ length: DECORATIVE_COUNT }).map((_, i) => {
             const { x, y, length, cssAngle } = decorativePoint(i, DECORATIVE_COUNT);
