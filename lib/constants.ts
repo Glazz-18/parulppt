@@ -39,4 +39,4 @@ export const UI_COPY = {
           status: 'SYSTEM STATUS', ready: 'READY' },
 } as const;
 
-export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisional, Needs user N1
+export const LINKEDIN_HREF = 'https://www.linkedin.com/in/iamatharvtiwari/'; // user-supplied 2026-09-28 (N1 resolved, CONTRACTS A28)

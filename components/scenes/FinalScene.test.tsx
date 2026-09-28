@@ -38,7 +38,8 @@ function makeScene(): CtaScene {
       closing: 'And find the people who will build it with you.',
       speaker: 'Atharv Tiwari',
       role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
-      linkedin: 'linkedin.com/in/atharvtiwari',
+      // User-approved deviation from deck paragraph [7] (CONTRACTS A28).
+      linkedin: 'linkedin.com/in/iamatharvtiwari',
     },
   };
 }
@@ -73,7 +74,7 @@ describe('FinalScene', () => {
 
   it('the LinkedIn link has the right href/target/rel/text and tracks cta_click on click', () => {
     const { getByText } = render(<FinalScene scene={makeScene()} />);
-    const link = getByText('linkedin.com/in/atharvtiwari') as HTMLAnchorElement;
+    const link = getByText('linkedin.com/in/iamatharvtiwari') as HTMLAnchorElement;
     expect(link.tagName).toBe('A');
     expect(link.getAttribute('href')).toBe(LINKEDIN_HREF);
     expect(link.getAttribute('target')).toBe('_blank');
