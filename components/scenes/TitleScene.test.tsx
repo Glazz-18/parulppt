@@ -18,7 +18,7 @@ const scene1: Scene = {
   content: {
     words: ['BUILD.', 'BREAK.', 'SECURE.', 'SCALE.'],
     speaker: 'Atharv Tiwari',
-    role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
+    role: 'Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
   },
 };
 
@@ -84,7 +84,7 @@ describe('TitleScene', () => {
     const { container } = render(<TitleScene scene={scene1} />);
     expect(container.textContent).toContain('AI × CYBERSECURITY × ENTREPRENEURSHIP');
     expect(container.textContent).toContain('Atharv Tiwari');
-    expect(container.textContent).toContain('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(container.textContent).toContain('Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
   });
 
   // Finding 7 (Task 22b): the words were adjacent spans with no space text node between them, so

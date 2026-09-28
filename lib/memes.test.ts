@@ -35,16 +35,14 @@ describe('memes', () => {
     expect(ids).toEqual(Array.from({ length: 28 }, (_, i) => i + 1));
   });
 
-  it('should have src empty for ids 4 and 17', () => {
-    const id4 = memes.find((m) => m.id === 4);
+  it('should have src empty for id 17 only', () => {
     const id17 = memes.find((m) => m.id === 17);
-    expect(id4?.src).toBe('');
     expect(id17?.src).toBe('');
   });
 
-  it('should have exactly 26 non-empty src values', () => {
+  it('should have exactly 27 non-empty src values', () => {
     const nonEmptySrcs = memes.filter((m) => m.src !== '');
-    expect(nonEmptySrcs).toHaveLength(26);
+    expect(nonEmptySrcs).toHaveLength(27);
   });
 
   it('should have every src either empty or start with /memes/', () => {

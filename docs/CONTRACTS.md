@@ -1,5 +1,5 @@
 # CONTRACTS — interface authority
-v1.5 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24; v1.4: PresenterPen withdrawn, scene 7 meme, A25–A26; v1.5: `bars.groups`, LinkedIn URL and link text, A27–A28) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
+v1.6 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24; v1.4: PresenterPen withdrawn, scene 7 meme, A25–A26; v1.5: `bars.groups`, LinkedIn URL and link text, A27–A28; v1.6: meme 4 recreated on `drake`, scene 7 back to meme 4, A29; speaker role line adds Founder, Sotillion, A30) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
 
 ## 1. Rulings
 | # | Conflict | Ruling | Why |
@@ -8,7 +8,7 @@ v1.5 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A
 | R2 | CampusBot state names | TRD §6: `baseline`, `roleplay`, `guardrail-off`, `guardrail-on`; MASTER_PROMPT's `no-guardrail / leak` = `guardrail-off`, `guardrail-on / blocked` = `guardrail-on` | TRD §6 is the typed contract; visible labels stay deck strings (`No guardrail`, `Guardrail on`) |
 | R3 | SOC initial view | `queue` shows `Alert queue · 10,412`, the four events (unhighlighted, inspectable), `+10,408 unrelated`; summary, evidence, risk, suggested response appear at `correlated`; approval gate only at `pending-approval` | §14's own correlation step adds summary then approval; TRD §6 orders approval after correlation; design §11 wants density first |
 | R4 | Per-scene `theme` | Slide's own PPTX `<p:bg>` fill (all 46 have one): `0F1217` → dark, `F4F1EA` → light, `F47F46` → orange; slide 39 `15171B` → dark | Exact and machine-readable; PDF not renderable here (no poppler); `15171B` is the near-black `--text-dark` |
-| R5 | Single `memeId` | 7 → 25 (A26), 12 → 3, 30 → 15, 33 → 6, 45 → 28; sole candidates 10 → 22, 21 → 14, 22 → 12, 40 → 18, 42 → 19; no meme on any other scene | Each pick's label or caption repeats the slide's own copy (MASTER_PROMPT §13 joke intent) |
+| R5 | Single `memeId` | 7 → 4 (restored, A29), 12 → 3, 30 → 15, 33 → 6, 45 → 28; sole candidates 10 → 22, 21 → 14, 22 → 12, 40 → 18, 42 → 19; no meme on any other scene | Each pick's label or caption repeats the slide's own copy (MASTER_PROMPT §13 joke intent) |
 | R6 | Test runner + browser check | Vitest + `@testing-library/react` (+ peer `@testing-library/dom`) + `jsdom`; browser checks manual via Claude's Chrome tools (workers and gates); no Playwright | Fable's default holds: jsdom covers logic; scroll/pin/snap need a real browser, which the Chrome tools give with zero dependencies |
 
 Additional rulings found while reading the sources:
@@ -24,7 +24,7 @@ Additional rulings found while reading the sources:
 | A7 | Light-theme label colour | Add `--orange-ink: #AF4000` | It is the deck's own label colour on light slides; `#F47F46` on `#F4F1EA` is 2.3:1 |
 | A8 | Eyebrow accent on dark | `accent: 'orange'` on 4, 5, 6, 8, 19, 39; other dark scenes use green | Deck eyebrow colours (19 attacker orange, 20 defender green) |
 | A9 | Scene handoffs (design §8) | Built only in the outgoing scene; its hand-off pose is its progress-1 state | Keeps "progress 1 = static markup" true (§11) |
-| A10 | Missing meme rasters | `source/memes.json` ids 4 and 17 have `file: null` plus a `missing` note; `public/memes/` holds 26 PNGs; their `src` is `''` (§7, §10); no scene references them anymore (A26) | Their `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27) |
+| A10 | Missing meme rasters | Only meme 17 (MVP) has no raster: its `source/memes.json` entry has `file: null` plus a `missing` note; `public/memes/` holds 27 PNGs; its `src` is `''` (§7, §10); no scene references it | Its `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27); meme 4 was recreated on `drake` (A29) |
 | A11 | First progress measurement | The engine stores `self.progress` in `onRefresh` as well as `onUpdate` (§6) | `onUpdate` fires only on change, so a scene whose true progress is 0 would keep the pre-measure 1 |
 | A12 | Who renders `SceneShell` | Only `SceneRenderer`; registry components, including `DemoShell`, render inside `.scene-viewport` and never render `SceneShell` or a `<section>` | A second shell nests `section[data-scene]` and breaks the 46-section count (§5.1, TRD §16) |
 | A13 | `<main>` and chrome placement | `Presentation` renders `<main id="presentation">` holding only the 46 sections; `SideNav`, `SceneControls` and `SourceDrawer` are its siblings; `app/page.tsx` returns `<Presentation />` only; `MotionConfig` wraps them inside `Presentation` | Keeps the nav landmark out of `<main>` and the section list pure; §2 already puts `MotionConfig` in the engine |
@@ -40,9 +40,11 @@ Additional rulings found while reading the sources:
 | A23 | Snap inside tall sections (§8) | No snap while `scrollY` is strictly inside any section taller than the viewport (pinned or not); snap targets remain section tops | Whole-branch review I5: snapping pulled the reader back to the top of tall unpinned sections; fixed in lib/sceneNavigation.ts (fix wave, be9c5f1). |
 | A24 | ApprovalGate after a decision (§9.3) | In `approved` and `rejected`, ApprovalGate's Approve and Reject are rendered `disabled` | Whole-branch review dispute accepted by Fable; §9.3 lists no controls after a decision |
 | A25 | PresenterPen withdrawn (§5.6) | PresenterPen withdrawn by the user on 2026-09-28; A18 and A22 superseded; SceneShell paddingBlock floor returns to max(7vh, 72px) (Task 41 value) | User decision |
-| A26 | Scene 7 meme (R5, Appendix A) | Scene 7 uses meme 25 because meme 4 has no raster | User asked for a real image on 2026-09-28 |
+| A26 | Scene 7 meme (R5, Appendix A) | Scene 7 uses meme 25 because meme 4 has no raster | User asked for a real image on 2026-09-28 (superseded by A29) |
 | A27 | Bar group labels (§3, §3.1) | `bars.groups?: string[]` labels each row of `series.length` bars, in order, as a mono group heading above its bars; absent → rendering unchanged. Slide 28 sets `groups: ['MTTD', 'MTTR']`; slide 34 sets none | Browser check of slide 28: bar groups were unlabelled; groups echo the slide's own MTTD/MTTR terms. |
-| A28 | LinkedIn destination (§5.4, §14 N1) | `LINKEDIN_HREF = 'https://www.linkedin.com/in/iamatharvtiwari/'`, no longer provisional; slide 46 `content.linkedin` (visible link text) = `linkedin.com/in/iamatharvtiwari`, a user-approved deviation from the deck string `linkedin.com/in/atharvtiwari` (paragraph [7]); it is the sole documented exemption from §3.1 rule 5 and the §7 verification (`scripts/verify-copy.mjs`) | User supplied the final LinkedIn URL and asked the visible text to match it, 2026-09-28 |
+| A28 | LinkedIn destination (§5.4, §14 N1) | `LINKEDIN_HREF = 'https://www.linkedin.com/in/iamatharvtiwari/'`, no longer provisional; slide 46 `content.linkedin` (visible link text) = `linkedin.com/in/iamatharvtiwari`, a user-approved deviation from the deck string `linkedin.com/in/atharvtiwari` (paragraph [7]); it is the sole documented exemption from §3.1 rule 5 and the §7 verification (`scripts/verify-copy.mjs`) | User supplied the final LinkedIn URL and asked the visible text to match it, 2026-09-28 (sole-exemption clause extended by A30) |
+| A29 | Scene 7 meme and meme 4 raster (R5, A10, A26, §10, Appendix A) | Meme 4 recreated on the drake template with its original captions after the two-buttons template disappeared upstream; scene 7 restored to memeId 4 at the user's request. Vendored as `source/memes/04-rag-authorization.png` → `/memes/04-rag-authorization.png` | User judged the meme 25 swap off-joke, 2026-09-28 |
+| A30 | Speaker role line (§3.1 rule 5, §7) | Slide 1 `content.role` and slide 46 `content.role` = `Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer`, a user-approved deviation from the deck string `COO, Nevis Infosystems · Cybersecurity Researcher and Trainer` (paragraph [6]); both join the §3.1 rule 5 and §7 verification exemptions beside slide 46 `linkedin` (A28); page metadata keeps its deck strings | User asked to add the Founder, Sotillion title; deck copy deviation approved 2026-09-28. |
 
 ## 2. Repo layout
 ```text
@@ -76,7 +78,7 @@ lib/
   demoState.ts               W3 (§9)
   scenes.ts                  W4: export const scenes: Scene[] (46 entries)
   memes.ts                   W0: generated (§10)
-public/memes/                W0: 26 vendored PNGs (ids 4 and 17 have none, A10)
+public/memes/                W0: 27 vendored PNGs (only id 17, MVP, has none, A10; id 4 is the drake recreation, A29)
 source/                      W0: slides.json, memes.json, memes/*.png (pptx-raw/ is gitignored scratch)
 scripts/                     W0: extraction, meme vendoring, copy verification
 docs/                        read-only; this file: Opus only
@@ -179,7 +181,7 @@ export const KIND_COMPONENT: Record<SceneKind, SceneComponentName | null> = { ti
 2. Demos 4, 6, 23: [1] → `content.subtitle`, [2] → `title`; every later paragraph is W3 fixture copy (§9), never manifest copy.
 3. Every other slide except 1, 46 and the ten memes: [1] → `title`.
 4. `sourceNotes` = `[last paragraph]` on exactly 8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 26, 27, 31, 35, 36, 37, 41; omitted elsewhere; the citation paragraph is not rendered in the scene body (only via SOURCE, §5.2).
-5. Every remaining paragraph lands in exactly one field, in deck order, per the recipe table; none dropped, added or merged. Sole exception (A27): a `bars.groups` entry may repeat a `term` of a `terms` block on the same slide (slide 28 only). Copy exemption (A28): slide 46 `content.linkedin` is `linkedin.com/in/iamatharvtiwari`, not paragraph [7]'s deck string.
+5. Every remaining paragraph lands in exactly one field, in deck order, per the recipe table; none dropped, added or merged. Sole exception (A27): a `bars.groups` entry may repeat a `term` of a `terms` block on the same slide (slide 28 only). Copy exemptions: slide 46 `content.linkedin` is `linkedin.com/in/iamatharvtiwari`, not paragraph [7]'s deck string (A28); slides 1 and 46 `content.role` are `Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer`, not paragraph [6]'s deck string (A30).
 6. Characters are copied exactly (’ “ ” … × → ≠ ₹ − · •); no ASCII substitution; figures stay deck strings, never `toLocaleString`; 35's `Today` / `47 days left` is never computed from the clock.
 7. The only allowed split is 24's `$8.80vs$25` → `value: '$8.80'`, `versus: ['vs', '$25']` (three styled runs in the deck).
 
@@ -333,11 +335,11 @@ Array<{ slide: number; title: string | null; texts: string[]; notes: string[]; l
 // source/memes.json
 Array<{ id: number; slug: string; title: string; template: string; captionLines: string[];
         sourceUrl: string; file: string | null; missing?: string; suggestedScenes: number[] }>
-// file looks like 'source/memes/01-prompt-injection.png'; null for ids 4 and 17 (A10)
+// file looks like 'source/memes/01-prompt-injection.png'; null only for id 17, MVP (A10); id 4 is the drake recreation (A29)
 ```
 - Copy precedence (AGENT_HIERARCHY §8): PDF visible wording > PPTX text > content-map; the content-map "Core content" column is a summary and is never used as copy.
 - Observed in the PPTX: every slide carries full speaker notes with timing brackets (e.g. slide 1: `[0:00–0:30 · 30s] WHAT TO SAY: …`), which are worker reference for intent and timing and never on-screen copy (A2); no slide has a hyperlink, so `links` is `[]` for all 46; `slides.json` `title` is advisory and the manifest follows §3.1.
-- Verification (W0 script): every string value in `lib/scenes.ts` except identifier fields (`id`, `act`, `theme`, `accent`, `kind`, `component`, `type`) occurs verbatim inside a `texts` entry of the same slide. Sole documented exemption for `scripts/verify-copy.mjs` (A28): slide 46 `content.linkedin` = `linkedin.com/in/iamatharvtiwari`.
+- Verification (W0 script): every string value in `lib/scenes.ts` except identifier fields (`id`, `act`, `theme`, `accent`, `kind`, `component`, `type`) occurs verbatim inside a `texts` entry of the same slide. Documented exemptions for `scripts/verify-copy.mjs`: slide 46 `content.linkedin` = `linkedin.com/in/iamatharvtiwari` (A28); slides 1 and 46 `content.role` = `Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer` (A30).
 - Line-break artifacts are fixed against the PDF by Sonnet workers and logged one line each in the deviations ledger.
 
 ## 8. Navigation API (`lib/sceneNavigation.ts`, W2)
@@ -517,7 +519,7 @@ export type MemeAsset = {
   id: number;                // 1..28, HTML order
   slug: string;              // 'prompt-injection'
   title: string;             // 'Prompt injection' (HTML heading after 'NN — ')
-  template: string;          // Memegen template id, e.g. 'drake'
+  template: string;          // Memegen template id, e.g. 'drake'; for a recreated asset it may differ from the HTML pack's original (recorded in source/memes.json, A29)
   src: string;               // '/memes/' + basename(file), served from public/memes/; '' when file is null (A10)
   alt: string;               // `${title}: ${caption.join(' / ')}`
   caption: string[];         // = captionLines, verbatim
@@ -528,7 +530,7 @@ export const memes: MemeAsset[]; // 28 entries sorted by id
 ```
 - Runtime code never requests `sourceUrl`; the only meme URL rendered is `src`, via native `<img src alt loading="lazy" decoding="async">` inside a fixed-aspect box.
 - MemeScene passes `memes.find((m) => m.id === scene.content.memeId)` (possibly `undefined`) to MemeInterstitial.
-- `src` is `''` for ids 4 and 17: their `source/memes.json` entry has `file: null` because the `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27). When `src === ''`, `MemeInterstitial` renders the fallback immediately and issues no request (no `<img>`).
+- `src` is `''` only for id 17 (MVP): its `source/memes.json` entry has `file: null` because the `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27); id 4 was recreated on `drake` and has a raster (A29). When `src === ''`, `MemeInterstitial` renders the fallback immediately and issues no request (no `<img>`).
 - Fallback (MASTER_PROMPT §24, technical §15): on `onError`, when `src === ''`, or when the meme is `undefined`, the same box renders a styled block with `title` as a mono label and each `caption` line as text; the scene's eyebrow and lines stay visible either way.
 
 ## 11. Motion contract
@@ -571,7 +573,7 @@ export function track(event: AnalyticsEvent, payload: Record<string, string | nu
 | 4 | demo | dark | CampusBotDemo* | – | false | 1 | act-2 |
 | 5 | diagram | dark | RagFlowScene* | – | true | 3 | act-2 |
 | 6 | demo | dark | RagDemo* | – | false | 1 | act-2 |
-| 7 | meme | orange | MemeScene | 25 | false | 1 | act-2 |
+| 7 | meme | orange | MemeScene | 4 | false | 1 | act-2 |
 | 8 | diagram | dark | ContentScene | – | true | 2 | act-2 |
 | 9 | diagram | dark | ContentScene | – | true | 3 | act-3 |
 | 10 | meme | orange | MemeScene | 22 | false | 1 | act-3 |

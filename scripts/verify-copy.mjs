@@ -10,10 +10,15 @@ const repoRoot = dirname(__dirname);
 const skipKeys = new Set(['id', 'act', 'theme', 'accent', 'kind', 'component', 'type']);
 
 // CONTRACTS A28 (docs/CONTRACTS.md §3.1 rule 5, §7): slide 46's `content.linkedin` is a
-// user-approved deviation from the deck string (paragraph [7]) and is the sole documented
-// exemption from this verification. Scoped to exactly slide 46 + the `linkedin` key, nothing else.
+// user-approved deviation from the deck string (paragraph [7]).
+// CONTRACTS A30: slide 1's and slide 46's `content.role` is a user-approved copy deviation (adds
+// "Founder, Sotillion" ahead of the deck's role line).
+// These are the only documented exemptions from this verification, each scoped to exactly its
+// slide number + field name, nothing broader.
 function isDocumentedExemption(slideNumber, key) {
-  return slideNumber === 46 && key === 'linkedin';
+  if (slideNumber === 46 && key === 'linkedin') return true;
+  if ((slideNumber === 1 || slideNumber === 46) && key === 'role') return true;
+  return false;
 }
 
 // Helper to collapse whitespace

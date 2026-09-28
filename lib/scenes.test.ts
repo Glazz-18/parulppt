@@ -12,7 +12,7 @@ describe('scenes manifest', () => {
     [4, 'demo', 'dark', 'CampusBotDemo', null, false, 1, 'act-2'],
     [5, 'diagram', 'dark', 'RagFlowScene', null, true, 3, 'act-2'],
     [6, 'demo', 'dark', 'RagDemo', null, false, 1, 'act-2'],
-    [7, 'meme', 'orange', null, 25, false, 1, 'act-2'],
+    [7, 'meme', 'orange', null, 4, false, 1, 'act-2'],
     [8, 'diagram', 'dark', null, null, true, 2, 'act-2'],
     [9, 'diagram', 'dark', null, null, true, 3, 'act-3'],
     [10, 'meme', 'orange', null, 22, false, 1, 'act-3'],
@@ -153,7 +153,7 @@ describe('scenes manifest', () => {
     const content = scene.content as { words: string[]; speaker: string; role: string };
     expect(content.words).toEqual(['BUILD.', 'BREAK.', 'SECURE.', 'SCALE.']);
     expect(content.speaker).toBe('Atharv Tiwari');
-    expect(content.role).toBe('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(content.role).toBe('Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
   });
 
   it('slide 2 (editorial) has eyebrow, title and a steps block of 3 items', () => {
@@ -207,13 +207,13 @@ describe('scenes manifest', () => {
     expect(Object.keys(content)).toEqual(['subtitle']);
   });
 
-  it('slide 7 (meme) has its eyebrow and memeId 25 content.lines, and no title field', () => {
+  it('slide 7 (meme) has its eyebrow and memeId 4 content.lines, and no title field', () => {
     const scene = scenes[6];
     expect(scene.eyebrow).toBe('RAG ≠ AUTHORIZATION');
     expect(scene.title).toBeUndefined();
     expect(scene.kind).toBe('meme');
     const content = scene.content as { memeId: number; lines: string[] };
-    expect(content.memeId).toBe(25);
+    expect(content.memeId).toBe(4);
     expect(content.lines).toEqual(['RAG hai bhai.']);
   });
 
@@ -325,7 +325,7 @@ describe('scenes manifest', () => {
     expect(content.lines).toEqual(['Build something.', 'Break something.', 'Secure something.', 'Scale something.']);
     expect(content.closing).toBe('And find the people who will build it with you.');
     expect(content.speaker).toBe('Atharv Tiwari');
-    expect(content.role).toBe('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(content.role).toBe('Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
     // User-approved deviation from deck paragraph [7] (CONTRACTS A28): the sole exemption from
     // §3.1 rule 5 and scripts/verify-copy.mjs.
     expect(content.linkedin).toBe('linkedin.com/in/iamatharvtiwari');

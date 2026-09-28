@@ -114,4 +114,24 @@ describe('SceneShell', () => {
       /\[data-pin="true"\]\s*\.scene-viewport\s*\{[^}]*height:\s*100vh;?[^}]*\}/,
     );
   });
+
+  it('unpins scenes on viewports shorter than 760px (§18 floor fallback)', () => {
+    const maxHeightBlockMatch = globalsCss.match(
+      /@media \(max-height:\s*759px\)\s*\{([\s\S]*?)\n\}/,
+    );
+
+    expect(maxHeightBlockMatch).not.toBeNull();
+
+    const block = maxHeightBlockMatch?.[1] ?? '';
+
+    expect(block).toMatch(
+      /section\[data-scene\]\s*\.scene-viewport\s*\{[^}]*position:\s*static;?[^}]*\}/,
+    );
+    expect(block).toMatch(
+      /section\[data-scene\]\s*\.scene-viewport\s*\{[^}]*height:\s*auto;?[^}]*\}/,
+    );
+    expect(block).toMatch(
+      /section\[data-scene\]\s*\.scene-viewport\s*\{[^}]*min-height:\s*100vh;?[^}]*\}/,
+    );
+  });
 });
