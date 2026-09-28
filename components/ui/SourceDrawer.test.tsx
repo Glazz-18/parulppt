@@ -27,6 +27,12 @@ const { fixtureScenes } = vi.hoisted(() => {
 
 vi.mock('@/lib/scenes', () => ({ scenes: fixtureScenes }));
 
+// Captures the framer-motion-only props (initial/animate/exit/transition) the mock below strips
+// off the rendered DOM node, so tests can assert on the actual animate target/transition passed to
+// the panel's motion.aside instead of just its post-mock DOM output.
+const capturedMotionProps = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
+const useReducedMotionConfigMock = vi.hoisted(() => vi.fn(() => false));
+
 // Real exit animations are async (RAF-driven) and would make DOM-removal assertions racy; this
 // unit-tests SourceDrawer's own open/close/focus logic, not framer-motion's animation timing.
 vi.mock('framer-motion', async () => {
@@ -39,13 +45,21 @@ vi.mock('framer-motion', async () => {
         forwardRef<HTMLElement, Record<string, unknown>>((props, ref) => {
           const rest: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(props)) {
-            if (!framerOnlyProps.has(key)) rest[key] = value;
+            if (framerOnlyProps.has(key)) {
+              capturedMotionProps.current[key] = value;
+            } else {
+              rest[key] = value;
+            }
           }
           return createElement(tag, { ...rest, ref });
         }),
     },
   );
-  return { AnimatePresence: ({ children }: { children?: unknown }) => children, motion };
+  return {
+    AnimatePresence: ({ children }: { children?: unknown }) => children,
+    motion,
+    useReducedMotionConfig: useReducedMotionConfigMock,
+  };
 });
 
 // The real SOURCE trigger (SceneRenderer's), reproduced minimally so this file stays focused on
@@ -71,6 +85,8 @@ function Trigger({ slide }: { slide: number }) {
 let stopEngine: (() => void) | undefined;
 
 beforeEach(() => {
+  useReducedMotionConfigMock.mockReturnValue(false);
+  capturedMotionProps.current = {};
   if (!document.getElementById('scene-01')) document.body.appendChild(sectionEl(1));
   if (!document.getElementById('scene-02')) document.body.appendChild(sectionEl(2));
 });
@@ -122,6 +138,38 @@ describe('SourceDrawer', () => {
     expect(document.getElementById('source-drawer')).toBeNull();
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it('Finding 1: opens against an opaque panel and animates to full opacity, then unmounts on close (no ghost)', () => {
+    render(
+      <>
+        <Trigger slide={1} />
+        <SourceDrawer />
+      </>,
+    );
+    const trigger = document.querySelector('button[aria-controls="source-drawer"]') as HTMLButtonElement;
+    fireEvent.click(trigger);
+    const drawer = document.getElementById('source-drawer') as HTMLElement;
+
+    expect(drawer.style.background).toBe('var(--bg)');
+    expect(capturedMotionProps.current.initial).toEqual({ opacity: 0, x: 16 });
+    expect(capturedMotionProps.current.animate).toEqual({ opacity: 1, x: 0 });
+    expect(capturedMotionProps.current.exit).toEqual({ opacity: 0, x: 16 });
+
+    fireEvent.click(drawer.querySelector('button')!);
+    expect(document.getElementById('source-drawer')).toBeNull();
+  });
+
+  it('Finding 1: uses a zero-duration transition under prefers-reduced-motion: reduce', () => {
+    useReducedMotionConfigMock.mockReturnValue(true);
+    render(
+      <>
+        <Trigger slide={1} />
+        <SourceDrawer />
+      </>,
+    );
+    fireEvent.click(document.querySelector('button[aria-controls="source-drawer"]')!);
+    expect(capturedMotionProps.current.transition).toEqual({ duration: 0, ease: 'easeOut' });
   });
 
   it('Minor 6: the scrolling panel contains overscroll so wheel past its end never reaches the deck', () => {

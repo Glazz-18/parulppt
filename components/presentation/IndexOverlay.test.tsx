@@ -11,6 +11,12 @@ vi.mock('@/lib/sceneNavigation', async () => {
   return { ...actual, goToScene: goToSceneMock };
 });
 
+// Captures the framer-motion-only props (initial/animate/exit/transition) the mock below strips
+// off the rendered DOM node, so tests can assert on the actual animate target/transition passed to
+// the dialog's motion.div instead of just its post-mock DOM output.
+const capturedMotionProps = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
+const useReducedMotionConfigMock = vi.hoisted(() => vi.fn(() => false));
+
 // Two real slides get an explicit title / eyebrow-only name; everything else keeps both blank
 // (current manifest state, per the brief) so "Go to scene NN" without a suffix is exercised too.
 vi.mock('@/lib/scenes', async () => {
@@ -36,19 +42,29 @@ vi.mock('framer-motion', async () => {
         forwardRef<HTMLElement, Record<string, unknown>>((props, ref) => {
           const rest: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(props)) {
-            if (!framerOnlyProps.has(key)) rest[key] = value;
+            if (framerOnlyProps.has(key)) {
+              capturedMotionProps.current[key] = value;
+            } else {
+              rest[key] = value;
+            }
           }
           return createElement(tag, { ...rest, ref });
         }),
     },
   );
-  return { AnimatePresence: ({ children }: { children?: unknown }) => children, motion };
+  return {
+    AnimatePresence: ({ children }: { children?: unknown }) => children,
+    motion,
+    useReducedMotionConfig: useReducedMotionConfigMock,
+  };
 });
 
 let stopEngine: (() => void) | undefined;
 
 beforeEach(() => {
   goToSceneMock.mockClear();
+  useReducedMotionConfigMock.mockReturnValue(false);
+  capturedMotionProps.current = {};
   setCurrentScene(1);
 });
 
@@ -128,6 +144,26 @@ describe('IndexOverlay', () => {
     expect(dialog.getAttribute('aria-modal')).toBe('true');
     expect(dialog.getAttribute('aria-labelledby')).toBe('scene-index-title');
     expect(document.getElementById('scene-index-title')?.textContent).toBe(UI_COPY.index);
+  });
+
+  it('Finding 1: opens against an opaque panel and animates to full opacity, then unmounts on close (no ghost)', () => {
+    render(<IndexOverlay />);
+    const { trigger, dialog } = openOverlay();
+
+    expect(dialog.style.background).toBe('var(--bg)');
+    expect(capturedMotionProps.current.initial).toEqual({ opacity: 0 });
+    expect(capturedMotionProps.current.animate).toEqual({ opacity: 1 });
+    expect(capturedMotionProps.current.exit).toEqual({ opacity: 0 });
+
+    fireEvent.click(trigger);
+    expect(document.getElementById('scene-index')).toBeNull();
+  });
+
+  it('Finding 1: uses a zero-duration transition under prefers-reduced-motion: reduce', () => {
+    useReducedMotionConfigMock.mockReturnValue(true);
+    render(<IndexOverlay />);
+    openOverlay();
+    expect(capturedMotionProps.current.transition).toEqual({ duration: 0, ease: 'easeOut' });
   });
 
   it('Minor 6: the scrolling dialog contains overscroll so wheel past its end never reaches the deck', () => {
