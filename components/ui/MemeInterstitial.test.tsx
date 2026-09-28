@@ -6,7 +6,7 @@ import { MemeInterstitial } from './MemeInterstitial';
 afterEach(cleanup);
 
 const realMeme = memes.find((m) => m.id === 1)!; // has src
-const nullSrcMeme = memes.find((m) => m.id === 4)!; // src === '' (Review Focus 4)
+const nullSrcMeme = memes.find((m) => m.id === 17)!; // src === '' (A10, A29)
 
 describe('MemeInterstitial', () => {
   it('renders the image with alt, src, loading=lazy, decoding=async when meme.src is non-empty', () => {

@@ -49,18 +49,17 @@
   {
     "id": 4,
     "title": "RAG ≠ authorization",
-    "template": "two-buttons",
-    "sourceUrl": "https://api.memegen.link/images/two-buttons/Connect_AI_to_every_company_document/Add_proper_access_control_first.png",
+    "template": "drake",
+    "sourceUrl": "https://api.memegen.link/images/drake/Connect_AI_to_every_company_document/Add_proper_access_control_first.png",
     "slug": "rag-authorization",
-    "file": null,
+    "file": "source/memes/04-rag-authorization.png",
     "captionLines": [
       "Connect AI to every company document",
       "Add proper access control first"
     ],
     "suggestedScenes": [
       7
-    ],
-    "missing": "HTTP 404 — template 'two-buttons' no longer exists on memegen (checked 2026-09-27)"
+    ]
   },
   {
     "id": 5,

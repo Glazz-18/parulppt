@@ -12,7 +12,7 @@ describe('scenes manifest', () => {
     [4, 'demo', 'dark', 'CampusBotDemo', null, false, 1, 'act-2'],
     [5, 'diagram', 'dark', 'RagFlowScene', null, true, 3, 'act-2'],
     [6, 'demo', 'dark', 'RagDemo', null, false, 1, 'act-2'],
-    [7, 'meme', 'orange', null, 25, false, 1, 'act-2'],
+    [7, 'meme', 'orange', null, 4, false, 1, 'act-2'],
     [8, 'diagram', 'dark', null, null, true, 2, 'act-2'],
     [9, 'diagram', 'dark', null, null, true, 3, 'act-3'],
     [10, 'meme', 'orange', null, 22, false, 1, 'act-3'],
@@ -207,13 +207,13 @@ describe('scenes manifest', () => {
     expect(Object.keys(content)).toEqual(['subtitle']);
   });
 
-  it('slide 7 (meme) has its eyebrow and memeId 25 content.lines, and no title field', () => {
+  it('slide 7 (meme) has its eyebrow and memeId 4 content.lines, and no title field', () => {
     const scene = scenes[6];
     expect(scene.eyebrow).toBe('RAG ≠ AUTHORIZATION');
     expect(scene.title).toBeUndefined();
     expect(scene.kind).toBe('meme');
     const content = scene.content as { memeId: number; lines: string[] };
-    expect(content.memeId).toBe(25);
+    expect(content.memeId).toBe(4);
     expect(content.lines).toEqual(['RAG hai bhai.']);
   });
 

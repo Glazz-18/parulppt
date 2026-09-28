@@ -15,7 +15,7 @@ const baseScene = (overrides: Partial<Scene> = {}): Scene =>
     scrollLength: 1,
     kind: 'meme',
     eyebrow: 'RAG ≠ AUTHORIZATION',
-    content: { memeId: 25, lines: ['RAG hai bhai.'] },
+    content: { memeId: 4, lines: ['RAG hai bhai.'] },
     ...overrides,
   }) as Scene;
 
@@ -74,21 +74,21 @@ describe('MemeScene', () => {
     expect(img?.getAttribute('alt')).toBe(meme.alt);
   });
 
-  it('slide 7 renders the meme 25 image (src /memes/25-rag-enters-the-chat.png, alt starting "RAG enters the chat")', () => {
-    const meme = memes.find((m) => m.id === 25)!;
+  it('slide 7 renders the meme 4 image (src /memes/04-rag-authorization.png, alt starting "RAG ≠ authorization")', () => {
+    const meme = memes.find((m) => m.id === 4)!;
     const { container } = render(<MemeScene scene={baseScene()} />);
     const img = container.querySelector('img');
     expect(img).toBeTruthy();
-    expect(img?.getAttribute('src')).toBe('/memes/25-rag-enters-the-chat.png');
+    expect(img?.getAttribute('src')).toBe('/memes/04-rag-authorization.png');
     expect(img?.getAttribute('src')).toBe(meme.src);
-    expect(img?.getAttribute('alt')).toMatch(/^RAG enters the chat/);
+    expect(img?.getAttribute('alt')).toMatch(/^RAG ≠ authorization/);
   });
 
-  it('a meme with no image (memeId 4, src "") renders the fallback and no <img>', () => {
-    const meme = memes.find((m) => m.id === 4)!;
+  it('a meme with no image (memeId 17, src "") renders the fallback and no <img>', () => {
+    const meme = memes.find((m) => m.id === 17)!;
     expect(meme.src).toBe('');
     const { container } = render(
-      <MemeScene scene={baseScene({ content: { memeId: 4, lines: ['RAG hai bhai.'] } })} />,
+      <MemeScene scene={baseScene({ content: { memeId: 17, lines: ['RAG hai bhai.'] } })} />,
     );
     expect(container.querySelector('img')).toBeNull();
     expect(screen.getByText(meme.title)).toBeTruthy();
