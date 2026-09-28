@@ -24,6 +24,15 @@ const ruleStyle: CSSProperties = {
   borderColor: 'var(--rule)',
 };
 
+// Bars group heading (CONTRACTS A27): MonoLabel-style (see components/ui/MonoLabel) rendered
+// inline here rather than imported, matching this file's existing pattern of hand-rolled mono
+// styles (monoStyle, metaMutedStyle) for the other block-local mono bits (letter, marker, etc).
+const groupLabelStyle: CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  color: 'var(--label)',
+  letterSpacing: '0.12em',
+};
+
 const bodyTextStyle: CSSProperties = {
   fontSize: 'clamp(20px, 1.6vw, 28px)',
   lineHeight: 1.35,
@@ -230,6 +239,11 @@ function BlockView({ block }: { block: Block }) {
         <div data-block="bars" className="flex flex-col gap-6">
           {Array.from({ length: rowCount }).map((_, row) => (
             <div key={row} data-part="bar-row" className="flex flex-col gap-4">
+              {block.groups?.[row] ? (
+                <p data-part="label" className="uppercase" style={groupLabelStyle}>
+                  {block.groups[row]}
+                </p>
+              ) : null}
               {block.series.map((label, i) => {
                 const ratio = ratios?.[row * seriesLen + i];
                 const widthPct = `${Math.round((ratio ?? 1) * 100)}%`;

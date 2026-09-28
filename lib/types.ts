@@ -35,7 +35,7 @@ export type Block =
   | { type: 'metrics'; items: Metric[] }
   | { type: 'flow'; label?: string; items: string[]; marker?: string }
   | { type: 'columns'; items: { heading: string; lines: string[] }[] }
-  | { type: 'bars'; series: string[]; note?: string; ratios?: number[] };
+  | { type: 'bars'; series: string[]; note?: string; ratios?: number[]; groups?: string[] }; // groups: one deck string per row of series.length bars, in order, rendered as a mono group heading above that row; absent → rendering unchanged (CONTRACTS A27)
 
 export type BlocksContent = { blocks: Block[] };
 export type TitleContent = { words: string[]; speaker: string; role: string };

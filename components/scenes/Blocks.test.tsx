@@ -177,4 +177,34 @@ describe('Blocks', () => {
     expect(screen.getAllByText('A')).toHaveLength(2);
     expect(screen.getAllByText('B')).toHaveLength(2);
   });
+
+  // CONTRACTS A27: bars.groups labels each row of series.length bars with a mono group heading,
+  // in order; a row with no corresponding group entry renders no heading.
+  it('renders a group heading above each row when bars.groups is present, in order', () => {
+    const blocks: Block[] = [
+      {
+        type: 'bars',
+        series: ['A', 'B'],
+        ratios: [1, 0.14, 0.86, 0.08],
+        groups: ['MTTD', 'MTTR'],
+      },
+    ];
+    const { container } = render(<Blocks blocks={blocks} />);
+    const rows = container.querySelectorAll('[data-part="bar-row"]');
+    expect(rows).toHaveLength(2);
+    const labels = Array.from(container.querySelectorAll('[data-part="label"]')) as HTMLElement[];
+    expect(labels.map((l) => l.textContent)).toEqual(['MTTD', 'MTTR']);
+    // Each heading lives inside its own row, ahead of that row's bars.
+    rows.forEach((row, i) => {
+      const label = row.querySelector('[data-part="label"]');
+      expect(label?.textContent).toBe(blocks[0]!.type === 'bars' ? blocks[0].groups?.[i] : undefined);
+      expect(row.firstElementChild).toBe(label);
+    });
+  });
+
+  it('renders no group heading when bars.groups is absent (unchanged output)', () => {
+    const blocks: Block[] = [{ type: 'bars', series: ['A', 'B'], note: 'a note', ratios: [0.3, 0.9] }];
+    const { container } = render(<Blocks blocks={blocks} />);
+    expect(container.querySelectorAll('[data-part="label"]')).toHaveLength(0);
+  });
 });
