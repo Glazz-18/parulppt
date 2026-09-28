@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotionConfig } from 'framer-motion';
 import { ACTS, UI_COPY } from '@/lib/constants';
 import { scenes } from '@/lib/scenes';
 import { goToScene, setIndexEscape, useCurrentScene } from '@/lib/sceneNavigation';
@@ -137,6 +137,10 @@ export function IndexOverlay() {
     ...(scene.accent ? { 'data-accent': scene.accent } : {}),
   };
   const [open, setOpen] = useState(false);
+  // CONTRACTS §5.5: reduced motion must be instant, not just skip layout/positional easing (that's
+  // all framer-motion's own reducedMotion="user" handling covers) — opacity is a plain tween here,
+  // so it needs its own zero-duration override under prefers-reduced-motion: reduce.
+  const reduceMotion = useReducedMotionConfig();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const wasOpenRef = useRef(false);
@@ -209,7 +213,7 @@ export function IndexOverlay() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
             onKeyDown={trapTab}
             onClick={(event) => {
               if (event.target === event.currentTarget) close();

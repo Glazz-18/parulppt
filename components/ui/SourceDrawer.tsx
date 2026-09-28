@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, type CSSProperties } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotionConfig } from 'framer-motion';
 import { UI_COPY } from '@/lib/constants';
 import { scenes } from '@/lib/scenes';
 import { getDrawerTrigger, useSourceDrawer } from '@/lib/sceneNavigation';
@@ -63,6 +63,10 @@ const listStyle: CSSProperties = {
 
 export function SourceDrawer() {
   const { slide, close } = useSourceDrawer();
+  // Same gap as IndexOverlay (CONTRACTS §5.5): framer-motion's own reducedMotion="user" handling
+  // only forces instant timing for positional keys (x here), not opacity, so the fade still tweens
+  // under prefers-reduced-motion: reduce without this explicit override.
+  const reduceMotion = useReducedMotionConfig();
   const panelRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<Element | null>(null);
@@ -121,7 +125,7 @@ export function SourceDrawer() {
           initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 16 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
           style={panelStyle}
         >
           <div style={headerStyle}>
