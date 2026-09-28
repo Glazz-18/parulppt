@@ -115,9 +115,9 @@ describe('SceneShell', () => {
     );
   });
 
-  it('unpins scenes on viewports shorter than 720px (§18 floor fallback)', () => {
+  it('unpins scenes on viewports shorter than 760px (§18 floor fallback)', () => {
     const maxHeightBlockMatch = globalsCss.match(
-      /@media \(max-height:\s*719px\)\s*\{([\s\S]*?)\n\}/,
+      /@media \(max-height:\s*759px\)\s*\{([\s\S]*?)\n\}/,
     );
 
     expect(maxHeightBlockMatch).not.toBeNull();

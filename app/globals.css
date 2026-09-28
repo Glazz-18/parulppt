@@ -86,12 +86,14 @@ body {
   }
 }
 
-/* §18 floor: verified down to 756px, fitted by arithmetic to 720px. Below that, a pinned
-   scene can overlap the next one if its content outgrows the viewport. Fall back to the same
-   static flow the reduced-motion rule uses, so pinned scenes unpin instead of overlapping.
+/* §18 floor: design reference is 1440x900. Live measurement at 740px found pinned scenes 14/18
+   and meme scenes 22/30 exceeding the viewport by a few pixels (they fit at 756). Below 760px, a
+   pinned scene can overlap the next one if its content outgrows the viewport. Fall back to the
+   same static flow the reduced-motion rule uses, so pinned scenes unpin instead of overlapping.
+   760px keeps fullscreen 768-tall laptops pinned.
    Note: ScrollTrigger's `end` for pinned scenes is `bottom bottom`; with height:auto the
    section is shorter, so its scrub window compresses. Acceptable for this fallback. */
-@media (max-height: 719px) {
+@media (max-height: 759px) {
   section[data-scene] {
     min-height: 100vh;
     height: auto;

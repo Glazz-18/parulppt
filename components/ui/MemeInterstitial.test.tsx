@@ -21,11 +21,11 @@ describe('MemeInterstitial', () => {
     expect(img?.getAttribute('loading')).toBe('lazy');
     expect(img?.getAttribute('decoding')).toBe('async');
 
-    // Height-driven sizing (overflow fix round 3): the box fixes height and lets width follow the
-    // image's natural aspect ratio, so small-caption templates aren't cropped to a fixed max-width.
+    // Height-driven sizing (overflow fix round 4): the box fixes height and shrink-wraps its width
+    // to the image's own rendered width (inline-flex), so it never stretches wider than the image.
     const box = img?.parentElement as HTMLElement;
     expect(box.style.height).toBe('min(46vh, 420px)');
-    expect(box.style.width).toBe('auto');
+    expect(box.style.display).toBe('inline-flex');
     expect(box.style.maxWidth).toBe('100%');
     expect(img?.style.height).toBe('100%');
     expect(img?.style.width).toBe('auto');

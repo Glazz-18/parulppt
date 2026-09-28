@@ -21,11 +21,13 @@ export type MemeInterstitialProps = {
 // small-caption templates unreadable) -- height-driven sizing replaces both that cap and the
 // aspect-ratio box below: a 3:2 image renders ~630px wide at 420px tall instead of being cropped
 // to a 340px-wide slice.
+// Round 4: `width: auto` on a block element still stretched to the container's full width
+// (max-width: 100% had nothing to constrain against). inline-flex shrink-wraps the border to the
+// image's own rendered width instead.
 const boxStyle: CSSProperties = {
   height: 'min(46vh, 420px)',
-  width: 'auto',
   maxWidth: '100%',
-  display: 'flex',
+  display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
   overflow: 'hidden',
