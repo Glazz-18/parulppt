@@ -54,7 +54,7 @@ describe('constants', () => {
     ]);
   });
 
-  it('(d) LINKEDIN_HREF starts with https://linkedin.com/in/', () => {
-    expect(LINKEDIN_HREF).toMatch(/^https:\/\/linkedin\.com\/in\//);
+  it('(d) LINKEDIN_HREF is the final user-supplied URL (CONTRACTS A28)', () => {
+    expect(LINKEDIN_HREF).toBe('https://www.linkedin.com/in/iamatharvtiwari/');
   });
 });

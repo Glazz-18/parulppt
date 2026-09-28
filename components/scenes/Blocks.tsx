@@ -24,6 +24,15 @@ const ruleStyle: CSSProperties = {
   borderColor: 'var(--rule)',
 };
 
+// Bars group heading (CONTRACTS A27): MonoLabel-style (see components/ui/MonoLabel) rendered
+// inline here rather than imported, matching this file's existing pattern of hand-rolled mono
+// styles (monoStyle, metaMutedStyle) for the other block-local mono bits (letter, marker, etc).
+const groupLabelStyle: CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  color: 'var(--label)',
+  letterSpacing: '0.12em',
+};
+
 const bodyTextStyle: CSSProperties = {
   fontSize: 'clamp(20px, 1.6vw, 28px)',
   lineHeight: 1.35,
@@ -34,17 +43,26 @@ const bodyTextStyle: CSSProperties = {
 const mutedBodyStyle: CSSProperties = { ...bodyTextStyle, color: 'var(--muted)' };
 const metaMutedStyle: CSSProperties = { ...monoStyle, color: 'var(--muted)' };
 
+// Round 2 overflow fix (slide 18, editorial pinned scene, measured 787px in a 757px viewport):
+// a `steps` block with >=5 items (its own tightening, item 2 below) also shrinks this shared
+// block-to-block gap on the scene it belongs to -- gap-10 (40px) between 3 blocks is generous
+// headroom slide 18 can't afford, and no pinned scene with a shorter `steps` list needs it either.
+function hasTightSteps(blocks: Block[]): boolean {
+  return blocks.some((b) => b.type === 'steps' && b.items.length >= 5);
+}
+
 export function Blocks({ blocks }: BlocksProps) {
+  const tight = hasTightSteps(blocks);
   return (
-    <div className="flex flex-col gap-10">
+    <div className={tight ? 'flex flex-col gap-6' : 'flex flex-col gap-10'}>
       {blocks.map((block, index) => (
-        <BlockView key={`${block.type}-${index}`} block={block} />
+        <BlockView key={`${block.type}-${index}`} block={block} afterLines={blocks[index - 1]?.type === 'lines'} />
       ))}
     </div>
   );
 }
 
-function BlockView({ block }: { block: Block }) {
+function BlockView({ block, afterLines }: { block: Block; afterLines: boolean }) {
   switch (block.type) {
     case 'lines':
       return (
@@ -57,16 +75,25 @@ function BlockView({ block }: { block: Block }) {
         </div>
       );
 
-    case 'steps':
+    case 'steps': {
+      // Round 2 (design brief item 2): >=5 items (slide 18's own shape, also scenes 5 and 38) get
+      // a tighter row -- smaller text, tighter line-height, and a row-level vertical padding in
+      // place of the default's larger inter-item gap.
+      const tight = block.items.length >= 5;
       return (
         <div
           data-block="steps"
-          className="[&_ol]:flex [&_ol]:flex-col [&_ol]:gap-5 [&_li[data-part=step]]:flex [&_li[data-part=step]]:items-baseline [&_li[data-part=step]]:gap-4"
-          style={bodyTextStyle}
+          className={
+            tight
+              ? '[&_ol]:flex [&_ol]:flex-col [&_ol]:gap-2 [&_li[data-part=step]]:flex [&_li[data-part=step]]:items-baseline [&_li[data-part=step]]:gap-4 [&_li[data-part=step]]:py-[0.35em]'
+              : '[&_ol]:flex [&_ol]:flex-col [&_ol]:gap-5 [&_li[data-part=step]]:flex [&_li[data-part=step]]:items-baseline [&_li[data-part=step]]:gap-4'
+          }
+          style={tight ? { fontSize: 'clamp(18px, 1.3vw, 22px)', lineHeight: 1.25 } : bodyTextStyle}
         >
           <StepList items={block.items} />
         </div>
       );
+    }
 
     case 'terms':
       return (
@@ -92,7 +119,14 @@ function BlockView({ block }: { block: Block }) {
         </div>
       );
 
-    case 'layers':
+    case 'layers': {
+      // Slide 27 (CONTRACTS §3.1, measured overflow 1284px in a 796px viewport) stacks 4 layer
+      // rows of sentence-length text; tightening row padding/line-height for 4+ items buys back
+      // vertical space without touching copy or the item/reveal shape (scene-scoped per the
+      // overflow-fix brief, not a components/ui change -- other layers rows with <4 items, e.g.
+      // scene 13/41, are unaffected either way since padding-only tightening never causes overflow).
+      const tight = block.items.length >= 4;
+      const rowStyle: CSSProperties = tight ? { ...bodyTextStyle, lineHeight: 1.15 } : bodyTextStyle;
       return (
         <div data-block="layers" className="flex flex-col gap-4">
           {block.marker ? (
@@ -100,13 +134,13 @@ function BlockView({ block }: { block: Block }) {
               {block.marker}
             </span>
           ) : null}
-          <div className="flex flex-col gap-3">
+          <div className={tight ? 'flex flex-col gap-2' : 'flex flex-col gap-3'}>
             {block.items.map((item, i) => (
               <div
                 key={i}
                 data-part="layer"
-                className="border-t pt-3"
-                style={{ ...ruleStyle, ...bodyTextStyle }}
+                className={tight ? 'border-t pt-2' : 'border-t pt-3'}
+                style={{ ...ruleStyle, ...rowStyle }}
               >
                 {item.term ? <strong className="mr-3">{item.term}</strong> : null}
                 <span>{item.text}</span>
@@ -125,6 +159,7 @@ function BlockView({ block }: { block: Block }) {
           ) : null}
         </div>
       );
+    }
 
     case 'marks':
       return (
@@ -137,9 +172,25 @@ function BlockView({ block }: { block: Block }) {
         </div>
       );
 
-    case 'metrics':
+    case 'metrics': {
+      // ≥3 metrics stack too tall as a vertical/wrap flow (measured, slide 27: 4 sentence-shaped
+      // metrics at 118px each overflowed the pinned viewport). A responsive grid puts them
+      // side-by-side instead; ≤2 items keep the original flow (unchanged reveal order/targets
+      // either way -- this only changes the wrapping div's layout, not which elements exist).
+      const isGrid = block.items.length >= 3;
+      // Round 2 (design brief item 2): a `metrics` block that directly follows a `lines` block
+      // (slide 18's own shape -- no other pinned scene has this exact adjacency) forces BigNumber's
+      // compact value scale even for a short value ("$893M" is 5 chars, so BigNumber.tsx would
+      // otherwise give it the 64-140px hero scale). Targets the value span itself, which carries no
+      // inline font-size of its own (only its parent <p> does), so the inherited hero size loses to
+      // this explicit rule without needing !important.
+      const compactClass = afterLines ? '[&_[data-part=value]]:text-[clamp(28px,3.4vw,52px)]' : '';
       return (
-        <div data-block="metrics" className="flex flex-wrap gap-10">
+        <div
+          data-block="metrics"
+          className={[isGrid ? 'grid gap-8' : 'flex flex-wrap gap-10', compactClass].filter(Boolean).join(' ')}
+          style={isGrid ? { gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' } : undefined}
+        >
           {block.items.map((item, i) => (
             <div key={i} data-part="metric">
               <BigNumber {...item} />
@@ -147,6 +198,7 @@ function BlockView({ block }: { block: Block }) {
           ))}
         </div>
       );
+    }
 
     case 'flow': {
       return (
@@ -212,6 +264,11 @@ function BlockView({ block }: { block: Block }) {
         <div data-block="bars" className="flex flex-col gap-6">
           {Array.from({ length: rowCount }).map((_, row) => (
             <div key={row} data-part="bar-row" className="flex flex-col gap-4">
+              {block.groups?.[row] ? (
+                <p data-part="label" className="uppercase" style={groupLabelStyle}>
+                  {block.groups[row]}
+                </p>
+              ) : null}
               {block.series.map((label, i) => {
                 const ratio = ratios?.[row * seriesLen + i];
                 const widthPct = `${Math.round((ratio ?? 1) * 100)}%`;

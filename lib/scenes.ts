@@ -641,6 +641,8 @@ export const scenes: Scene[] = [
           // Deck shape order (MTTD alone, MTTD copilot, MTTR alone, MTTR copilot), normalised to
           // the longest bar = 1 (manager ruling, Task 32 fix round 1): two rows of `series.length`.
           ratios: [1, 0.14, 0.86, 0.08],
+          // Group headings echo the terms block's own MTTD/MTTR (CONTRACTS A27, rule-5 exception).
+          groups: ['MTTD', 'MTTR'],
         },
       ],
     },
@@ -1012,7 +1014,9 @@ export const scenes: Scene[] = [
       closing: 'And find the people who will build it with you.',
       speaker: 'Atharv Tiwari',
       role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
-      linkedin: 'linkedin.com/in/atharvtiwari',
+      // User-approved deviation from deck paragraph [7] ('linkedin.com/in/atharvtiwari'); the sole
+      // exemption from §3.1 rule 5 and scripts/verify-copy.mjs (CONTRACTS A28).
+      linkedin: 'linkedin.com/in/iamatharvtiwari',
     },
   },
 ];

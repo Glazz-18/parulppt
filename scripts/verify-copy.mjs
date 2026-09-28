@@ -9,6 +9,13 @@ const repoRoot = dirname(__dirname);
 // Keys to skip during traversal
 const skipKeys = new Set(['id', 'act', 'theme', 'accent', 'kind', 'component', 'type']);
 
+// CONTRACTS A28 (docs/CONTRACTS.md §3.1 rule 5, §7): slide 46's `content.linkedin` is a
+// user-approved deviation from the deck string (paragraph [7]) and is the sole documented
+// exemption from this verification. Scoped to exactly slide 46 + the `linkedin` key, nothing else.
+function isDocumentedExemption(slideNumber, key) {
+  return slideNumber === 46 && key === 'linkedin';
+}
+
 // Helper to collapse whitespace
 function collapseWhitespace(str) {
   return str.replace(/\s+/g, ' ').trim();
@@ -31,7 +38,10 @@ const scenes = scenesModule.scenes;
 const misses = [];
 
 // Recursively walk through scene values
-function walkValue(value, slideNumber) {
+function walkValue(value, slideNumber, key) {
+  if (key !== undefined && isDocumentedExemption(slideNumber, key)) {
+    return;
+  }
   if (typeof value === 'string') {
     if (value.length === 0) {
       // Ignore empty strings
@@ -56,12 +66,12 @@ function walkValue(value, slideNumber) {
     }
   } else if (Array.isArray(value)) {
     for (const item of value) {
-      walkValue(item, slideNumber);
+      walkValue(item, slideNumber, key);
     }
   } else if (value !== null && typeof value === 'object') {
-    for (const [key, val] of Object.entries(value)) {
-      if (!skipKeys.has(key)) {
-        walkValue(val, slideNumber);
+    for (const [childKey, val] of Object.entries(value)) {
+      if (!skipKeys.has(childKey)) {
+        walkValue(val, slideNumber, childKey);
       }
     }
   }

@@ -160,7 +160,9 @@ export function SupplyChainScene({ scene }: SceneProps) {
   }, [progress]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-8">
+    // Slide 14 fix (round 1: gap-8 -> gap-5, measured 1119px in a 796px viewport; round 2: measured
+    // 864px in a 757px viewport, still overflowing the 720px floor -- gap-5 -> gap-3 for more room).
+    <div ref={containerRef} className="flex flex-col gap-3">
       {scene.eyebrow ? (
         <div ref={eyebrowRef} style={eyebrowStyle}>
           <MonoLabel as="p" tone="label">
@@ -173,7 +175,7 @@ export function SupplyChainScene({ scene }: SceneProps) {
           {scene.title}
         </h2>
       ) : null}
-      <div className="relative flex flex-col items-center gap-6 pb-4">
+      <div className="relative flex flex-col items-center gap-2 pb-0">
         {rootLabel ? (
           <span data-part="node" data-role="root" className="border px-4 py-2 font-semibold" style={nodeStyle}>
             {rootLabel}
@@ -201,12 +203,16 @@ export function SupplyChainScene({ scene }: SceneProps) {
           ) : null}
         </div>
         {/* Decorative "many dependencies" fan (CONTRACTS: decorative shapes aria-hidden) -- no
-            invented deck words, purely unlabelled nodes/edges (manager brief). */}
+            invented deck words, purely unlabelled nodes/edges (manager brief). Capped at
+            min(42vh, 360px) square (round 1); round 2 (measured 864px in a 757px viewport, still
+            over the 720px floor) shrinks the cap further to min(34vh, 280px) -- the graph is
+            decorative, so it can give up the most area per pixel of any element here. */}
         <div
           ref={graphRef}
           data-part="graph"
           aria-hidden="true"
-          className="pointer-events-none relative mt-2 aspect-square w-full max-w-[480px]"
+          className="pointer-events-none relative"
+          style={{ width: 'min(34vh, 280px)', height: 'min(34vh, 280px)' }}
         >
           {Array.from({ length: DECORATIVE_COUNT }).map((_, i) => {
             const { x, y, length, cssAngle } = decorativePoint(i, DECORATIVE_COUNT);
@@ -244,7 +250,17 @@ export function SupplyChainScene({ scene }: SceneProps) {
         // metric class -- natural layout, scale 1, no offset -- for the reduced-motion static
         // render; GSAP owns the same transform (from a larger/offset state into this one) when
         // animated. transformOrigin '0% 50%' matches the GSAP tween's own origin either way.
-        <div data-part="metric-handoff" style={{ transformOrigin: '0% 50%' }}>
+        <div
+          data-part="metric-handoff"
+          // Round 2: force BigNumber's compact value scale here regardless of this metric's own
+          // value length ("48%" is short, so BigNumber.tsx would otherwise give it the 64-140px
+          // hero scale) -- targets the value span itself (which carries no inline font-size of
+          // its own; only its parent <p> does), so the inherited hero size loses to this explicit
+          // rule without needing !important. Scene-scoped CSS per the fix brief, not a
+          // components/ui change.
+          className="[&_[data-part=value]]:text-[clamp(28px,3.4vw,52px)]"
+          style={{ transformOrigin: '0% 50%' }}
+        >
           <Blocks blocks={[metricsBlock]} />
         </div>
       ) : null}

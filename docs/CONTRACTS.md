@@ -1,5 +1,5 @@
 # CONTRACTS — interface authority
-v1.4 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24; v1.4: PresenterPen withdrawn, scene 7 meme, A25–A26) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
+v1.5 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24; v1.4: PresenterPen withdrawn, scene 7 meme, A25–A26; v1.5: `bars.groups`, LinkedIn URL and link text, A27–A28) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
 
 ## 1. Rulings
 | # | Conflict | Ruling | Why |
@@ -41,6 +41,8 @@ Additional rulings found while reading the sources:
 | A24 | ApprovalGate after a decision (§9.3) | In `approved` and `rejected`, ApprovalGate's Approve and Reject are rendered `disabled` | Whole-branch review dispute accepted by Fable; §9.3 lists no controls after a decision |
 | A25 | PresenterPen withdrawn (§5.6) | PresenterPen withdrawn by the user on 2026-09-28; A18 and A22 superseded; SceneShell paddingBlock floor returns to max(7vh, 72px) (Task 41 value) | User decision |
 | A26 | Scene 7 meme (R5, Appendix A) | Scene 7 uses meme 25 because meme 4 has no raster | User asked for a real image on 2026-09-28 |
+| A27 | Bar group labels (§3, §3.1) | `bars.groups?: string[]` labels each row of `series.length` bars, in order, as a mono group heading above its bars; absent → rendering unchanged. Slide 28 sets `groups: ['MTTD', 'MTTR']`; slide 34 sets none | Browser check of slide 28: bar groups were unlabelled; groups echo the slide's own MTTD/MTTR terms. |
+| A28 | LinkedIn destination (§5.4, §14 N1) | `LINKEDIN_HREF = 'https://www.linkedin.com/in/iamatharvtiwari/'`, no longer provisional; slide 46 `content.linkedin` (visible link text) = `linkedin.com/in/iamatharvtiwari`, a user-approved deviation from the deck string `linkedin.com/in/atharvtiwari` (paragraph [7]); it is the sole documented exemption from §3.1 rule 5 and the §7 verification (`scripts/verify-copy.mjs`) | User supplied the final LinkedIn URL and asked the visible text to match it, 2026-09-28 |
 
 ## 2. Repo layout
 ```text
@@ -138,7 +140,7 @@ export type Block =
   | { type: 'metrics'; items: Metric[] }
   | { type: 'flow'; label?: string; items: string[]; marker?: string }
   | { type: 'columns'; items: { heading: string; lines: string[] }[] }
-  | { type: 'bars'; series: string[]; note?: string; ratios?: number[] };
+  | { type: 'bars'; series: string[]; note?: string; ratios?: number[]; groups?: string[] }; // groups: one deck string per row of series.length bars, in order, rendered as a mono group heading above that row; absent → rendering unchanged (A27)
 
 export type BlocksContent = { blocks: Block[] };
 export type TitleContent = { words: string[]; speaker: string; role: string };
@@ -177,7 +179,7 @@ export const KIND_COMPONENT: Record<SceneKind, SceneComponentName | null> = { ti
 2. Demos 4, 6, 23: [1] → `content.subtitle`, [2] → `title`; every later paragraph is W3 fixture copy (§9), never manifest copy.
 3. Every other slide except 1, 46 and the ten memes: [1] → `title`.
 4. `sourceNotes` = `[last paragraph]` on exactly 8, 9, 11, 14, 15, 17, 18, 19, 20, 24, 25, 26, 27, 31, 35, 36, 37, 41; omitted elsewhere; the citation paragraph is not rendered in the scene body (only via SOURCE, §5.2).
-5. Every remaining paragraph lands in exactly one field, in deck order, per the recipe table; none dropped, added or merged.
+5. Every remaining paragraph lands in exactly one field, in deck order, per the recipe table; none dropped, added or merged. Sole exception (A27): a `bars.groups` entry may repeat a `term` of a `terms` block on the same slide (slide 28 only). Copy exemption (A28): slide 46 `content.linkedin` is `linkedin.com/in/iamatharvtiwari`, not paragraph [7]'s deck string.
 6. Characters are copied exactly (’ “ ” … × → ≠ ₹ − · •); no ASCII substitution; figures stay deck strings, never `toLocaleString`; 35's `Today` / `47 days left` is never computed from the clock.
 7. The only allowed split is 24's `$8.80vs$25` → `value: '$8.80'`, `versus: ['vs', '$25']` (three styled runs in the deck).
 
@@ -201,11 +203,11 @@ export const KIND_COMPONENT: Record<SceneKind, SceneComponentName | null> = { ti
 | 25 | metrics; terms; lines ×2 |
 | 26 | flow (4 items); terms ×2; lines |
 | 27 | layers (term, text) ×4; metrics (value only) ×4; lines |
-| 28 | terms ×2; bars (series ×2, note) |
+| 28 | terms ×2; bars (series ×2, note, groups ×2 = the terms' `MTTD`, `MTTR`) |
 | 29 | flow ×5 (3 items each) |
 | 31 | metrics (heading, value, label) ×2 |
 | 32 | columns ×2 (heading + 2 lines); lines |
-| 34 | flow (4 phases); bars (series ×2, note) |
+| 34 | flow (4 phases); bars (series ×2, note; no `groups`: its four rows are the flow's phases, which GovernanceCurveScene already labels on the x-axis) |
 | 35 | marks ×4; lines |
 | 36, 37 | terms (letter, term, text) ×4; 36's `O` also has note |
 | 38 | lines; lines (`Owner: ______`, `Reviewed: __ / __`); steps ×5 |
@@ -299,7 +301,7 @@ export const UI_COPY = {
           lines: ['> loading 46 scenes', '> loading 3 live demos', '> checking guardrails'],
           status: 'SYSTEM STATUS', ready: 'READY' },
 } as const;
-export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisional, Needs user N1
+export const LINKEDIN_HREF = 'https://www.linkedin.com/in/iamatharvtiwari/'; // user-supplied 2026-09-28 (N1 resolved, A28)
 ```
 
 ### 5.5 IndexOverlay (`components/presentation/IndexOverlay.tsx`, W2, A17)
@@ -335,7 +337,7 @@ Array<{ id: number; slug: string; title: string; template: string; captionLines:
 ```
 - Copy precedence (AGENT_HIERARCHY §8): PDF visible wording > PPTX text > content-map; the content-map "Core content" column is a summary and is never used as copy.
 - Observed in the PPTX: every slide carries full speaker notes with timing brackets (e.g. slide 1: `[0:00–0:30 · 30s] WHAT TO SAY: …`), which are worker reference for intent and timing and never on-screen copy (A2); no slide has a hyperlink, so `links` is `[]` for all 46; `slides.json` `title` is advisory and the manifest follows §3.1.
-- Verification (W0 script): every string value in `lib/scenes.ts` except identifier fields (`id`, `act`, `theme`, `accent`, `kind`, `component`, `type`) occurs verbatim inside a `texts` entry of the same slide.
+- Verification (W0 script): every string value in `lib/scenes.ts` except identifier fields (`id`, `act`, `theme`, `accent`, `kind`, `component`, `type`) occurs verbatim inside a `texts` entry of the same slide. Sole documented exemption for `scripts/verify-copy.mjs` (A28): slide 46 `content.linkedin` = `linkedin.com/in/iamatharvtiwari`.
 - Line-break artifacts are fixed against the PDF by Sonnet workers and logged one line each in the deviations ledger.
 
 ## 8. Navigation API (`lib/sceneNavigation.ts`, W2)
@@ -616,6 +618,6 @@ export function track(event: AnalyticsEvent, payload: Record<string, string | nu
 ## 14. Needs user
 | # | Item | Facts (not decided here) |
 |---|---|---|
-| N1 | Scene 46 LinkedIn destination | The deck shows `linkedin.com/in/atharvtiwari` as visible text only (slide 46, paragraph [7]); the PPTX has no hyperlink (no `hlinkClick`, no hyperlink relationship) and the PDF has no `/URI` annotation. `LINKEDIN_HREF` is `https://` + that text provisionally, logged as a deviation until the user confirms or replaces it. The user has said they will supply the final LinkedIn URL later; until then `LINKEDIN_HREF` stays provisional. |
+| N1 | Scene 46 LinkedIn destination | The deck shows `linkedin.com/in/atharvtiwari` as visible text only (slide 46, paragraph [7]); the PPTX has no hyperlink (no `hlinkClick`, no hyperlink relationship) and the PDF has no `/URI` annotation. `LINKEDIN_HREF` is `https://` + that text provisionally, logged as a deviation until the user confirms or replaces it. The user has said they will supply the final LinkedIn URL later; until then `LINKEDIN_HREF` stays provisional. **RESOLVED** (user supplied on 2026-09-28): `LINKEDIN_HREF = 'https://www.linkedin.com/in/iamatharvtiwari/'` (A28). The visible link text becomes `linkedin.com/in/iamatharvtiwari`, a user-approved deviation from the deck string (A28). |
 | N2 | "Previous project's system" (README; MASTER_PROMPT §2, §25.1–2) | Not in this folder, which holds only `docs/`, the PPTX, the PDF and the meme HTML. These contracts derive from `docs/` alone. **WAIVED** by user direction (2026-09-27): exploration and build are scoped to this folder only. |
 - No other AGENT_HIERARCHY §12 item arose: no scene is removed, merged or reordered, and no web font is added.

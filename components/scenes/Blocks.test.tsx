@@ -83,6 +83,27 @@ describe('Blocks', () => {
     expect(screen.getByText('vs')).toBeTruthy();
   });
 
+  // Overflow fix: ≥3 metrics stacked vertically overflowed the pinned viewport (slide 27,
+  // measured). They now render as a responsive grid instead; ≤2 items are unaffected.
+  it('renders a metrics block with 2 items as the original flow layout, not a grid', () => {
+    const blocks: Block[] = [{ type: 'metrics', items: [{ value: 'A' }, { value: 'B' }] }];
+    const { container } = render(<Blocks blocks={blocks} />);
+    const wrapper = container.querySelector('[data-block="metrics"]') as HTMLElement;
+    expect(wrapper.className).toContain('flex');
+    expect(wrapper.style.gridTemplateColumns).toBe('');
+  });
+
+  it('renders a metrics block with 3+ items as a responsive auto-fit grid', () => {
+    const blocks: Block[] = [
+      { type: 'metrics', items: [{ value: 'A' }, { value: 'B' }, { value: 'C' }] },
+    ];
+    const { container } = render(<Blocks blocks={blocks} />);
+    const wrapper = container.querySelector('[data-block="metrics"]') as HTMLElement;
+    expect(wrapper.className).toContain('grid');
+    expect(wrapper.style.gridTemplateColumns).toBe('repeat(auto-fit, minmax(240px, 1fr))');
+    expect(container.querySelectorAll('[data-part="metric"]')).toHaveLength(3);
+  });
+
   it('renders flow connectors → + = ↺ as distinct, non-hidden connector elements, others as nodes', () => {
     const blocks: Block[] = [
       { type: 'flow', label: 'Agent · loops until done', items: ['Plan', '→', 'Act', '↺'], marker: 'You are here' },
@@ -155,5 +176,35 @@ describe('Blocks', () => {
     // Every bar is identifiable by its own series label, not colour alone (both rows repeat A/B).
     expect(screen.getAllByText('A')).toHaveLength(2);
     expect(screen.getAllByText('B')).toHaveLength(2);
+  });
+
+  // CONTRACTS A27: bars.groups labels each row of series.length bars with a mono group heading,
+  // in order; a row with no corresponding group entry renders no heading.
+  it('renders a group heading above each row when bars.groups is present, in order', () => {
+    const blocks: Block[] = [
+      {
+        type: 'bars',
+        series: ['A', 'B'],
+        ratios: [1, 0.14, 0.86, 0.08],
+        groups: ['MTTD', 'MTTR'],
+      },
+    ];
+    const { container } = render(<Blocks blocks={blocks} />);
+    const rows = container.querySelectorAll('[data-part="bar-row"]');
+    expect(rows).toHaveLength(2);
+    const labels = Array.from(container.querySelectorAll('[data-part="label"]')) as HTMLElement[];
+    expect(labels.map((l) => l.textContent)).toEqual(['MTTD', 'MTTR']);
+    // Each heading lives inside its own row, ahead of that row's bars.
+    rows.forEach((row, i) => {
+      const label = row.querySelector('[data-part="label"]');
+      expect(label?.textContent).toBe(blocks[0]!.type === 'bars' ? blocks[0].groups?.[i] : undefined);
+      expect(row.firstElementChild).toBe(label);
+    });
+  });
+
+  it('renders no group heading when bars.groups is absent (unchanged output)', () => {
+    const blocks: Block[] = [{ type: 'bars', series: ['A', 'B'], note: 'a note', ratios: [0.3, 0.9] }];
+    const { container } = render(<Blocks blocks={blocks} />);
+    expect(container.querySelectorAll('[data-part="label"]')).toHaveLength(0);
   });
 });
