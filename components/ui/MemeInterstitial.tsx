@@ -15,9 +15,11 @@ export type MemeInterstitialProps = {
 // one 740px viewport (e.g. slide 33: 1265px). Capping the box's height keeps it (and the fallback
 // branch below, which shares this same outer box -- CONTRACTS §3.2 MemeInterstitialProps unchanged)
 // from growing past its share of the viewport regardless of the 4:3 aspect ratio's own math.
+// Round 2 (Fable measurement at 1440x757, slides 22/30, still over the 720px floor at the round-1
+// cap): min(52vh, 480px) -> min(46vh, 420px).
 const boxStyle: CSSProperties = {
   aspectRatio: '4 / 3',
-  maxHeight: 'min(52vh, 480px)',
+  maxHeight: 'min(46vh, 420px)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

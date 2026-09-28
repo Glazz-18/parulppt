@@ -34,7 +34,12 @@ const BASE_WRAPPER_CLASSES = [
   '[&_h2]:font-bold [&_h2]:leading-[0.98]',
   // The meme box is the root div's last child (image or fallback); cap its width so the
   // punchline + box fit a 1440x900 viewport without a second scroll.
-  '[&>div>*:last-child]:w-full [&>div>*:last-child]:max-w-[420px]',
+  // Overflow fix, this task's pass (Fable measurement at 1440x757, slides 22/30, tier-1 headline,
+  // still over the 720px floor): 420px -> 340px. The box's own `aspectRatio: '4/3'` (boxStyle
+  // below) derives its HEIGHT from this width (420*0.75=315px, comfortably under either
+  // maxHeight cap this file or MemeInterstitial.tsx have ever set) -- so maxHeight was never the
+  // real lever for this box's rendered size, only its width is. 340*0.75=255px, a real 60px cut.
+  '[&>div>*:last-child]:w-full [&>div>*:last-child]:max-w-[340px]',
 ];
 
 // Overflow fix, round 2 (Fable browser measurement at 1470x740, slide 33): a single punchline
@@ -46,8 +51,12 @@ const BASE_WRAPPER_CLASSES = [
 // wraps into a readable paragraph rather than one very wide line. Body lines after the headline
 // (MemeInterstitial's `lines.slice(1)`) already render at the deck's fixed body-text scale
 // (`[&_p:not([data-tone])]` above) regardless of headline tier -- unchanged by this fix.
+// Round 2 (Fable measurement at 1440x757: slide 22, tier 1, short headline, 829px -- still over the
+// 720px floor even with the box cap and gap trims below): tier 1's own scale also drops a step,
+// clamp(56px,8vw,118px) -> clamp(48px,7vw,104px). Tiers 2/3 were never the problem (they already
+// measured under budget per the round-1 report) and are unchanged.
 const HEADLINE_TIERS: { max: number; classes: string[] }[] = [
-  { max: 24, classes: ['[&_h2]:text-[clamp(56px,8vw,118px)]'] },
+  { max: 24, classes: ['[&_h2]:text-[clamp(48px,7vw,104px)]'] },
   { max: 48, classes: ['[&_h2]:text-[clamp(36px,4vw,64px)]'] },
   { max: Infinity, classes: ['[&_h2]:text-[clamp(24px,2.4vw,36px)]', '[&_h2]:max-w-[60ch]'] },
 ];
@@ -146,7 +155,10 @@ export function MemeScene({ scene }: SceneProps) {
           // pre-fix-round-2 version put the 880px cap on this same outer wrapper, so the margin
           // reached only 5vw past an 880px-wide box, well short of the section edge at wider
           // viewports.
-          className="pointer-events-none mt-auto h-[12vh] shrink-0"
+          // Round 2 (measured 829px for slide 22 in a 757px viewport, still over the 720px floor):
+          // 12vh -> 8vh. Still reads as the same dark field cutting into scene 23 (design/Task 37
+          // intent unchanged), just a shorter reserved strip.
+          className="pointer-events-none mt-auto h-[8vh] shrink-0"
           style={{
             background: 'var(--bg-dark)',
             borderTop: '2px solid var(--text-dark)',

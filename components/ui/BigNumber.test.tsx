@@ -47,4 +47,21 @@ describe('BigNumber', () => {
     const p = valueEl?.parentElement as HTMLElement;
     expect(p.style.fontSize).toBe('clamp(28px, 3.4vw, 52px)');
   });
+
+  // Review fix (round 2 addendum): fontWeight:700 must not leak onto the hero tier (it bolded
+  // every short deck value, e.g. slide 24's "$8.80", which was never requested) -- only the
+  // compact (long-value) tier gets it.
+  it('does not bold the hero-scale (short) value, but does bold the compact (long) value', () => {
+    const { container } = render(<BigNumber value="$8.80" />);
+    const heroValueEl = container.querySelector('[data-part="value"]');
+    const heroP = heroValueEl?.parentElement as HTMLElement;
+    expect(heroP.style.fontWeight).toBe('');
+
+    cleanup();
+
+    const { container: container2 } = render(<BigNumber value="65 days faster" />);
+    const compactValueEl = container2.querySelector('[data-part="value"]');
+    const compactP = compactValueEl?.parentElement as HTMLElement;
+    expect(compactP.style.fontWeight).toBe('700');
+  });
 });

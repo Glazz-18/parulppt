@@ -178,7 +178,11 @@ export function SocDemo({ scene }: SceneProps) {
     >
       <div className="flex flex-col gap-3">
         {isQueueLike ? <MonoLabel as="p">{socCopy.queue}</MonoLabel> : null}
-        <ul className="flex flex-col gap-1">
+        {/* Round 2 (measured 760px in a 757px viewport, over the 740px floor for this marginal
+            scene): the 16-row queue (12 noise + 4 events) no longer gaps between rows -- each row
+            already carries its own height (noiseRowStyle / event rows), so this was pure added
+            space, not part of any row's own content. */}
+        <ul className="flex flex-col gap-0">
           <AnimatePresence initial={false}>{queueRows}</AnimatePresence>
         </ul>
         <p style={{ color: 'var(--muted)' }}>{socCopy.unrelated}</p>

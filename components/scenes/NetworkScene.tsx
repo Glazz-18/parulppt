@@ -131,7 +131,10 @@ export function NetworkScene({ scene }: SceneProps) {
   }, [progress]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-8">
+    // Round 2 (measured 774px in a 757px viewport, over the 740px floor for this marginal scene,
+    // scoped to NetworkScene since it's the only 'network'-kind scene): gap-8 -> gap-6, plus the
+    // countdown block's own gap and the prompts list's own gap below.
+    <div ref={containerRef} className="flex flex-col gap-6">
       {scene.eyebrow ? (
         <div ref={eyebrowRef} style={eyebrowStyle}>
           <MonoLabel as="p" tone="label">
@@ -151,7 +154,7 @@ export function NetworkScene({ scene }: SceneProps) {
         </p>
       </div>
 
-      <div ref={countdownRef} data-block="countdown" className="flex flex-col gap-6">
+      <div ref={countdownRef} data-block="countdown" className="flex flex-col gap-4">
         <div role="timer">
           <BigNumber value={display} />
         </div>
@@ -172,7 +175,7 @@ export function NetworkScene({ scene }: SceneProps) {
         </div>
       </div>
 
-      <ol data-block="prompts" className="flex flex-col gap-3">
+      <ol data-block="prompts" className="flex flex-col gap-1">
         {prompts.map((prompt, i) => (
           <li
             key={`${prompt.n}-${i}`}

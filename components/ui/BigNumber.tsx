@@ -15,10 +15,15 @@ const COMPACT_VALUE_FONT_SIZE = 'clamp(28px, 3.4vw, 52px)';
 const LONG_VALUE_THRESHOLD = 8;
 
 function valueStyleFor(value: string): CSSProperties {
+  const isLong = value.length > LONG_VALUE_THRESHOLD;
   return {
     fontFamily: 'var(--font-sans)',
-    fontWeight: 700,
-    fontSize: value.length <= LONG_VALUE_THRESHOLD ? HERO_VALUE_FONT_SIZE : COMPACT_VALUE_FONT_SIZE,
+    // Review fix (round 2 addendum): fontWeight:700 was applied to both tiers, which bolded
+    // every hero-scale value deck-wide (e.g. slide 24's "$8.80") -- an unrequested typography
+    // change. The hero tier had no fontWeight before the length-aware fix (591b0a0); only the
+    // compact tier (long, sentence-shaped values, which read thin at their smaller size) needs it.
+    ...(isLong ? { fontWeight: 700 } : {}),
+    fontSize: isLong ? COMPACT_VALUE_FONT_SIZE : HERO_VALUE_FONT_SIZE,
     lineHeight: 1,
     color: 'var(--fg)',
   };

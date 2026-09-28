@@ -178,7 +178,7 @@ describe('MemeScene', () => {
       <MemeScene scene={baseScene({ content: { memeId: 25, lines: ['“Who has this problem?”'] } })} />,
     );
     const root = container.firstElementChild as HTMLElement;
-    expect(root.className).toContain('[&_h2]:text-[clamp(56px,8vw,118px)]');
+    expect(root.className).toContain('[&_h2]:text-[clamp(48px,7vw,104px)]');
   });
 
   it('gives a mid-length headline (25-48 chars) the compact mid scale', () => {
