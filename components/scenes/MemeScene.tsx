@@ -19,19 +19,43 @@ const BASE_WRAPPER_CLASSES = [
   // width here (fix round 2, finding 1 -- moved off the outer wrapper below, which must now span
   // the full content column so the hand-off field's vw-based bleed margins reach the section's
   // true edges instead of an 880px-narrower box's edges).
-  '[&>div]:flex [&>div]:flex-col [&>div]:gap-5 [&>div]:max-w-[880px]',
+  // gap-5 -> gap-4 (overflow fix, round 2): a small, universal trim -- every meme scene has 3-4
+  // gaps here (eyebrow/headline/body-lines/box), so this buys back a little headroom on the
+  // tightest slides without being noticeable on the roomy ones.
+  '[&>div]:flex [&>div]:flex-col [&>div]:gap-4 [&>div]:max-w-[880px]',
   // Zero default margins; the flex gap above owns all spacing.
   '[&_h2]:m-0 [&_p]:m-0',
   // Eyebrow (MonoLabel as="p", carries data-tone) and the fallback's title label share the mono
   // metadata tier (design §4: 12–16px mono); every other <p> (lines + fallback captions) is body tier.
   '[&_p[data-tone]]:text-[clamp(12px,1vw,16px)]',
   '[&_p:not([data-tone])]:text-[clamp(20px,1.6vw,28px)] [&_p:not([data-tone])]:leading-snug',
-  // Huge punchline (design §4 hero/major tier; design §10 "huge headline or punchline").
-  '[&_h2]:font-bold [&_h2]:leading-[0.98] [&_h2]:text-[clamp(56px,8vw,120px)]',
+  // Punchline (design §4 hero/major tier; design §10 "huge headline or punchline") -- font-size
+  // itself is length-aware (headlineSizeClasses below), so it's not listed here.
+  '[&_h2]:font-bold [&_h2]:leading-[0.98]',
   // The meme box is the root div's last child (image or fallback); cap its width so the
   // punchline + box fit a 1440x900 viewport without a second scroll.
   '[&>div>*:last-child]:w-full [&>div>*:last-child]:max-w-[420px]',
 ];
+
+// Overflow fix, round 2 (Fable browser measurement at 1470x740, slide 33): a single punchline
+// scale doesn't work across the deck's meme headlines -- CONTRACTS §3.1 lines aren't all short
+// phrases, some are full sentences (slide 33's is 66 characters) that still overflowed a 796px
+// viewport at a flat clamp(40px,6vw,96px) (wraps to ~5 lines at that scale). The headline scale is
+// length-aware instead: short phrases keep the original hero punchline scale; longer ones drop to
+// progressively smaller tiers, and the longest tier also caps line length (max-width: 60ch) so it
+// wraps into a readable paragraph rather than one very wide line. Body lines after the headline
+// (MemeInterstitial's `lines.slice(1)`) already render at the deck's fixed body-text scale
+// (`[&_p:not([data-tone])]` above) regardless of headline tier -- unchanged by this fix.
+const HEADLINE_TIERS: { max: number; classes: string[] }[] = [
+  { max: 24, classes: ['[&_h2]:text-[clamp(56px,8vw,118px)]'] },
+  { max: 48, classes: ['[&_h2]:text-[clamp(36px,4vw,64px)]'] },
+  { max: Infinity, classes: ['[&_h2]:text-[clamp(24px,2.4vw,36px)]', '[&_h2]:max-w-[60ch]'] },
+];
+
+function headlineSizeClasses(headline: string): string[] {
+  const tier = HEADLINE_TIERS.find(({ max }) => headline.length <= max) ?? HEADLINE_TIERS[HEADLINE_TIERS.length - 1];
+  return tier.classes;
+}
 
 // Fix round 2 (finding 2): scoped to slide 22 only. With the hand-off field below as a second
 // in-flow child, its own `mt-auto` would otherwise be the only auto margin on this flex column,
@@ -41,8 +65,9 @@ const BASE_WRAPPER_CLASSES = [
 // this would be a no-op even if applied unconditionally -- `my-auto` on a lone flex item centers
 // it exactly like `justify-center` already does -- but it's scoped here anyway so the change is
 // explicit and never touches those slides.
-function wrapperClassName(hasHandoff: boolean): string {
-  const classes = hasHandoff ? [...BASE_WRAPPER_CLASSES, '[&>div]:my-auto'] : BASE_WRAPPER_CLASSES;
+function wrapperClassName(hasHandoff: boolean, headline: string): string {
+  const classes = [...BASE_WRAPPER_CLASSES, ...headlineSizeClasses(headline)];
+  if (hasHandoff) classes.push('[&>div]:my-auto');
   return classes.join(' ');
 }
 
@@ -102,7 +127,7 @@ export function MemeScene({ scene }: SceneProps) {
   }, [progress]);
 
   return (
-    <div ref={containerRef} className={wrapperClassName(hasHandoff)}>
+    <div ref={containerRef} className={wrapperClassName(hasHandoff, content.lines[0] ?? '')}>
       <MemeInterstitial meme={meme} eyebrow={scene.eyebrow} lines={content.lines} />
       {hasHandoff ? (
         <div

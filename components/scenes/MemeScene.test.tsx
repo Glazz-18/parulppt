@@ -166,6 +166,47 @@ describe('MemeScene', () => {
     expect((c7.firstElementChild as HTMLElement).className).not.toMatch(/my-auto/);
   });
 
+  // Overflow fix, round 2 (Fable browser measurement at 1470x740, slide 33): a flat punchline
+  // scale overflowed a 796px viewport once a headline ran to a full sentence (slide 33: 66 chars,
+  // measured h2 alone 691px tall at the pre-fix clamp). The headline scale is length-aware in
+  // three tiers by `lines[0]` character count: <=24 keeps the hero punchline scale, 25-48 drops to
+  // a mid scale, and >48 drops further and caps line length (max-width: 60ch) so a long sentence
+  // wraps as a readable paragraph instead of one very wide line.
+  it('gives a short headline (<=24 chars) the hero punchline scale', () => {
+    const { container } = render(
+      // 23 chars.
+      <MemeScene scene={baseScene({ content: { memeId: 25, lines: ['“Who has this problem?”'] } })} />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toContain('[&_h2]:text-[clamp(56px,8vw,118px)]');
+  });
+
+  it('gives a mid-length headline (25-48 chars) the compact mid scale', () => {
+    const { container } = render(
+      // 42 chars.
+      <MemeScene scene={baseScene({ content: { memeId: 3, lines: ['Bhai intern ko CEO ki permissions kyun di?'] } })} />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toContain('[&_h2]:text-[clamp(36px,4vw,64px)]');
+  });
+
+  it('gives a long, sentence-shaped headline (>48 chars) the smallest scale with a 60ch cap', () => {
+    const { container } = render(
+      // 66 chars -- slide 33's own headline.
+      <MemeScene
+        scene={baseScene({
+          content: {
+            memeId: 6,
+            lines: ['Customer: Please complete our 187-question security questionnaire.', 'Founder: …'],
+          },
+        })}
+      />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toContain('[&_h2]:text-[clamp(24px,2.4vw,36px)]');
+    expect(root.className).toContain('[&_h2]:max-w-[60ch]');
+  });
+
   // Finding 4 (Task 22b, fix round 1): scrubbing now goes through the shared `useProgressRef`
   // (`./ContentScene`) instead of a local ref — this confirms the refactor still wires
   // `tl.progress(progressRef.current)` correctly (no provider wraps this render, so

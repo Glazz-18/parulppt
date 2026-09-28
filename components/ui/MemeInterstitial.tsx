@@ -11,8 +11,13 @@ export type MemeInterstitialProps = {
   lines: string[];
 };
 
+// Overflow fix (design §10 "hard cut, single screen"): several meme scenes measured taller than
+// one 740px viewport (e.g. slide 33: 1265px). Capping the box's height keeps it (and the fallback
+// branch below, which shares this same outer box -- CONTRACTS §3.2 MemeInterstitialProps unchanged)
+// from growing past its share of the viewport regardless of the 4:3 aspect ratio's own math.
 const boxStyle: CSSProperties = {
   aspectRatio: '4 / 3',
+  maxHeight: 'min(52vh, 480px)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
