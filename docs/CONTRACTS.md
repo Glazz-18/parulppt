@@ -1,5 +1,5 @@
 # CONTRACTS — interface authority
-v1.3 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
+v1.4 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A10–A16; v1.2: IndexOverlay, PresenterPen, boot sequence, A17–A21; v1.3: pen placement, snap rule, gate buttons, A22–A24; v1.4: PresenterPen withdrawn, scene 7 meme, A25–A26) · Editor: Opus 5.5 (Architect) only. A worker who needs a change files `NEEDS_RULING` (AGENT_HIERARCHY §9). This file wins over any other doc it contradicts; where it is silent, `docs/` applies.
 
 ## 1. Rulings
 | # | Conflict | Ruling | Why |
@@ -8,7 +8,7 @@ v1.3 · 2026-09-28 · Phase 0 (v1.1: pre-flight scan amendments, A2 corrected, A
 | R2 | CampusBot state names | TRD §6: `baseline`, `roleplay`, `guardrail-off`, `guardrail-on`; MASTER_PROMPT's `no-guardrail / leak` = `guardrail-off`, `guardrail-on / blocked` = `guardrail-on` | TRD §6 is the typed contract; visible labels stay deck strings (`No guardrail`, `Guardrail on`) |
 | R3 | SOC initial view | `queue` shows `Alert queue · 10,412`, the four events (unhighlighted, inspectable), `+10,408 unrelated`; summary, evidence, risk, suggested response appear at `correlated`; approval gate only at `pending-approval` | §14's own correlation step adds summary then approval; TRD §6 orders approval after correlation; design §11 wants density first |
 | R4 | Per-scene `theme` | Slide's own PPTX `<p:bg>` fill (all 46 have one): `0F1217` → dark, `F4F1EA` → light, `F47F46` → orange; slide 39 `15171B` → dark | Exact and machine-readable; PDF not renderable here (no poppler); `15171B` is the near-black `--text-dark` |
-| R5 | Single `memeId` | 7 → 4, 12 → 3, 30 → 15, 33 → 6, 45 → 28; sole candidates 10 → 22, 21 → 14, 22 → 12, 40 → 18, 42 → 19; no meme on any other scene | Each pick's label or caption repeats the slide's own copy (MASTER_PROMPT §13 joke intent) |
+| R5 | Single `memeId` | 7 → 25 (A26), 12 → 3, 30 → 15, 33 → 6, 45 → 28; sole candidates 10 → 22, 21 → 14, 22 → 12, 40 → 18, 42 → 19; no meme on any other scene | Each pick's label or caption repeats the slide's own copy (MASTER_PROMPT §13 joke intent) |
 | R6 | Test runner + browser check | Vitest + `@testing-library/react` (+ peer `@testing-library/dom`) + `jsdom`; browser checks manual via Claude's Chrome tools (workers and gates); no Playwright | Fable's default holds: jsdom covers logic; scroll/pin/snap need a real browser, which the Chrome tools give with zero dependencies |
 
 Additional rulings found while reading the sources:
@@ -24,7 +24,7 @@ Additional rulings found while reading the sources:
 | A7 | Light-theme label colour | Add `--orange-ink: #AF4000` | It is the deck's own label colour on light slides; `#F47F46` on `#F4F1EA` is 2.3:1 |
 | A8 | Eyebrow accent on dark | `accent: 'orange'` on 4, 5, 6, 8, 19, 39; other dark scenes use green | Deck eyebrow colours (19 attacker orange, 20 defender green) |
 | A9 | Scene handoffs (design §8) | Built only in the outgoing scene; its hand-off pose is its progress-1 state | Keeps "progress 1 = static markup" true (§11) |
-| A10 | Missing meme rasters | `source/memes.json` ids 4 and 17 have `file: null` plus a `missing` note; `public/memes/` holds 26 PNGs; their `src` is `''` (§7, §10) | Their `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27) |
+| A10 | Missing meme rasters | `source/memes.json` ids 4 and 17 have `file: null` plus a `missing` note; `public/memes/` holds 26 PNGs; their `src` is `''` (§7, §10); no scene references them anymore (A26) | Their `two-buttons` template was removed from memegen (HTTP 404, verified 2026-09-27) |
 | A11 | First progress measurement | The engine stores `self.progress` in `onRefresh` as well as `onUpdate` (§6) | `onUpdate` fires only on change, so a scene whose true progress is 0 would keep the pre-measure 1 |
 | A12 | Who renders `SceneShell` | Only `SceneRenderer`; registry components, including `DemoShell`, render inside `.scene-viewport` and never render `SceneShell` or a `<section>` | A second shell nests `section[data-scene]` and breaks the 46-section count (§5.1, TRD §16) |
 | A13 | `<main>` and chrome placement | `Presentation` renders `<main id="presentation">` holding only the 46 sections; `SideNav`, `SceneControls` and `SourceDrawer` are its siblings; `app/page.tsx` returns `<Presentation />` only; `MotionConfig` wraps them inside `Presentation` | Keeps the nav landmark out of `<main>` and the section list pure; §2 already puts `MotionConfig` in the engine |
@@ -32,13 +32,15 @@ Additional rulings found while reading the sources:
 | A15 | Demo subtitle vs caption | `DemoShell` renders `content.subtitle` once; `caption` is `UI_COPY.fictional` on scene 4 only; scenes 6 and 23 have no separate caption (§9) | v1 made the RAG and SOC caption the deck subtitle, printing the same string twice |
 | A16 | Ownership exceptions (Fable ledger rulings) | `lib/memes.ts`, `public/memes/` and `scripts/build-memes.mjs`: W1 Task 6; `lib/scenes.ts` skeleton and empty `components/scenes/index.ts`: W2 Task 7, then W4 sole writer; `scripts/verify-copy.mjs`: W4 Task 19; `package.json` script lines they add are applied by their manager | Records Fable's rulings so §2 no longer contradicts the plan |
 | A17 | `IndexOverlay` (§5.5) | W2 file `components/presentation/IndexOverlay.tsx`: `INDEX` trigger top-left, modal scene index grouped by act, `goToScene` + close | User-approved feature from the reference site |
-| A18 | `PresenterPen` (§5.6) | W2 file `components/presentation/PresenterPen.tsx`: `PEN` / `UNDO` / two-step `CLEAR` toolbar bottom-left + canvas overlay, strokes in state only | User-approved feature from the reference site |
+| A18 | `PresenterPen` (§5.6) | W2 file `components/presentation/PresenterPen.tsx`: `PEN` / `UNDO` / two-step `CLEAR` toolbar bottom-left + canvas overlay, strokes in state only | User-approved feature from the reference site (superseded by A25) |
 | A19 | Scene 1 boot sequence (§11) | `TitleScene` (W4) types `UI_COPY.boot` before the four words; motion-only, any input ends it, no SKIP control | User-approved feature from the reference site |
 | A20 | New chrome copy (§5.4) | `index`, `pen`, `undo`, `clear`, `clearConfirm`, `boot` join `UI_COPY` (A6) | User-approved feature from the reference site; boot words are user-approved invented copy |
 | A21 | Escape precedence (§8) | IndexOverlay → SourceDrawer → pen mode → demo escape → nothing; still one engine listener | User-approved feature from the reference site; topmost layer closes first |
-| A22 | PresenterPen placement (§5.6) | Toolbar sits above the current-Act label at the same inline inset (stacked), not beside it | Act 5's label is too long for an inline row at 1280px; stacked placement ruled by Fable in Task 39; Act label gets nowrap/ellipsis (SceneControls). |
+| A22 | PresenterPen placement (§5.6) | Toolbar sits above the current-Act label at the same inline inset (stacked), not beside it | Act 5's label is too long for an inline row at 1280px; stacked placement ruled by Fable in Task 39; Act label gets nowrap/ellipsis (SceneControls). (superseded by A25) |
 | A23 | Snap inside tall sections (§8) | No snap while `scrollY` is strictly inside any section taller than the viewport (pinned or not); snap targets remain section tops | Whole-branch review I5: snapping pulled the reader back to the top of tall unpinned sections; fixed in lib/sceneNavigation.ts (fix wave, be9c5f1). |
 | A24 | ApprovalGate after a decision (§9.3) | In `approved` and `rejected`, ApprovalGate's Approve and Reject are rendered `disabled` | Whole-branch review dispute accepted by Fable; §9.3 lists no controls after a decision |
+| A25 | PresenterPen withdrawn (§5.6) | PresenterPen withdrawn by the user on 2026-09-28; A18 and A22 superseded; SceneShell paddingBlock floor returns to max(7vh, 72px) (Task 41 value) | User decision |
+| A26 | Scene 7 meme (R5, Appendix A) | Scene 7 uses meme 25 because meme 4 has no raster | User asked for a real image on 2026-09-28 |
 
 ## 2. Repo layout
 ```text
@@ -54,7 +56,6 @@ components/
     SideNav.tsx
     SceneControls.tsx
     IndexOverlay.tsx         scene index dialog (§5.5, A17, Task 38)
-    PresenterPen.tsx         pen toolbar + canvas (§5.6, A18, Task 39)
   scenes/                    W4, except the four W3 files
     index.ts                 registry: SceneComponentName → component (W4 single writer)
     Blocks.tsx               shared Block renderer (§3)
@@ -82,7 +83,7 @@ docs/                        read-only; this file: Opus only
 - W1 also owns root config: `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `postcss.config.mjs`, `eslint.config.mjs`, `vitest.config.ts`; other workstreams request script or dependency changes through their manager.
 - `lib/scenes.ts` and `components/scenes/index.ts` have one writer at a time (W4 manager serialises; W4 registers W3's demos).
 - Everything under `components/` is a client component and `app/layout.tsx`, `app/page.tsx` stay server components; the registry imports `CampusBotDemo`, `RagDemo`, `SocDemo` with `next/dynamic` (SSR on), all other scenes statically (PRD §15).
-- Tasks 38–39 (`IndexOverlay`, `PresenterPen`) are W2-owned follow-ups dispatched after the W2 merge; Task 40 (boot sequence in `TitleScene`) is W4.
+- Task 38 (`IndexOverlay`) is a W2-owned follow-up dispatched after the W2 merge; Task 40 (boot sequence in `TitleScene`) is W4.
 - W2 needs the manifest skeleton (Appendix A transcribed; content may be empty arrays and empty strings) before it starts.
 - Runtime dependencies: `next`, `react`, `react-dom`, `gsap`, `@gsap/react`, `framer-motion`; dev: `typescript`, `tailwindcss` 4, `@tailwindcss/postcss`, `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/dom`, plus create-next-app's own ESLint and `@types/*` packages.
 - Scripts: `dev`, `build`, `start`, `lint`, `test` (= `vitest run`); `vitest.config.ts`: `environment: 'jsdom'`, `esbuild: { jsx: 'automatic' }`, `resolve.alias: { '@': <repo root> }`, no Vite plugins.
@@ -260,7 +261,7 @@ export const ACTS = [
   <div class="scene-viewport">…scene component…</div>
 </section>
 ```
-- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the only children of `<main id="presentation">`, in slide order (A13); the IndexOverlay trigger and dialog and the PresenterPen toolbar and canvas are siblings of `<main>`, like SideNav, SceneControls and SourceDrawer.
+- `NN` is two digits (`01`…`46`) in `id`, `data-scene` and `data-slide`; `data-act` is `act-0`…`act-8`; the 46 sections are the only children of `<main id="presentation">`, in slide order (A13); the IndexOverlay trigger and dialog are siblings of `<main>`, like SideNav, SceneControls and SourceDrawer.
 - `data-pin="true"`: section `height: calc(var(--scroll-length) * 100vh)` and `.scene-viewport { position: sticky; top: 0; height: 100vh }`; `data-pin="false"`: section `min-height: 100vh`, no sticky.
 - `prefers-reduced-motion: reduce`: every section is `min-height: 100vh; height: auto` and `.scene-viewport` is `position: static` (CSS only).
 - `section[data-scene]:focus { outline: none }`; every control shows a high-contrast `:focus-visible` ring (technical §17).
@@ -294,7 +295,6 @@ export const UI_COPY = {
   soc: { queue: 'Queue', investigating: 'Investigating', correlated: 'Correlated',
          'pending-approval': 'Pending approval', approved: 'Approved', rejected: 'Rejected' }, // TRD §6
   index: 'INDEX',                                               // IndexOverlay trigger (A17)
-  pen: 'PEN', undo: 'UNDO', clear: 'CLEAR', clearConfirm: 'CLEAR?', // PresenterPen (A18)
   boot: { heading: 'INITIALIZING KEYNOTE…',                     // scene 1 boot (A19), user-approved
           lines: ['> loading 46 scenes', '> loading 3 live demos', '> checking guardrails'],
           status: 'SYSTEM STATUS', ready: 'READY' },
@@ -307,11 +307,7 @@ export const LINKEDIN_HREF = 'https://linkedin.com/in/atharvtiwari'; // provisio
 - Dialog: `<div id="scene-index" role="dialog" aria-modal="true" aria-labelledby="scene-index-title">` covering the viewport; scene 1 first, then the 8 ACTS in order, each headed `Act ${n} — ${label}`, with one `<button type="button">` per scene whose accessible name is `Go to scene NN: ${title ?? eyebrow}` (`Go to scene NN` when both are absent).
 - Click → `goToScene(slide)` + close. Focus is trapped; opening focuses the first scene button; closing returns focus to the trigger; closes on Escape, backdrop click or its `UI_COPY.close` button. Framer Motion `AnimatePresence`; no storage.
 
-### 5.6 PresenterPen (`components/presentation/PresenterPen.tsx`, W2, A18)
-- Toolbar fixed bottom-left, stacked above the current-Act label at the same inline inset (A22): three mono `<button type="button">`s: `UI_COPY.pen` (`aria-pressed` = pen mode), `UI_COPY.undo` (removes the last stroke), `UI_COPY.clear`.
-- CLEAR is two-step and state-driven: the first click sets `confirming` and relabels to `UI_COPY.clearConfirm`; a second click within 4000 ms clears all strokes; 4000 ms without one reverts to `UI_COPY.clear` (timer set in an effect keyed on `confirming` and cleared on cleanup, so no race).
-- `<canvas aria-hidden="true">` covers the viewport with `pointer-events: none` unless pen mode is on; pointer events draw strokes in `--orange`, 3px, round caps and joins; strokes live in component state as point arrays, are redrawn on resize, and are all cleared when the current scene changes.
-- The canvas never takes focus or keys, so keyboard navigation works in pen mode; no storage, no network; reduced motion changes nothing (drawing is user-driven).
+§5.6 — withdrawn, see A25
 
 ## 6. Progress API
 ```ts
@@ -367,7 +363,7 @@ export function useDemoEscape(slide: number, onEscape: (() => void) | null): voi
 | `ArrowDown`, `PageDown`, `Space` | Current scene pinned and progress < 1: scroll +1 viewport, clamped to its sticky range end; else `goToScene(current + 1)` |
 | `ArrowUp`, `PageUp`, `Shift+Space` | Current scene pinned and scrolled past its top: scroll −1 viewport, clamped to its top; else `goToScene(current − 1)` |
 | `Home` / `End` | `goToScene(1)` / `goToScene(46)` |
-| `Escape` | IndexOverlay open → close it; else SourceDrawer open → close it; else pen mode on → turn it off; else the current scene's registered demo escape → call it; else nothing (A21) |
+| `Escape` | IndexOverlay open → close it; else SourceDrawer open → close it; else the current scene's registered demo escape → call it; else nothing (A21) |
 - One `keydown` listener on `window`, owned by the engine; a handled key calls `preventDefault()`.
 - Navigation keys never fire when `event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="slider"], [role="spinbutton"], [role="listbox"], [role="radiogroup"], [role="tablist"], [role="menu"], [role="grid"]')` matches, or when `altKey`, `ctrlKey` or `metaKey` is set.
 - `Space` also never fires on `button, summary, [role="button"], [role="checkbox"], [role="switch"]`; `Escape` is exempt from both filters because no control used here has a native Escape action.
@@ -535,7 +531,7 @@ export const memes: MemeAsset[]; // 28 entries sorted by id
 
 ## 11. Motion contract
 - GSAP (`gsap` + `useGSAP`) owns scroll-scrubbed scene timelines, SVG path draws, counters and scene 1's one-shot intro; only the engine imports `ScrollTrigger` and calls `gsap.registerPlugin`.
-- Framer Motion owns SourceDrawer, IndexOverlay and PresenterPen toolbar transitions, SideNav / SceneControls micro-motion, hover and focus, and every transition in the demos (4, 6, 23) and interactions (38, 43); these never use GSAP.
+- Framer Motion owns SourceDrawer and IndexOverlay transitions, SideNav / SceneControls micro-motion, hover and focus, and every transition in the demos (4, 6, 23) and interactions (38, 43); these never use GSAP.
 - No element's `transform` or `opacity` is driven by both libraries (technical §6); nest a wrapper when both are needed.
 - Markup is visible by default: no server HTML or base CSS hides meaningful content (`opacity: 0`, `visibility: hidden`, off-screen transform); from-states are applied only inside `useGSAP`, after mount; if GSAP setup throws, the scene keeps its static markup and navigation keeps working (technical §15).
 - Scene timelines exist only inside `gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', …)`; under `reduce` there is no timeline and the markup stands (requirement H).
@@ -573,7 +569,7 @@ export function track(event: AnalyticsEvent, payload: Record<string, string | nu
 | 4 | demo | dark | CampusBotDemo* | – | false | 1 | act-2 |
 | 5 | diagram | dark | RagFlowScene* | – | true | 3 | act-2 |
 | 6 | demo | dark | RagDemo* | – | false | 1 | act-2 |
-| 7 | meme | orange | MemeScene | 4 | false | 1 | act-2 |
+| 7 | meme | orange | MemeScene | 25 | false | 1 | act-2 |
 | 8 | diagram | dark | ContentScene | – | true | 2 | act-2 |
 | 9 | diagram | dark | ContentScene | – | true | 3 | act-3 |
 | 10 | meme | orange | MemeScene | 22 | false | 1 | act-3 |

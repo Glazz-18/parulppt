@@ -435,7 +435,7 @@
 - [ ] **Step 1:** Failing tests: trigger toggles `aria-expanded`; overlay lists 46 buttons with the exact accessible names and 8 act headings; clicking a scene button calls `goToScene(n)` and closes; Escape closes and returns focus to the trigger; backdrop click closes; the current scene's button has `aria-current="step"`.
 - [ ] **Step 2:** Implement; wire Escape precedence in the existing listener (index → drawer → pen → demo → nothing). Tests PASS; lint; build. Commit `feat(w2): IndexOverlay`.
 
-### Task 39: PresenterPen
+### Task 39: PresenterPen — WITHDRAWN by the user on 2026-09-28 (feature removed in a later commit; kept here as history)
 
 **Model:** Sonnet (W2-owned follow-up, dispatched by Fable after the W2 merge; reviewer Sonnet)
 **Files:**
