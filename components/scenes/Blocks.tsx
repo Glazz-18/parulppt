@@ -92,7 +92,14 @@ function BlockView({ block }: { block: Block }) {
         </div>
       );
 
-    case 'layers':
+    case 'layers': {
+      // Slide 27 (CONTRACTS §3.1, measured overflow 1284px in a 796px viewport) stacks 4 layer
+      // rows of sentence-length text; tightening row padding/line-height for 4+ items buys back
+      // vertical space without touching copy or the item/reveal shape (scene-scoped per the
+      // overflow-fix brief, not a components/ui change -- other layers rows with <4 items, e.g.
+      // scene 13/41, are unaffected either way since padding-only tightening never causes overflow).
+      const tight = block.items.length >= 4;
+      const rowStyle: CSSProperties = tight ? { ...bodyTextStyle, lineHeight: 1.15 } : bodyTextStyle;
       return (
         <div data-block="layers" className="flex flex-col gap-4">
           {block.marker ? (
@@ -100,13 +107,13 @@ function BlockView({ block }: { block: Block }) {
               {block.marker}
             </span>
           ) : null}
-          <div className="flex flex-col gap-3">
+          <div className={tight ? 'flex flex-col gap-2' : 'flex flex-col gap-3'}>
             {block.items.map((item, i) => (
               <div
                 key={i}
                 data-part="layer"
-                className="border-t pt-3"
-                style={{ ...ruleStyle, ...bodyTextStyle }}
+                className={tight ? 'border-t pt-2' : 'border-t pt-3'}
+                style={{ ...ruleStyle, ...rowStyle }}
               >
                 {item.term ? <strong className="mr-3">{item.term}</strong> : null}
                 <span>{item.text}</span>
@@ -125,6 +132,7 @@ function BlockView({ block }: { block: Block }) {
           ) : null}
         </div>
       );
+    }
 
     case 'marks':
       return (
@@ -137,9 +145,18 @@ function BlockView({ block }: { block: Block }) {
         </div>
       );
 
-    case 'metrics':
+    case 'metrics': {
+      // ≥3 metrics stack too tall as a vertical/wrap flow (measured, slide 27: 4 sentence-shaped
+      // metrics at 118px each overflowed the pinned viewport). A responsive grid puts them
+      // side-by-side instead; ≤2 items keep the original flow (unchanged reveal order/targets
+      // either way -- this only changes the wrapping div's layout, not which elements exist).
+      const isGrid = block.items.length >= 3;
       return (
-        <div data-block="metrics" className="flex flex-wrap gap-10">
+        <div
+          data-block="metrics"
+          className={isGrid ? 'grid gap-8' : 'flex flex-wrap gap-10'}
+          style={isGrid ? { gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' } : undefined}
+        >
           {block.items.map((item, i) => (
             <div key={i} data-part="metric">
               <BigNumber {...item} />
@@ -147,6 +164,7 @@ function BlockView({ block }: { block: Block }) {
           ))}
         </div>
       );
+    }
 
     case 'flow': {
       return (

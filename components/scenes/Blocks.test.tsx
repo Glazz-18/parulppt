@@ -83,6 +83,27 @@ describe('Blocks', () => {
     expect(screen.getByText('vs')).toBeTruthy();
   });
 
+  // Overflow fix: ≥3 metrics stacked vertically overflowed the pinned viewport (slide 27,
+  // measured). They now render as a responsive grid instead; ≤2 items are unaffected.
+  it('renders a metrics block with 2 items as the original flow layout, not a grid', () => {
+    const blocks: Block[] = [{ type: 'metrics', items: [{ value: 'A' }, { value: 'B' }] }];
+    const { container } = render(<Blocks blocks={blocks} />);
+    const wrapper = container.querySelector('[data-block="metrics"]') as HTMLElement;
+    expect(wrapper.className).toContain('flex');
+    expect(wrapper.style.gridTemplateColumns).toBe('');
+  });
+
+  it('renders a metrics block with 3+ items as a responsive auto-fit grid', () => {
+    const blocks: Block[] = [
+      { type: 'metrics', items: [{ value: 'A' }, { value: 'B' }, { value: 'C' }] },
+    ];
+    const { container } = render(<Blocks blocks={blocks} />);
+    const wrapper = container.querySelector('[data-block="metrics"]') as HTMLElement;
+    expect(wrapper.className).toContain('grid');
+    expect(wrapper.style.gridTemplateColumns).toBe('repeat(auto-fit, minmax(240px, 1fr))');
+    expect(container.querySelectorAll('[data-part="metric"]')).toHaveLength(3);
+  });
+
   it('renders flow connectors → + = ↺ as distinct, non-hidden connector elements, others as nodes', () => {
     const blocks: Block[] = [
       { type: 'flow', label: 'Agent · loops until done', items: ['Plan', '→', 'Act', '↺'], marker: 'You are here' },
