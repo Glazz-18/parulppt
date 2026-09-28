@@ -29,4 +29,22 @@ describe('BigNumber', () => {
     expect(parts[0].getAttribute('data-part')).toBe('value');
     expect(parts[0].textContent).toBe('42');
   });
+
+  // Overflow fix: several deck metrics (CONTRACTS §3.1) are sentence-shaped, not short numerics
+  // (e.g. "−$1.93M per breach"), and rendering every value at the hero scale overflowed the
+  // pinned viewport (slide 27, measured 1284px in a 796px viewport). Values of >8 chars drop to a
+  // compact scale instead; ≤8 chars keep the hero scale.
+  it('gives an 8-char (short) value the hero font-size expression', () => {
+    const { container } = render(<BigNumber value="12345678" />);
+    const valueEl = container.querySelector('[data-part="value"]');
+    const p = valueEl?.parentElement as HTMLElement;
+    expect(p.style.fontSize).toBe('clamp(64px, 8vw, 140px)');
+  });
+
+  it('gives a 14-char (long, sentence-shaped) value the compact font-size expression', () => {
+    const { container } = render(<BigNumber value="65 days faster" />);
+    const valueEl = container.querySelector('[data-part="value"]');
+    const p = valueEl?.parentElement as HTMLElement;
+    expect(p.style.fontSize).toBe('clamp(28px, 3.4vw, 52px)');
+  });
 });
