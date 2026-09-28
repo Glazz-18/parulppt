@@ -14,7 +14,7 @@ export function SceneShell({ scene, children }: SceneShellProps) {
 
   const viewportStyle: CSSProperties = {
     paddingInline: 'calc(var(--rail-w) + 5vw) 5vw',
-    paddingBlock: 'max(7vh, 72px)',
+    paddingBlock: 'max(7vh, 96px)',
   };
 
   return (

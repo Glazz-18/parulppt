@@ -91,7 +91,7 @@ describe('SceneShell', () => {
     const viewport = container.querySelector('.scene-viewport') as HTMLElement;
 
     expect(viewport.style.paddingInline).toBe('calc(var(--rail-w) + 5vw) 5vw');
-    expect(viewport.style.paddingBlock).toBe('max(7vh, 72px)');
+    expect(viewport.style.paddingBlock).toBe('max(7vh, 96px)');
   });
 
   it('makes an unpinned .scene-viewport a full-height flex column so flex-1 scene roots fill it (I2)', () => {
