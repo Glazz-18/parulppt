@@ -13,7 +13,7 @@ export const scenes: Scene[] = [
     content: {
       words: ['BUILD.', 'BREAK.', 'SECURE.', 'SCALE.'],
       speaker: 'Atharv Tiwari',
-      role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
+      role: 'Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
     },
   },
   {
@@ -1013,7 +1013,7 @@ export const scenes: Scene[] = [
       lines: ['Build something.', 'Break something.', 'Secure something.', 'Scale something.'],
       closing: 'And find the people who will build it with you.',
       speaker: 'Atharv Tiwari',
-      role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
+      role: 'Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
       // User-approved deviation from deck paragraph [7] ('linkedin.com/in/atharvtiwari'); the sole
       // exemption from §3.1 rule 5 and scripts/verify-copy.mjs (CONTRACTS A28).
       linkedin: 'linkedin.com/in/iamatharvtiwari',

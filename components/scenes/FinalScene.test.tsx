@@ -37,7 +37,7 @@ function makeScene(): CtaScene {
       lines: ['Build something.', 'Break something.', 'Secure something.', 'Scale something.'],
       closing: 'And find the people who will build it with you.',
       speaker: 'Atharv Tiwari',
-      role: 'COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
+      role: 'Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer',
       // User-approved deviation from deck paragraph [7] (CONTRACTS A28).
       linkedin: 'linkedin.com/in/iamatharvtiwari',
     },
@@ -69,7 +69,7 @@ describe('FinalScene', () => {
     const { container } = render(<FinalScene scene={makeScene()} />);
     expect(container.textContent).toContain('And find the people who will build it with you.');
     expect(container.textContent).toContain('Atharv Tiwari');
-    expect(container.textContent).toContain('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(container.textContent).toContain('Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
   });
 
   it('the LinkedIn link has the right href/target/rel/text and tracks cta_click on click', () => {

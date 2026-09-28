@@ -153,7 +153,7 @@ describe('scenes manifest', () => {
     const content = scene.content as { words: string[]; speaker: string; role: string };
     expect(content.words).toEqual(['BUILD.', 'BREAK.', 'SECURE.', 'SCALE.']);
     expect(content.speaker).toBe('Atharv Tiwari');
-    expect(content.role).toBe('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(content.role).toBe('Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
   });
 
   it('slide 2 (editorial) has eyebrow, title and a steps block of 3 items', () => {
@@ -325,7 +325,7 @@ describe('scenes manifest', () => {
     expect(content.lines).toEqual(['Build something.', 'Break something.', 'Secure something.', 'Scale something.']);
     expect(content.closing).toBe('And find the people who will build it with you.');
     expect(content.speaker).toBe('Atharv Tiwari');
-    expect(content.role).toBe('COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
+    expect(content.role).toBe('Founder, Sotillion · COO, Nevis Infosystems · Cybersecurity Researcher and Trainer');
     // User-approved deviation from deck paragraph [7] (CONTRACTS A28): the sole exemption from
     // §3.1 rule 5 and scripts/verify-copy.mjs.
     expect(content.linkedin).toBe('linkedin.com/in/iamatharvtiwari');
