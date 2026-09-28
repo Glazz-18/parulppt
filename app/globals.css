@@ -86,6 +86,26 @@ body {
   }
 }
 
+/* §18 floor: verified down to 756px, fitted by arithmetic to 720px. Below that, a pinned
+   scene can overlap the next one if its content outgrows the viewport. Fall back to the same
+   static flow the reduced-motion rule uses, so pinned scenes unpin instead of overlapping.
+   Note: ScrollTrigger's `end` for pinned scenes is `bottom bottom`; with height:auto the
+   section is shorter, so its scrub window compresses. Acceptable for this fallback. */
+@media (max-height: 719px) {
+  section[data-scene] {
+    min-height: 100vh;
+    height: auto;
+  }
+
+  /* Same specificity trick as the reduced-motion rule above: (0,2,1) beats
+     [data-pin="true"] .scene-viewport's (0,2,0), so pinned viewports go static here too. */
+  section[data-scene] .scene-viewport {
+    position: static;
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
 section[data-scene]:focus {
   outline: none;
 }
