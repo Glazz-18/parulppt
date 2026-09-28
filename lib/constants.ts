@@ -34,7 +34,6 @@ export const UI_COPY = {
   soc: { queue: 'Queue', investigating: 'Investigating', correlated: 'Correlated',
          'pending-approval': 'Pending approval', approved: 'Approved', rejected: 'Rejected' }, // TRD §6
   index: 'INDEX',                                               // IndexOverlay trigger (A17)
-  pen: 'PEN', undo: 'UNDO', clear: 'CLEAR', clearConfirm: 'CLEAR?', // PresenterPen (A18)
   boot: { heading: 'INITIALIZING KEYNOTE…',                     // scene 1 boot (A19), user-approved
           lines: ['> loading 46 scenes', '> loading 3 live demos', '> checking guardrails'],
           status: 'SYSTEM STATUS', ready: 'READY' },

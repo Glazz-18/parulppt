@@ -84,7 +84,7 @@ describe('SceneControls', () => {
     expect(container.querySelector('[data-act-label]')?.textContent).toBe('Act 3 — Guardrails');
   });
 
-  it('clips a long act label instead of wrapping, so it never collides with PresenterPen\'s toolbar stacked above it', () => {
+  it('clips a long act label instead of wrapping it', () => {
     act(() => setCurrentScene(29)); // act-5: the longest label
     const { container } = render(<SceneControls />);
     const label = container.querySelector('[data-act-label]') as HTMLElement;
