@@ -27,6 +27,7 @@ describe('MemeInterstitial', () => {
     expect(box.style.height).toBe('min(46vh, 420px)');
     expect(box.style.display).toBe('inline-flex');
     expect(box.style.maxWidth).toBe('100%');
+    expect(box.style.alignSelf).toBe('flex-start');
     expect(img?.style.height).toBe('100%');
     expect(img?.style.width).toBe('auto');
     expect(img?.style.objectFit).toBe('contain');

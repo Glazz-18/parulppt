@@ -24,6 +24,7 @@ export type MemeInterstitialProps = {
 // Round 4: `width: auto` on a block element still stretched to the container's full width
 // (max-width: 100% had nothing to constrain against). inline-flex shrink-wraps the border to the
 // image's own rendered width instead.
+// Round 5: flex-column parent stretches items; align-self keeps the frame at the image's width.
 const boxStyle: CSSProperties = {
   height: 'min(46vh, 420px)',
   maxWidth: '100%',
@@ -32,6 +33,8 @@ const boxStyle: CSSProperties = {
   justifyContent: 'center',
   overflow: 'hidden',
   border: '1px solid var(--rule)',
+  alignSelf: 'flex-start',
+  width: 'fit-content',
 };
 
 const imgStyle: CSSProperties = {
