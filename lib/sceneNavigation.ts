@@ -89,17 +89,6 @@ export function setIndexEscape(onClose: (() => void) | null): void {
   indexEscape = onClose;
 }
 
-// ---- presenter pen escape registry (CONTRACTS §5.6/A21: pen mode registers its off-switch while on) ----
-let penEscape: (() => void) | null = null;
-
-export function getPenEscape(): (() => void) | null {
-  return penEscape;
-}
-
-export function setPenEscape(onClose: (() => void) | null): void {
-  penEscape = onClose;
-}
-
 // ---- demo escape registry (CONTRACTS §8: SocDemo etc. register their transient-UI Escape handler) ----
 const demoEscapeHandlers = new Map<number, () => void>();
 
@@ -281,7 +270,6 @@ export function startNavigationEngine(): () => void {
       progress: target ? target.progress : getSceneProgress(slide),
       indexOpen: getIndexEscape() !== null,
       drawerOpen: getDrawerSlide() !== null,
-      penOpen: getPenEscape() !== null,
       demoEscape: getDemoEscape(slide) !== undefined,
     });
     if (!action) return; // ruling 14: keys never arm snapping
@@ -295,8 +283,6 @@ export function startNavigationEngine(): () => void {
         return getIndexEscape()?.();
       case 'closeDrawer':
         return closeDrawer();
-      case 'closePen':
-        return getPenEscape()?.();
       case 'demoEscape':
         return getDemoEscape(slide)?.();
     }
@@ -341,7 +327,6 @@ export type NavAction =
   | { type: 'scrollBy'; direction: 1 | -1 } // engine clamps one viewport to the pinned scene's range
   | { type: 'closeIndex' }
   | { type: 'closeDrawer' }
-  | { type: 'closePen' }
   | { type: 'demoEscape' };
 
 export type KeyContext = {
@@ -351,7 +336,6 @@ export type KeyContext = {
   progress: number;
   indexOpen?: boolean;
   drawerOpen: boolean;
-  penOpen?: boolean;
   demoEscape: boolean;
 };
 
@@ -361,7 +345,6 @@ export function keyToAction(event: KeyboardEvent, ctx: KeyContext): NavAction | 
   if (event.key === 'Escape') {
     if (ctx.indexOpen) return { type: 'closeIndex' };
     if (ctx.drawerOpen) return { type: 'closeDrawer' };
-    if (ctx.penOpen) return { type: 'closePen' };
     return ctx.demoEscape ? { type: 'demoEscape' } : null;
   }
   // The dialog is modal (aria-modal="true"): every other key is inert while it's open, so the

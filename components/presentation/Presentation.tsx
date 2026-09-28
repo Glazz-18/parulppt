@@ -13,7 +13,6 @@ import { SideNav } from './SideNav';
 import { SceneControls } from './SceneControls';
 import { SourceDrawer } from '@/components/ui/SourceDrawer';
 import { IndexOverlay } from './IndexOverlay';
-import { PresenterPen } from './PresenterPen';
 
 // Binds useGSAP to this gsap instance so its context owns the matchMedia and triggers below.
 gsap.registerPlugin(useGSAP);
@@ -61,7 +60,6 @@ export function Presentation() {
       <SideNav />
       <SceneControls />
       <IndexOverlay />
-      <PresenterPen />
     </MotionConfig>
   );
 }
