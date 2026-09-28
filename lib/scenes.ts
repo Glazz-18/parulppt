@@ -124,7 +124,7 @@ export const scenes: Scene[] = [
     scrollLength: 1,
     kind: 'meme',
     eyebrow: 'RAG ≠ AUTHORIZATION',
-    content: { memeId: 4, lines: ['RAG hai bhai.'] },
+    content: { memeId: 25, lines: ['RAG hai bhai.'] },
   },
   {
     id: 'scene-08',
