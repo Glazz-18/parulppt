@@ -147,7 +147,9 @@ export function AgentLoopScene({ scene }: SceneProps) {
   }, [progress]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-8">
+    // Slide 11 fix (measured overflow 843px in a 796px viewport): tighter outer/grid gaps
+    // (gap-8 -> gap-5, gap-10 -> gap-6).
+    <div ref={containerRef} className="flex flex-col gap-5">
       {scene.eyebrow ? (
         <div ref={eyebrowRef} style={eyebrowStyle}>
           <MonoLabel as="p" tone="label">
@@ -160,13 +162,20 @@ export function AgentLoopScene({ scene }: SceneProps) {
           {scene.title}
         </h2>
       ) : null}
-      <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2">
         {chatbotBlock ? (
           <div className="flex flex-col gap-3">
             <Blocks blocks={[chatbotBlock]} />
           </div>
         ) : null}
-        <div ref={ringRef} data-part="ring" className="relative mx-auto mt-10 aspect-square w-full max-w-[380px]">
+        {/* Loop ring capped at min(44vh, 380px) square (overflow fix item 5) instead of scaling
+            with the full column width, so it can't push the metric below the pinned viewport. */}
+        <div
+          ref={ringRef}
+          data-part="ring"
+          className="relative mx-auto mt-5"
+          style={{ width: 'min(44vh, 380px)', height: 'min(44vh, 380px)' }}
+        >
           {agentBlock?.label ? (
             <p data-part="flow-label" className="absolute -top-8 left-0 right-0 text-center" style={monoStyle}>
               {agentBlock.label}
